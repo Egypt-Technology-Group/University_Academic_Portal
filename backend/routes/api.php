@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AcademicController;
+use App\Http\Controllers\Api\AcademicServicesController;
 use App\Http\Controllers\Api\Admin\AdminCrudController;
 use App\Http\Controllers\Api\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\AdmissionController;
@@ -43,8 +44,12 @@ Route::prefix('v1')->group(function () {
             Route::delete('/events/{id}', [AdminCrudController::class, 'deleteEvent']);
             Route::post('/documents', [AdminCrudController::class, 'storeDocument']);
             Route::match(['put', 'patch'], '/documents/{id}', [AdminCrudController::class, 'updateDocument']);
-            Route::post('/documents/{id}/toggle-archive', [AdminCrudController::class, 'toggleArchiveDocument']);
-            Route::delete('/documents/{id}', [AdminCrudController::class, 'deleteDocument']);
+            // Academic & Student Services Management (Admin)
+            Route::get('/student-requests', [AcademicServicesController::class, 'indexRequests']);
+            Route::patch('/student-requests/{id}/status', [AcademicServicesController::class, 'updateRequestStatus']);
+            Route::post('/official-statements/issue', [AcademicServicesController::class, 'issueStatement']);
+            Route::get('/exam-schedules', [AcademicServicesController::class, 'indexExamSchedules']);
+            Route::post('/exam-schedules', [AcademicServicesController::class, 'storeExamSchedule']);
         });
     });
 
@@ -62,6 +67,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/announcements', [ContentController::class, 'announcements']);
     Route::get('/documents', [ContentController::class, 'documents']);
     Route::post('/documents/{id}/download', [ContentController::class, 'incrementDocumentDownload']);
+
+    // Public Academic & Student Services endpoints
+    Route::get('/exam-schedules', [AcademicServicesController::class, 'indexExamSchedules']);
+    Route::post('/student-services/apply', [AcademicServicesController::class, 'submitRequest']);
+    Route::get('/student-services/requests', [AcademicServicesController::class, 'indexRequests']);
+    Route::get('/verify-statement', [AcademicServicesController::class, 'verifyStatement']);
+    Route::post('/verify-statement', [AcademicServicesController::class, 'verifyStatement']);
 
     // Public Admission endpoints
     Route::middleware('throttle:admissions')->group(function () {

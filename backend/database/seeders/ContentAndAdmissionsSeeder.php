@@ -645,5 +645,115 @@ class ContentAndAdmissionsSeeder extends Seeder
                 ]);
             }
         }
+
+        // 6. Electronic Student Requests
+        \App\Models\StudentServiceRequest::create([
+            'request_number' => 'REQ-2025-0001',
+            'student_id_number' => '20241001',
+            'student_name' => 'Youssef Ahmed Hassan',
+            'program_id' => $aiProgram?->id ?? 1,
+            'service_type' => 'enrollment_cert',
+            'purpose' => [
+                'ar' => 'استخراج شهادة قيد رسمية موجهة إلى نقابة المهندسين والتجنيد',
+                'en' => 'Official proof of enrollment for Syndicate & Military authorities',
+            ],
+            'status' => 'approved',
+            'admin_notes' => 'تمت المراجعة والاعتماد وختم الشهادة بنسر الكلية.',
+            'handled_by' => 'Dr. Admissions Director',
+            'fee_amount' => 50.00,
+            'is_fee_paid' => true,
+            'completed_at' => now()->subDays(2),
+        ]);
+
+        \App\Models\StudentServiceRequest::create([
+            'request_number' => 'REQ-2025-0002',
+            'student_id_number' => '20242002',
+            'student_name' => 'Nourhan Mahmoud Aly',
+            'program_id' => $pharmaProgram?->id ?? 2,
+            'service_type' => 'transcript',
+            'purpose' => [
+                'ar' => 'كشف درجات تفصيلي باللغة الإنجليزية للتقديم على منحة صيفية دولية',
+                'en' => 'Official academic transcript in English for Summer Exchange Program',
+            ],
+            'status' => 'processing',
+            'admin_notes' => 'قيد الترجمة والاعتماد من عميد الكلية.',
+            'handled_by' => 'Registrar Officer',
+            'fee_amount' => 100.00,
+            'is_fee_paid' => true,
+        ]);
+
+        // 7. Verifiable Official Statements & Certificates
+        \App\Models\OfficialStatement::create([
+            'certificate_code' => 'CERT-2025-EG892144',
+            'student_id_number' => '20241001',
+            'student_name' => 'Youssef Ahmed Hassan',
+            'national_id' => '30405150102233',
+            'program_id' => $aiProgram?->id ?? 1,
+            'statement_type' => 'official_enrollment',
+            'title' => [
+                'ar' => 'إفادة قيد رسمية معتمدة لدرجة البكالوريوس',
+                'en' => 'Official Certificate of Enrollment (B.Sc. Artificial Intelligence)',
+            ],
+            'recipient_entity' => [
+                'ar' => 'إلى من يهمه الأمر / سفارة جمهورية مصر العربية',
+                'en' => 'To Whom It May Concern / Egyptian Embassy',
+            ],
+            'verification_hash' => hash('sha256', 'CERT-2025-EG89214420241001'),
+            'qr_payload' => url('/verify-certificate?code=CERT-2025-EG892144'),
+            'signatory_name' => 'Prof. Dr. Ahmed Mansour',
+            'signatory_title' => 'Dean of Faculty of Engineering & Technology',
+            'issue_date' => now()->subDays(5),
+            'valid_until' => now()->addMonths(6),
+            'is_revoked' => false,
+        ]);
+
+        // 8. Exam Schedules & Proctors
+        \App\Models\ExamSchedule::create([
+            'program_id' => $aiProgram?->id ?? 1,
+            'academic_term_id' => 1,
+            'course_code' => 'CS301',
+            'course_name' => [
+                'ar' => 'الذكاء الاصطناعي وتعلم الآلة المتقدم',
+                'en' => 'Artificial Intelligence & Advanced Machine Learning',
+            ],
+            'exam_type' => 'final',
+            'exam_date' => Carbon::parse('2026-06-15'),
+            'start_time' => '09:00:00',
+            'end_time' => '12:00:00',
+            'hall_location' => [
+                'ar' => 'مدرج الدكتور مجدي يعقوب (مبنى أ - الدور الثاني)',
+                'en' => 'Magdi Yacoub Auditorium (Hall A - 2nd Floor)',
+            ],
+            'chief_invigilator' => [
+                'ar' => 'أ.د. عصام النجار',
+                'en' => 'Prof. Dr. Essam El-Naggar',
+            ],
+            'proctors_list' => ['Eng. Omar Mostafa', 'Eng. Heba Salem', 'Eng. Ziad Farouk'],
+            'seating_capacity' => 120,
+        ]);
+
+        \App\Models\ExamSchedule::create([
+            'program_id' => $pharmaProgram?->id ?? 2,
+            'academic_term_id' => 1,
+            'course_code' => 'PH402',
+            'course_name' => [
+                'ar' => 'علم الأدوية الإكلينيكي والعلاجي',
+                'en' => 'Clinical Pharmacology & Therapeutics',
+            ],
+            'exam_type' => 'final',
+            'exam_date' => Carbon::parse('2026-06-18'),
+            'start_time' => '10:00:00',
+            'end_time' => '13:00:00',
+            'hall_location' => [
+                'ar' => 'مدرج ابن سينا المركزي (مبنى العلوم الصيدلية)',
+                'en' => 'Ibn Sina Grand Hall (Pharmaceutical Sciences Complex)',
+            ],
+            'chief_invigilator' => [
+                'ar' => 'أ.د. منى عبد الرحمن',
+                'en' => 'Prof. Dr. Mona Abdel-Rahman',
+            ],
+            'proctors_list' => ['Dr. Sarah Nabil', 'Dr. Mohamed Rashed'],
+            'seating_capacity' => 80,
+        ]);
     }
 }

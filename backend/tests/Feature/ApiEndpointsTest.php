@@ -792,5 +792,38 @@ class ApiEndpointsTest extends TestCase
             ->postJson('/api/v1/admin/settings/reset');
         $resetResponse->assertStatus(200);
     }
+
+    public function test_academic_and_student_services_endpoints(): void
+    {
+        // 1. Public Exam Schedules
+        $examResponse = $this->getJson('/api/v1/exam-schedules');
+        $examResponse->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'data',
+            ]);
+
+        // 2. Public Statement Verification
+        $verifyResponse = $this->getJson('/api/v1/verify-statement?code=CERT-2025-EG892144');
+        $verifyResponse->assertStatus(200)
+            ->assertJson([
+                'valid' => true,
+            ]);
+
+        // 3. Admin Auth & Electronic Student Requests
+        $loginResponse = $this->postJson('/api/v1/auth/login', [
+            'email' => 'admin@university.edu.eg',
+            'password' => 'admin123',
+        ]);
+        $token = $loginResponse->json('token');
+
+        $requestsResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/admin/student-requests');
+        $requestsResponse->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'data',
+            ]);
+    }
 }
 

@@ -282,6 +282,7 @@ import { useLocaleStore } from '../../stores/locale'
 import {
   LayoutDashboard,
   UserCheck,
+  GraduationCap,
   Newspaper,
   Calendar,
   FolderArchive,
@@ -357,6 +358,11 @@ const navigationMenu = computed(() => [
         icon: UserCheck,
         badge: '14',
         badgeVariant: 'warning',
+      },
+      {
+        path: '/admin/academic-services',
+        label: localeStore.isRtl ? 'الخدمات الأكاديمية والطلابية' : 'Academic & Student Services',
+        icon: GraduationCap,
       },
     ],
   },

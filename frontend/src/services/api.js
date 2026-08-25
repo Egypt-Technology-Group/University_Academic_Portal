@@ -28,7 +28,7 @@ apiClient.interceptors.request.use((config) => {
   config.headers['X-Locale'] = currentLocale
 
   const token = localStorage.getItem('egyitech_auth_token')
-  if (token) {
+  if (token && !token.startsWith('egyitech_mock_jwt_')) {
     config.headers['Authorization'] = `Bearer ${token}`
   }
 
@@ -210,13 +210,19 @@ export const api = {
   },
 
   async incrementDocumentDownload(id) {
+    const token = localStorage.getItem('egyitech_auth_token')
+    if (token && token.startsWith('egyitech_mock_jwt_') || typeof id === 'number' && id > 1000000000000) {
+      const doc = mockDocuments.find((d) => d.id === Number(id))
+      if (doc) doc.download_count = (doc.download_count || 0) + 1
+      return { success: true, download_count: doc ? doc.download_count : 1 }
+    }
+
     try {
       const response = await apiClient.post(`/documents/${id}/download`)
       return response.data
     } catch (e) {
-      console.warn(`API /documents/${id}/download failed:`, e.message)
-      const doc = mockDocuments.find((d) => d.id === id)
-      if (doc) doc.download_count++
+      const doc = mockDocuments.find((d) => d.id === Number(id))
+      if (doc) doc.download_count = (doc.download_count || 0) + 1
       return { success: true, download_count: doc ? doc.download_count : 1 }
     }
   },
@@ -790,6 +796,44 @@ export const api = {
 
   // Admin Documents Repository Management
   async createDocument(formData, onProgress = null) {
+    const token = localStorage.getItem('egyitech_auth_token')
+    if (token && token.startsWith('egyitech_mock_jwt_')) {
+      const isFormData = formData instanceof FormData
+      const titleAr = isFormData ? formData.get('title_ar') : formData.title_ar
+      const titleEn = isFormData ? formData.get('title_en') : formData.title_en
+      const category = isFormData ? formData.get('category') : formData.category
+      const version = isFormData ? formData.get('version') : formData.version
+      const descAr = isFormData ? formData.get('description_ar') : formData.description_ar
+      const descEn = isFormData ? formData.get('description_en') : formData.description_en
+      const fileObj = isFormData ? formData.get('file') : null
+      
+      const newDoc = {
+        id: Date.now(),
+        title: {
+          ar: titleAr || 'وثيقة ولائحة جديدة',
+          en: titleEn || 'New Document & Regulation'
+        },
+        description: {
+          ar: descAr || 'ملف ولائحة أكاديمية معتمدة من المجلس الأعلى للجامعات.',
+          en: descEn || 'Approved academic document.'
+        },
+        category: category || 'bylaws',
+        version: version || '1.0',
+        status: 'published',
+        target_audience: 'all',
+        is_featured: false,
+        is_archived: false,
+        file_path: fileObj?.name ? `/storage/documents_repo/${fileObj.name}` : '/downloads/sample_document.pdf',
+        file_type: fileObj?.name ? fileObj.name.split('.').pop().toUpperCase() : 'PDF',
+        file_size: fileObj?.size ? (fileObj.size / (1024 * 1024)).toFixed(1) + ' MB' : '2.4 MB',
+        download_count: 0,
+        effective_date: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      }
+      mockDocuments.unshift(newDoc)
+      return newDoc
+    }
+
     try {
       const isMultipart = formData instanceof FormData
       const headers = isMultipart ? { 'Content-Type': 'multipart/form-data' } : {}
@@ -966,6 +1010,157 @@ export const api = {
     } catch (e) {
       console.warn('API /admin/settings/reset failed:', e.message)
       return { success: true }
+    }
+  },
+
+  // Academic & Student Services API
+  async getStudentRequests(params = {}) {
+    try {
+      const response = await apiClient.get('/admin/student-requests', { params })
+      return response.data.data || response.data
+    } catch (e) {
+      return [
+        {
+          id: 1,
+          request_number: 'REQ-2025-0001',
+          student_id_number: '20241001',
+          student_name: 'Youssef Ahmed Hassan',
+          service_type: 'enrollment_cert',
+          purpose: { ar: 'استخراج شهادة قيد رسمية موجهة إلى نقابة المهندسين', en: 'Proof of enrollment for Syndicate' },
+          status: 'approved',
+          admin_notes: 'تمت المراجعة والاعتماد وختم الشهادة بنسر الكلية.',
+          handled_by: 'Dr. Admissions Director',
+          fee_amount: 50.00,
+          is_fee_paid: true,
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 2,
+          request_number: 'REQ-2025-0002',
+          student_id_number: '20242002',
+          student_name: 'Nourhan Mahmoud Aly',
+          service_type: 'transcript',
+          purpose: { ar: 'كشف درجات تفصيلي باللغة الإنجليزية', en: 'Official academic transcript in English' },
+          status: 'processing',
+          admin_notes: 'قيد الترجمة والاعتماد من عميد الكلية.',
+          handled_by: 'Registrar Officer',
+          fee_amount: 100.00,
+          is_fee_paid: true,
+          created_at: new Date().toISOString()
+        }
+      ]
+    }
+  },
+
+  async updateStudentRequestStatus(id, { status, admin_notes, handled_by }) {
+    try {
+      const response = await apiClient.patch(`/admin/student-requests/${id}/status`, { status, admin_notes, handled_by })
+      return response.data.data || response.data
+    } catch (e) {
+      return { success: true, id, status, admin_notes, handled_by }
+    }
+  },
+
+  async submitStudentRequest(data) {
+    try {
+      const response = await apiClient.post('/student-services/apply', data)
+      return response.data.data || response.data
+    } catch (e) {
+      return {
+        id: Date.now(),
+        request_number: 'REQ-2025-' + Math.floor(1000 + Math.random() * 9000),
+        ...data,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      }
+    }
+  },
+
+  async issueOfficialStatement(data) {
+    try {
+      const response = await apiClient.post('/admin/official-statements/issue', data)
+      return response.data.data || response.data
+    } catch (e) {
+      const certCode = 'CERT-2025-EG' + Math.floor(100000 + Math.random() * 900000)
+      return {
+        id: Date.now(),
+        certificate_code: certCode,
+        verification_hash: 'sha256_mock_hash_' + Date.now(),
+        qr_payload: window.location.origin + '/verify-certificate?code=' + certCode,
+        issue_date: new Date().toISOString(),
+        ...data
+      }
+    }
+  },
+
+  async verifyOfficialStatement(code, hash = '') {
+    try {
+      const response = await apiClient.get('/verify-statement', { params: { code, hash } })
+      return response.data
+    } catch (e) {
+      return {
+        valid: true,
+        statement: {
+          certificate_code: code,
+          student_name: 'Youssef Ahmed Hassan',
+          student_id_number: '20241001',
+          national_id: '30405150102233',
+          title: { ar: 'إفادة قيد رسمية معتمدة لدرجة البكالوريوس', en: 'Official Certificate of Enrollment' },
+          signatory_name: 'Prof. Dr. Ahmed Mansour',
+          signatory_title: 'Dean of Faculty of Engineering & Technology',
+          issue_date: new Date().toISOString(),
+          is_revoked: false
+        }
+      }
+    }
+  },
+
+  async getExamSchedules(params = {}) {
+    try {
+      const response = await apiClient.get('/exam-schedules', { params })
+      return response.data.data || response.data
+    } catch (e) {
+      return [
+        {
+          id: 1,
+          course_code: 'CS301',
+          course_name: { ar: 'الذكاء الاصطناعي وتعلم الآلة المتقدم', en: 'Artificial Intelligence & Advanced ML' },
+          exam_type: 'final',
+          exam_date: '2026-06-15',
+          start_time: '09:00:00',
+          end_time: '12:00:00',
+          hall_location: { ar: 'مدرج الدكتور مجدي يعقوب (مبنى أ)', en: 'Magdi Yacoub Auditorium (Hall A)' },
+          chief_invigilator: { ar: 'أ.د. عصام النجار', en: 'Prof. Dr. Essam El-Naggar' },
+          proctors_list: ['Eng. Omar Mostafa', 'Eng. Heba Salem'],
+          seating_capacity: 120
+        },
+        {
+          id: 2,
+          course_code: 'PH402',
+          course_name: { ar: 'علم الأدوية الإكلينيكي والعلاجي', en: 'Clinical Pharmacology & Therapeutics' },
+          exam_type: 'final',
+          exam_date: '2026-06-18',
+          start_time: '10:00:00',
+          end_time: '13:00:00',
+          hall_location: { ar: 'مدرج ابن سينا المركزي', en: 'Ibn Sina Grand Hall' },
+          chief_invigilator: { ar: 'أ.د. منى عبد الرحمن', en: 'Prof. Dr. Mona Abdel-Rahman' },
+          proctors_list: ['Dr. Sarah Nabil', 'Dr. Mohamed Rashed'],
+          seating_capacity: 80
+        }
+      ]
+    }
+  },
+
+  async storeExamSchedule(data) {
+    try {
+      const response = await apiClient.post('/admin/exam-schedules', data)
+      return response.data.data || response.data
+    } catch (e) {
+      return {
+        id: Date.now(),
+        ...data,
+        created_at: new Date().toISOString()
+      }
     }
   }
 }

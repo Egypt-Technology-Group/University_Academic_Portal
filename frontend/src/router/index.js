@@ -138,6 +138,12 @@ const routes = [
         meta: { title: 'Admissions Management Queue', requiresAuth: true },
       },
       {
+        path: 'academic-services',
+        name: 'admin-academic-services',
+        component: () => import('../views/admin/AdminAcademicServicesView.vue'),
+        meta: { title: 'Academic & Student Services', requiresAuth: true },
+      },
+      {
         path: 'cms',
         name: 'admin-cms',
         component: AdminCmsView,
