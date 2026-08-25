@@ -290,15 +290,17 @@
           <div class="lg:col-span-4 text-center">
             <div class="relative inline-block">
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"
+                :src="settingsStore.presidentAvatar"
                 alt="President"
                 class="w-48 h-48 sm:w-56 sm:h-56 rounded-3xl object-cover shadow-lg border-4 border-gold-400/50 mx-auto"
               />
               <div class="absolute -bottom-3 inset-x-0 mx-auto w-fit bg-navy-900 text-gold-400 text-xs font-bold px-3 py-1 rounded-full shadow">
-                {{ $t('home.presidentTitle') }}
+                {{ settingsStore.presidentTitle(localeStore.locale) || $t('home.presidentTitle') }}
               </div>
             </div>
-            <h4 class="text-lg font-bold text-navy-950 mt-6">{{ $t('home.presidentName') }}</h4>
+            <h4 class="text-lg font-bold text-navy-950 mt-6">
+              {{ settingsStore.presidentName(localeStore.locale) || $t('home.presidentName') }}
+            </h4>
             <p class="text-xs text-slate-500">Ph.D., Senior Member IEEE</p>
           </div>
 
@@ -307,10 +309,10 @@
               <span>❝</span> {{ $t('home.presidentMessage') }}
             </div>
             <h3 class="text-2xl sm:text-3xl font-black text-navy-950 leading-tight">
-              {{ localeStore.isRtl ? 'بناء مستقبل التكنولوجيا بأيدي أبنائنا المبدعين' : 'Engineering the Future of Technology with Applied Excellence' }}
+              {{ settingsStore.presidentQuote(localeStore.locale) || (localeStore.isRtl ? 'بناء مستقبل التكنولوجيا بأيدي أبنائنا المبدعين' : 'Engineering the Future of Technology with Applied Excellence') }}
             </h3>
             <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
-              {{ $t('home.presidentSpeech') }}
+              {{ settingsStore.presidentFullMessage(localeStore.locale) || $t('home.presidentSpeech') }}
             </p>
             <div class="pt-4 flex items-center gap-4">
               <router-link
@@ -502,12 +504,14 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocaleStore } from '../stores/locale'
+import { useSettingsStore } from '../stores/settings'
 import { api, getTranslated } from '../services/api'
 import Button from '../components/ui/Button.vue'
 import Badge from '../components/ui/Badge.vue'
 import Card from '../components/ui/Card.vue'
 
 const localeStore = useLocaleStore()
+const settingsStore = useSettingsStore()
 
 const colleges = ref([])
 const programs = ref([])
@@ -517,50 +521,38 @@ const events = ref([])
 const currentSlideIndex = ref(0)
 let sliderTimer = null
 
-const slides = computed(() => [
-  {
-    badge: localeStore.isRtl ? 'الريادة والابتكار' : 'Innovation & Leadership',
-    title: localeStore.isRtl
-      ? 'الريادة في الذكاء الاصطناعي والتكنولوجيا الحديثة'
-      : 'Pioneering AI & Advanced Engineering',
-    subtitle: localeStore.isRtl
-      ? 'برامج أكاديمية متطورة ومعتمدة دولياً تؤهلك لسوق العمل العالمي بأعلى المعايير المهنية.'
-      : 'Internationally accredited, future-proof academic programs engineered to prepare you for global market leadership.',
-    ctaText: localeStore.isRtl ? 'استكشف البرامج' : 'Explore Programs',
-    ctaLink: '/programs',
-    secondaryText: localeStore.isRtl ? 'قدم الآن' : 'Apply Now',
-    secondaryLink: '/admissions',
-    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80',
-  },
-  {
-    badge: localeStore.isRtl ? 'القبول والتسجيل 2025/2026' : 'Admissions Open 2025/2026',
-    title: localeStore.isRtl
-      ? 'فتح باب القبول والتسجيل للعام الأكاديمي الجديد'
-      : 'Admissions Open for Academic Year 2025/2026',
-    subtitle: localeStore.isRtl
-      ? 'انضم إلى نخبة الطلاب في كبرى كليات الهندسة، الحاسبات، وإدارة الأعمال التكنولوجية.'
-      : 'Join thousands of ambitious students in prestigious Engineering, Computer Science, and Tech-Business faculties.',
-    ctaText: localeStore.isRtl ? 'قدم طلب التحاقك الآن' : 'Apply for Admission',
-    ctaLink: '/admissions',
-    secondaryText: localeStore.isRtl ? 'متابعة الطلب' : 'Track Application',
-    secondaryLink: '/admissions/track',
-    image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1000&q=80',
-  },
-  {
-    badge: localeStore.isRtl ? 'أبحاث ومعامل متطورة' : 'Cutting-edge Research',
-    title: localeStore.isRtl
-      ? 'بيئة بحثية متقدمة وشراكات صناعية رائدة'
-      : 'Cutting-Edge Research Hub & Industrial Partnerships',
-    subtitle: localeStore.isRtl
-      ? 'معامل متخصصة فائقة التطور، حاضنات أعمال تكنولوجية، ومشاريع تخرج مرتبطة بالصناعة.'
-      : 'State-of-the-art specialized laboratories, tech incubators, and direct enterprise-aligned graduation projects.',
-    ctaText: localeStore.isRtl ? 'تعرف على كلياتنا' : 'Explore Our Colleges',
-    ctaLink: '/colleges',
-    secondaryText: localeStore.isRtl ? 'هيئة التدريس' : 'Meet Our Faculty',
-    secondaryLink: '/faculty',
-    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1000&q=80',
-  },
-])
+const slides = computed(() => {
+  const customSlides = settingsStore.heroSlider
+  if (customSlides && customSlides.length > 0) {
+    return customSlides.map((s) => ({
+      badge: getTranslated(s.badge, localeStore.locale) || '',
+      title: getTranslated(s.title, localeStore.locale) || '',
+      subtitle: getTranslated(s.subtitle, localeStore.locale) || '',
+      ctaText: getTranslated(s.cta_text, localeStore.locale) || '',
+      ctaLink: s.cta_link || '/admissions',
+      secondaryText: getTranslated(s.secondary_text, localeStore.locale) || '',
+      secondaryLink: s.secondary_link || '/programs',
+      image: s.image_url || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80',
+    }))
+  }
+
+  return [
+    {
+      badge: localeStore.isRtl ? 'الريادة والابتكار' : 'Innovation & Leadership',
+      title: localeStore.isRtl
+        ? 'الريادة في الذكاء الاصطناعي والتكنولوجيا الحديثة'
+        : 'Pioneering AI & Advanced Engineering',
+      subtitle: localeStore.isRtl
+        ? 'برامج أكاديمية متطورة ومعتمدة دولياً تؤهلك لسوق العمل العالمي بأعلى المعايير المهنية.'
+        : 'Internationally accredited, future-proof academic programs engineered to prepare you for global market leadership.',
+      ctaText: localeStore.isRtl ? 'استكشف البرامج' : 'Explore Programs',
+      ctaLink: '/programs',
+      secondaryText: localeStore.isRtl ? 'قدم الآن' : 'Apply Now',
+      secondaryLink: '/admissions',
+      image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1000&q=80',
+    },
+  ]
+})
 
 const activeSlide = computed(() => slides.value[currentSlideIndex.value] || slides.value[0])
 

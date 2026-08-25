@@ -387,6 +387,7 @@
       "groupOverview": "Overview",
       "groupAdmissions": "Admissions & Students",
       "groupContent": "Content & Repository",
+      "groupSettings": "Site Settings",
       "returnPublicPortal": "View Public Portal"
     },
     "nav": {
@@ -394,7 +395,8 @@
       "admissions": "Admissions Queue",
       "cms": "News & Announcements",
       "events": "Events & Calendar",
-      "documents": "Documents & Bylaws"
+      "documents": "Documents & Bylaws",
+      "settings": "Site Customization & Themes"
     },
     "header": {
       "logout": "Sign Out",
@@ -575,6 +577,59 @@
       "labelSize": "Estimated File Size (MB)",
       "labelDescriptionAr": "Document Description & Summary",
       "confirmDeleteDoc": "Are you sure you want to delete this document from the repository?"
+    },
+    "settings": {
+      "badge": "Site Customization & Themes",
+      "title": "Site Customization & Settings",
+      "subtitle": "Customize brand identity, color schemes, president speech, hero sliders, and contact details without code",
+      "saveAll": "Save All Changes",
+      "saving": "Saving Configuration...",
+      "resetDefaults": "Reset to Defaults",
+      "saveSuccessMsg": "Site settings successfully saved and applied to the portal!",
+      "tabs": {
+        "brandingTitle": "Brand Identity & Crest",
+        "brandingDesc": "Configure university official name, acronyms, motto, and logo assets",
+        "themeTitle": "Colors & Academic Theme",
+        "themeDesc": "Manage primary navy palette, secondary gold accents, and UI styling",
+        "presidentTitle": "President Message & Leadership",
+        "presidentDesc": "Update president profile photo, title, highlight quotes, and official welcome address",
+        "heroTitle": "Homepage Hero Slides",
+        "heroDesc": "Configure carousel banners, titles, call-to-action buttons, and background photography",
+        "contactTitle": "Contact Channels & Social Media",
+        "contactDesc": "Manage central hotline, direct extensions, support emails, and verified social channels",
+        "broadcastTitle": "Urgent Broadcast & Footer",
+        "broadcastDesc": "Manage high-priority announcement ticker and footer copyright details"
+      },
+      "fields": {
+        "nameAr": "Official Name (Arabic)",
+        "nameEn": "Official Name (English)",
+        "shortNameAr": "Short Acronym (Arabic)",
+        "shortNameEn": "Short Acronym (English)",
+        "sloganAr": "University Slogan (Arabic)",
+        "sloganEn": "University Slogan (English)",
+        "mottoAr": "Vision Motto (Arabic)",
+        "mottoEn": "Vision Motto (English)",
+        "estYear": "Established Year",
+        "faviconUrl": "Browser Favicon URL",
+        "primaryNavy": "Primary Academic Navy",
+        "secondaryGold": "Secondary Royal Gold",
+        "accentEmerald": "Accent Emerald",
+        "palettePresets": "Curated Academic Color Palettes",
+        "presidentNameAr": "President Name (Arabic)",
+        "presidentNameEn": "President Name (English)",
+        "presidentTitleAr": "Official Title (Arabic)",
+        "presidentTitleEn": "Official Title (English)",
+        "presidentAvatar": "Official Portrait URL",
+        "presidentQuoteAr": "Featured Keynote Quote (Arabic)",
+        "presidentQuoteEn": "Featured Keynote Quote (English)",
+        "presidentMessageAr": "Full Welcome Speech (Arabic)",
+        "presidentMessageEn": "Full Welcome Speech (English)",
+        "addSlide": "Add New Slide",
+        "slideNum": "Slide",
+        "socialChannels": "Official Social Media Profiles",
+        "enableBroadcast": "Enable Top Priority Broadcast Alert Bar",
+        "footerConfig": "Footer Description & Copyright"
+      }
     }
   }
 }

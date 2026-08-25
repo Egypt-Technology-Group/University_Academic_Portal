@@ -706,6 +706,57 @@ export const api = {
       }
       return { success: true }
     }
+  },
+
+  // Dynamic Site Settings API
+  async getPublicSettings() {
+    try {
+      const response = await apiClient.get('/settings')
+      return response.data.settings || response.data
+    } catch (e) {
+      console.warn('API /settings failed, falling back to local cached settings:', e.message)
+      return null
+    }
+  },
+
+  async getAdminSettings() {
+    try {
+      const response = await apiClient.get('/admin/settings')
+      return response.data.settings || response.data
+    } catch (e) {
+      console.warn('API /admin/settings failed:', e.message)
+      return null
+    }
+  },
+
+  async updateAdminSettings(settingsArray) {
+    try {
+      const response = await apiClient.post('/admin/settings', { settings: settingsArray })
+      return response.data
+    } catch (e) {
+      console.warn('API POST /admin/settings failed, updating locally:', e.message)
+      return { success: true }
+    }
+  },
+
+  async updateSingleSetting(key, { value, group = 'general', is_public = true }) {
+    try {
+      const response = await apiClient.patch(`/admin/settings/${key}`, { value, group, is_public })
+      return response.data
+    } catch (e) {
+      console.warn(`API PATCH /admin/settings/${key} failed, updating locally:`, e.message)
+      return { success: true }
+    }
+  },
+
+  async resetAdminSettings() {
+    try {
+      const response = await apiClient.post('/admin/settings/reset')
+      return response.data
+    } catch (e) {
+      console.warn('API /admin/settings/reset failed:', e.message)
+      return { success: true }
+    }
   }
 }
 

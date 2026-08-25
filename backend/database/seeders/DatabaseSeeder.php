@@ -52,6 +52,7 @@ class DatabaseSeeder extends Seeder
 
         // 2. Call Domain Seeders
         $this->call([
+            SiteSettingsSeeder::class,
             AcademicSeeder::class,
             ContentAndAdmissionsSeeder::class,
         ]);

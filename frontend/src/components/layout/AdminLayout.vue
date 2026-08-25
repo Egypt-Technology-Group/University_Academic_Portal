@@ -285,6 +285,7 @@ import {
   Newspaper,
   Calendar,
   FolderArchive,
+  Palette,
   ExternalLink,
   ChevronRight,
   ChevronLeft,
@@ -315,6 +316,7 @@ const currentRouteTitle = computed(() => {
   if (route.path.includes('/admin/cms')) return t('admin.nav.cms')
   if (route.path.includes('/admin/events')) return t('admin.nav.events')
   if (route.path.includes('/admin/documents')) return t('admin.nav.documents')
+  if (route.path.includes('/admin/settings')) return t('admin.nav.settings')
   return t('admin.nav.dashboard')
 })
 
@@ -375,6 +377,16 @@ const navigationMenu = computed(() => [
         path: '/admin/documents',
         label: t('admin.nav.documents'),
         icon: FolderArchive,
+      },
+    ],
+  },
+  {
+    title: t('admin.sidebar.groupSettings'),
+    items: [
+      {
+        path: '/admin/settings',
+        label: t('admin.nav.settings'),
+        icon: Palette,
       },
     ],
   },

@@ -1,7 +1,7 @@
 <template>
   <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all duration-300">
     <!-- Top Announcement & Utility Bar -->
-    <div class="bg-navy-950 text-slate-200 text-xs py-1.5 px-4 sm:px-8 border-b border-navy-900 announcement-bar">
+    <div v-if="settingsStore.isTopAnnouncementActive" class="bg-navy-950 text-slate-200 text-xs py-1.5 px-4 sm:px-8 border-b border-navy-900 announcement-bar">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
         <!-- Urgent Alert Ticker / Headline -->
         <div class="flex items-center gap-2 overflow-hidden">
@@ -10,10 +10,10 @@
             {{ $t('nav.urgent') }}
           </span>
           <router-link
-            to="/admissions"
+            :to="settingsStore.topAnnouncementLink"
             class="text-slate-300 hover:text-gold-400 transition-colors truncate text-xs font-medium"
           >
-            {{ urgentAnnouncement }}
+            {{ settingsStore.topAnnouncementText(localeStore.locale) }}
           </router-link>
         </div>
 
@@ -84,10 +84,10 @@
         </div>
         <div class="text-start">
           <span class="block font-black text-lg sm:text-xl text-navy-950 tracking-tight leading-none group-hover:text-navy-800 transition-colors">
-            {{ $t('app.shortName') }}
+            {{ settingsStore.siteShortName(localeStore.locale) }}
           </span>
           <span class="block text-[11px] sm:text-xs text-slate-500 font-medium leading-tight">
-            {{ localeStore.isRtl ? 'جامعة التكنولوجيا والعلوم التطبيقية' : 'University of Technology' }}
+            {{ settingsStore.siteSlogan(localeStore.locale) || (localeStore.isRtl ? 'جامعة التكنولوجيا والعلوم التطبيقية' : 'University of Technology') }}
           </span>
         </div>
       </router-link>
@@ -305,17 +305,13 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useLocaleStore } from '../../stores/locale'
+import { useSettingsStore } from '../../stores/settings'
 import SearchModal from '../ui/SearchModal.vue'
 
 const localeStore = useLocaleStore()
+const settingsStore = useSettingsStore()
 const mobileMenuOpen = ref(false)
 const showSearchModal = ref(false)
-
-const urgentAnnouncement = computed(() => {
-  return localeStore.isRtl
-    ? 'فتح باب القبول والتسجيل للعام الجامعي 2025/2026 بخصم 15% للتقديم المبكر'
-    : 'Admissions Open for Academic Year 2025/2026 with a 15% Early Enrollment Discount'
-})
 
 const handleKeyboardShortcut = (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {

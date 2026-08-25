@@ -6,10 +6,14 @@ use App\Http\Controllers\Api\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\SiteSettingsController;
 use App\Http\Controllers\Api\StudentPortalController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // Public Dynamic Site Settings
+    Route::get('/settings', [SiteSettingsController::class, 'getPublicSettings']);
+
     // Auth endpoints
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::middleware('auth:sanctum')->group(function () {
@@ -21,6 +25,12 @@ Route::prefix('v1')->group(function () {
             Route::get('/stats', [AdminDashboardController::class, 'stats']);
             Route::get('/applications', [AdminDashboardController::class, 'applications']);
             Route::match(['patch', 'put'], '/applications/{id}/status', [AdminDashboardController::class, 'updateApplicationStatus']);
+
+            // Site Customization & Dynamic Settings
+            Route::get('/settings', [SiteSettingsController::class, 'index']);
+            Route::post('/settings', [SiteSettingsController::class, 'update']);
+            Route::patch('/settings/{key}', [SiteSettingsController::class, 'updateSingle']);
+            Route::post('/settings/reset', [SiteSettingsController::class, 'resetToDefaults']);
 
             // CMS Management
             Route::post('/news', [AdminCrudController::class, 'storeNews']);

@@ -732,4 +732,65 @@ class ApiEndpointsTest extends TestCase
             ->deleteJson("/api/v1/admin/announcements/{$annId}");
         $deleteAnn->assertStatus(200);
     }
+
+    public function test_site_settings_public_and_admin_endpoints(): void
+    {
+        // 1. Public Settings Endpoint
+        $publicResponse = $this->getJson('/api/v1/settings');
+        $publicResponse->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'settings' => [
+                    'site_identity',
+                    'theme_colors',
+                    'president_message',
+                    'hero_slider',
+                    'contact_info',
+                    'social_links',
+                    'footer_info',
+                ],
+            ]);
+
+        // 2. Admin Auth
+        $loginResponse = $this->postJson('/api/v1/auth/login', [
+            'email' => 'admin@university.edu.eg',
+            'password' => 'admin123',
+        ]);
+        $token = $loginResponse->json('token');
+
+        // 3. Admin Get All Settings
+        $adminSettings = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/admin/settings');
+        $adminSettings->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'settings',
+            ]);
+
+        // 4. Update Single Setting
+        $updateResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->patchJson('/api/v1/admin/settings/site_identity', [
+                'value' => [
+                    'name' => [
+                        'ar' => 'جامعة إيجي تك للتكنولوجيا والعلوم المحدثة',
+                        'en' => 'EgyiTech University Updated',
+                    ],
+                    'short_name' => [
+                        'ar' => 'إيجي تك المحدثة',
+                        'en' => 'EgyiTech New',
+                    ],
+                ],
+                'group' => 'branding',
+            ]);
+        $updateResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        // 5. Reset to defaults
+        $resetResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/v1/admin/settings/reset');
+        $resetResponse->assertStatus(200);
+    }
 }
+

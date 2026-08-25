@@ -21,17 +21,20 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLocaleStore } from './stores/locale'
+import { useSettingsStore } from './stores/settings'
 import Navbar from './components/layout/Navbar.vue'
 import Footer from './components/layout/Footer.vue'
 
 const route = useRoute()
 const localeStore = useLocaleStore()
+const settingsStore = useSettingsStore()
 
 const isAdminRoute = computed(() => {
   return route.path.startsWith('/admin')
 })
 
-onMounted(() => {
+onMounted(async () => {
   localeStore.initLocale()
+  await settingsStore.fetchPublicSettings()
 })
 </script>

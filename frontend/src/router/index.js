@@ -24,6 +24,7 @@ import AdminAdmissionsView from '../views/admin/AdminAdmissionsView.vue'
 import AdminCmsView from '../views/admin/AdminCmsView.vue'
 import AdminEventsView from '../views/admin/AdminEventsView.vue'
 import AdminDocumentsView from '../views/admin/AdminDocumentsView.vue'
+import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
 
 const routes = [
   // Public Routes
@@ -153,6 +154,12 @@ const routes = [
         name: 'admin-documents',
         component: AdminDocumentsView,
         meta: { title: 'Documents Repository Manager', requiresAuth: true },
+      },
+      {
+        path: 'settings',
+        name: 'admin-settings',
+        component: AdminSettingsView,
+        meta: { title: 'Site Customization & Settings', requiresAuth: true },
       },
     ],
   },
