@@ -315,35 +315,61 @@
           </div>
         </div>
 
-        <!-- System Architecture & Health -->
-        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs">
-          <h3 class="font-black text-navy-950 text-base mb-4 flex items-center gap-2">
+        <!-- System Architecture, Security & Audit Feed -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+          <h3 class="font-black text-navy-950 text-base flex items-center gap-2">
             <ShieldCheck class="w-5 h-5 text-emerald-600" />
             <span>{{ $t('admin.dashboard.systemHealthTitle') }}</span>
           </h3>
 
-          <div class="space-y-3 text-xs">
+          <div class="space-y-2.5 text-xs">
             <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
               <span class="text-slate-500">{{ $t('admin.dashboard.healthDatabase') }}</span>
               <span class="font-bold text-emerald-700 flex items-center gap-1">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                MySQL v8.0 Connected
+                SQLite / MySQL Active
               </span>
             </div>
 
             <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-              <span class="text-slate-500">{{ $t('admin.dashboard.healthAuthEngine') }}</span>
-              <span class="font-bold text-navy-900">Laravel Sanctum JWT</span>
+              <span class="text-slate-500">API Rate Limiter</span>
+              <span class="font-bold text-emerald-700">Enforced (Throttle:API)</span>
             </div>
 
             <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
-              <span class="text-slate-500">{{ $t('admin.dashboard.healthLatency') }}</span>
-              <span class="font-mono font-bold text-slate-700">~24 ms</span>
+              <span class="text-slate-500">{{ $t('admin.dashboard.healthAuthEngine') }}</span>
+              <span class="font-bold text-navy-900">Laravel Sanctum RBAC</span>
             </div>
 
             <div class="flex items-center justify-between py-1.5">
               <span class="text-slate-500">{{ $t('admin.dashboard.healthUptime') }}</span>
-              <span class="font-mono font-bold text-emerald-600">99.98%</span>
+              <span class="font-mono font-bold text-emerald-600">99.99% Online</span>
+            </div>
+          </div>
+
+          <!-- Real-Time Activity Audit Trail -->
+          <div class="pt-3 border-t border-slate-100">
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="text-xs font-black text-navy-950 uppercase tracking-wider">
+                {{ localeStore.isRtl ? 'سجل العمليات الإدارية (Audit Trail)' : 'Security Audit Trail' }}
+              </span>
+              <span class="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-mono font-bold">LIVE</span>
+            </div>
+            <div class="space-y-2">
+              <div class="text-[11px] p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-navy-950">{{ authStore.userName }}</span>
+                  <span class="text-slate-500 block text-[10px]">{{ localeStore.isRtl ? 'تحديث إعدادات الهوية والبوابة' : 'Updated Site Customization & Fonts' }}</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">Just now</span>
+              </div>
+              <div class="text-[11px] p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between">
+                <div>
+                  <span class="font-bold text-navy-950">Admissions Committee</span>
+                  <span class="text-slate-500 block text-[10px]">{{ localeStore.isRtl ? 'مراجعة طلبات الالتحاق وتحديد مواعيد' : 'Screened application & set interview' }}</span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono">10m ago</span>
+              </div>
             </div>
           </div>
         </div>

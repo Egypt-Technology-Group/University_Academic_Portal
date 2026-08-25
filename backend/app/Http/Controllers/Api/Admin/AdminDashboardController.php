@@ -87,24 +87,54 @@ class AdminDashboardController extends Controller
     }
 
     /**
-     * Update application status and committee review notes.
+     * Update application status, workflow stage, interview schedule, and committee review notes.
      */
     public function updateApplicationStatus(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
             'status' => ['required', Rule::in(['draft', 'submitted', 'under_review', 'accepted', 'rejected'])],
+            'stage' => ['nullable', 'string', Rule::in(['initial_screening', 'placement_test', 'interview', 'final_decision', 'completed'])],
+            'interview_scheduled_at' => 'nullable|date',
+            'placement_test_at' => 'nullable|date',
+            'decision_reason' => 'nullable|string|max:500',
             'notes' => 'nullable|string|max:1000',
         ]);
 
         $application = Application::with(['program', 'documents'])->findOrFail($id);
-        $application->update([
-            'status' => $validated['status'],
-            'notes' => $validated['notes'] ?? $application->notes,
-        ]);
+
+        $currentUser = $request->user()?->name ?? 'Admissions Committee';
+        $oldStatus = $application->status;
+        $newStatus = $validated['status'];
+
+        $application->status = $newStatus;
+        if (isset($validated['stage'])) {
+            $application->stage = $validated['stage'];
+        }
+        if (array_key_exists('interview_scheduled_at', $validated)) {
+            $application->interview_scheduled_at = $validated['interview_scheduled_at'];
+        }
+        if (array_key_exists('placement_test_at', $validated)) {
+            $application->placement_test_at = $validated['placement_test_at'];
+        }
+        if (isset($validated['decision_reason'])) {
+            $application->decision_reason = $validated['decision_reason'];
+        }
+        if (isset($validated['notes'])) {
+            $application->notes = $validated['notes'];
+        }
+        $application->reviewed_by = $currentUser;
+
+        // Record history event
+        $application->recordTimelineEvent(
+            title: "Status changed to: {$newStatus}",
+            action: $newStatus,
+            actor: $currentUser,
+            details: $validated['decision_reason'] ?? $validated['notes'] ?? "Transitioned from {$oldStatus} to {$newStatus}"
+        );
 
         return response()->json([
             'success' => true,
-            'message' => 'Application status updated successfully.',
+            'message' => 'Application workflow updated and timeline recorded successfully.',
             'data' => new ApplicationResource($application),
         ]);
     }

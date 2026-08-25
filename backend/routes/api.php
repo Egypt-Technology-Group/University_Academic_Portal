@@ -60,12 +60,17 @@ Route::prefix('v1')->group(function () {
     Route::post('/documents/{id}/download', [ContentController::class, 'incrementDocumentDownload']);
 
     // Public Admission endpoints
-    Route::get('/admissions/active-cycle', [AdmissionController::class, 'activeCycle']);
-    Route::post('/admissions/apply', [AdmissionController::class, 'submitApplication']);
-    Route::get('/admissions/track', [AdmissionController::class, 'trackApplication']);
-    Route::post('/admissions/track', [AdmissionController::class, 'trackApplication']);
+    Route::middleware('throttle:admissions')->group(function () {
+        Route::get('/admissions/active-cycle', [AdmissionController::class, 'activeCycle']);
+        Route::post('/admissions/apply', [AdmissionController::class, 'submitApplication']);
+        Route::get('/admissions/track', [AdmissionController::class, 'trackApplication']);
+        Route::post('/admissions/track', [AdmissionController::class, 'trackApplication']);
+    });
 
     // Public Student Portal endpoints
-    Route::get('/student-portal/results', [StudentPortalController::class, 'inquireResult']);
-    Route::post('/student-portal/results', [StudentPortalController::class, 'inquireResult']);
+    Route::middleware('throttle:student-portal')->group(function () {
+        Route::get('/student-portal/results', [StudentPortalController::class, 'inquireResult']);
+        Route::post('/student-portal/results', [StudentPortalController::class, 'inquireResult']);
+        Route::post('/student-portal/simulate-registration', [StudentPortalController::class, 'simulateRegistration']);
+    });
 });

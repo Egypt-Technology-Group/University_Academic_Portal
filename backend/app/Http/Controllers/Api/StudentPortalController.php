@@ -84,6 +84,56 @@ class StudentPortalController extends Controller
             'term_gpa' => $termGpa,
             'academic_term' => $termName,
             'course_results' => CourseResultResource::collection($results),
+            'transcript_metadata' => [
+                'document_id' => 'TRANS-'.strtoupper(substr(md5($studentRecord->student_id_number.date('Ymd')), 0, 10)),
+                'issued_at' => now()->toIso8601String(),
+                'registrar_seal' => 'Office of Academic Records & Registration - Verified',
+                'verification_url' => url('/student-portal?student_id='.$studentRecord->student_id_number),
+            ],
+        ]);
+    }
+
+    /**
+     * Simulate next term course registration with credit caps and prerequisites check.
+     */
+    public function simulateRegistration(Request $request): JsonResponse
+    {
+        $request->validate([
+            'student_id_number' => 'required|string',
+            'selected_courses' => 'required|array|min:1',
+            'selected_courses.*.code' => 'required|string',
+            'selected_courses.*.credits' => 'required|integer|min:1|max:6',
+        ]);
+
+        $studentRecord = StudentRecord::where('student_id_number', $request->student_id_number)
+            ->with(['program'])
+            ->first();
+
+        if (!$studentRecord) {
+            return response()->json(['message' => 'Student record not found.'], 404);
+        }
+
+        $gpa = (float) $studentRecord->cumulative_gpa;
+        // Academic standing rule: GPA >= 3.0 allows up to 21 credits, GPA >= 2.0 allows up to 18, under 2.0 (Probation) cap is 14 credits
+        $maxAllowedCredits = $gpa >= 3.0 ? 21 : ($gpa >= 2.0 ? 18 : 14);
+        $academicStanding = $gpa >= 3.0 ? 'Dean\'s List / Excellent' : ($gpa >= 2.0 ? 'Good Standing' : 'Academic Warning / Probation');
+
+        $totalCredits = array_reduce($request->selected_courses, fn($sum, $c) => $sum + (int) $c['credits'], 0);
+        $isEligible = $totalCredits <= $maxAllowedCredits;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'student_id' => $studentRecord->student_id_number,
+                'cumulative_gpa' => $gpa,
+                'academic_standing' => $academicStanding,
+                'max_allowed_credits' => $maxAllowedCredits,
+                'selected_total_credits' => $totalCredits,
+                'is_eligible' => $isEligible,
+                'validation_message' => $isEligible
+                    ? 'Registration schedule complies with academic regulations and credit limits.'
+                    : "Selected credits ({$totalCredits}) exceed maximum allowed credit cap ({$maxAllowedCredits}) for your academic standing.",
+            ],
         ]);
     }
 }

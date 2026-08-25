@@ -245,6 +245,28 @@ export const useSettingsStore = defineStore('settings', {
         if (colors.accent_emerald) {
           root.style.setProperty('--color-emerald-600', colors.accent_emerald)
         }
+
+        // Apply dynamic font families
+        if (colors.font_family_ar) {
+          root.style.setProperty('--font-family-ar', `"${colors.font_family_ar}", Cairo, system-ui, sans-serif`)
+        }
+        if (colors.font_family_en) {
+          root.style.setProperty('--font-family-en', `"${colors.font_family_en}", Inter, system-ui, sans-serif`)
+        }
+      }
+
+      // Inject custom CSS block if configured
+      const customCss = this.settings.custom_css?.css_code
+      let styleTag = document.getElementById('egyitech-custom-css')
+      if (customCss) {
+        if (!styleTag) {
+          styleTag = document.createElement('style')
+          styleTag.id = 'egyitech-custom-css'
+          document.head.appendChild(styleTag)
+        }
+        styleTag.innerHTML = customCss
+      } else if (styleTag) {
+        styleTag.innerHTML = ''
       }
 
       // Update favicon if custom one exists

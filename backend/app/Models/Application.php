@@ -22,6 +22,12 @@ class Application extends Model
         'phone',
         'high_school_score',
         'status',
+        'stage',
+        'interview_scheduled_at',
+        'placement_test_at',
+        'decision_reason',
+        'timeline',
+        'reviewed_by',
         'notes',
     ];
 
@@ -29,7 +35,24 @@ class Application extends Model
     {
         return [
             'high_school_score' => 'decimal:2',
+            'interview_scheduled_at' => 'datetime',
+            'placement_test_at' => 'datetime',
+            'timeline' => 'array',
         ];
+    }
+
+    public function recordTimelineEvent(string $title, string $action, ?string $actor = 'Committee', ?string $details = null): void
+    {
+        $timeline = $this->timeline ?? [];
+        $timeline[] = [
+            'title' => $title,
+            'action' => $action,
+            'actor' => $actor,
+            'details' => $details,
+            'timestamp' => now()->toIso8601String(),
+        ];
+        $this->timeline = $timeline;
+        $this->save();
     }
 
     public function admissionCycle(): BelongsTo

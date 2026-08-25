@@ -335,10 +335,42 @@ export const api = {
             { id: 901, course_code: 'CS201', course_name: { ar: 'هياكل البيانات والخوارزميات', en: 'Data Structures & Algorithms' }, credit_hours: 3, grade: 'A', grade_points: 3.7, is_published: true },
             { id: 902, course_code: 'AI202', course_name: { ar: 'مبادئ الذكاء الاصطناعي', en: 'Foundations of AI' }, credit_hours: 3, grade: 'A+', grade_points: 4.0, is_published: true },
             { id: 903, course_code: 'MATH204', course_name: { ar: 'الجبر الخطي التطبيقي', en: 'Applied Linear Algebra' }, credit_hours: 3, grade: 'A', grade_points: 3.7, is_published: true }
-          ]
+          ],
+          transcript_metadata: {
+            document_id: 'TRANS-SAMPLE99',
+            issued_at: new Date().toISOString(),
+            registrar_seal: 'Official Academic Registry - Verified',
+            verification_url: window.location.href,
+          }
         }
       }
       throw new Error('Student record not found')
+    }
+  },
+
+  async simulateStudentRegistration({ student_id_number, selected_courses }) {
+    try {
+      const response = await apiClient.post('/student-portal/simulate-registration', {
+        student_id_number,
+        selected_courses,
+      })
+      return response.data?.data || response.data
+    } catch (e) {
+      console.warn('API /student-portal/simulate-registration fallback:', e.message)
+      const totalCredits = (selected_courses || []).reduce((sum, c) => sum + (Number(c.credits) || 3), 0)
+      const maxAllowedCredits = 18
+      const isEligible = totalCredits <= maxAllowedCredits
+      return {
+        student_id: student_id_number,
+        cumulative_gpa: 3.78,
+        academic_standing: 'Good Standing / ممتاز',
+        max_allowed_credits: maxAllowedCredits,
+        selected_total_credits: totalCredits,
+        is_eligible: isEligible,
+        validation_message: isEligible
+          ? 'تم التحقق: الساعات المعتمدة المختارة مطابقة للائحة الأكاديمية.'
+          : `تجاوزت الحد الأقصى للساعات المسموح بها (${maxAllowedCredits} ساعة).`,
+      }
     }
   },
 

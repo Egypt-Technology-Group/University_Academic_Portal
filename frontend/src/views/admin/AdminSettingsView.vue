@@ -353,6 +353,64 @@
             </button>
           </div>
         </div>
+
+        <!-- Typography Customization -->
+        <div class="pt-6 border-t border-slate-100">
+          <h3 class="text-sm font-black text-navy-950 mb-3 flex items-center gap-2">
+            <span>🔤</span> {{ localeStore.isRtl ? 'الخطوط والطباعة الأكاديمية (Google Fonts)' : 'Typography & Web Fonts' }}
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                {{ localeStore.isRtl ? 'الخط العربي الأساسي' : 'Primary Arabic Font' }}
+              </label>
+              <select
+                v-model="form.theme_colors.font_family_ar"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:bg-white focus:border-navy-900"
+              >
+                <option value="Cairo">Cairo (الافتراضي - رسمي ورصين)</option>
+                <option value="Tajawal">Tajawal (عصري وتقني)</option>
+                <option value="Alexandria">Alexandria (هندسي وحديث)</option>
+                <option value="Almarai">Almarai (مريح وواضح)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                {{ localeStore.isRtl ? 'الخط اللاتيني/الإنجليزي' : 'Primary English Font' }}
+              </label>
+              <select
+                v-model="form.theme_colors.font_family_en"
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-xs sm:text-sm font-medium focus:bg-white focus:border-navy-900"
+              >
+                <option value="Inter">Inter (Default - Ultra Clean)</option>
+                <option value="Plus Jakarta Sans">Plus Jakarta Sans (Modern Academic)</option>
+                <option value="Outfit">Outfit (Tech & Bold)</option>
+                <option value="Roboto">Roboto (Classic Neutral)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom CSS Injection Code Area -->
+        <div class="pt-6 border-t border-slate-100">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-sm font-black text-navy-950 flex items-center gap-2">
+              <span>💻</span> {{ localeStore.isRtl ? 'حقن كود CSS مخصص (Custom CSS Code)' : 'Advanced Custom CSS Injection' }}
+            </h3>
+            <span class="text-[11px] text-slate-400 font-mono">Real-time Injection</span>
+          </div>
+          <p class="text-xs text-slate-500 mb-3">
+            {{ localeStore.isRtl ? 'أضف قواعد وتنسيقات CSS إضافية ليتم تطبيقها فوراً على البوابة بدون الحاجة لإعادة البناء.' : 'Inject custom CSS overrides to apply immediately to the portal without redeployment.' }}
+          </p>
+          <textarea
+            v-model="form.custom_css.css_code"
+            rows="4"
+            dir="ltr"
+            placeholder="/* Example: .hero-title { letter-spacing: -0.02em; } */"
+            class="w-full rounded-2xl border border-slate-200 bg-slate-900 text-gold-300 font-mono text-xs p-4 focus:ring-2 focus:ring-gold-400 outline-none"
+          ></textarea>
+        </div>
       </div>
     </div>
 

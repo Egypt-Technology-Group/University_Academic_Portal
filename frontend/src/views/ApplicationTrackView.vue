@@ -147,6 +147,85 @@
         </div>
       </div>
 
+      <!-- ADMISSIONS PROGRESSION STEPPER -->
+      <div class="bg-slate-50 p-5 sm:p-6 rounded-2xl border border-slate-200/80 space-y-4">
+        <h3 class="font-bold text-xs sm:text-sm text-navy-950 uppercase tracking-wider flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-gold-500"></span>
+          {{ localeStore.isRtl ? 'مراحل خط سير مراجعة طلب الالتحاق' : 'Admission Review Progress Pipeline' }}
+        </h3>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          <!-- Step 1: Initial Screening -->
+          <div class="p-3 rounded-xl border bg-white flex flex-col items-center gap-1.5 shadow-xs" :class="appData.stage ? 'border-emerald-300 text-emerald-900' : 'border-slate-200 text-slate-400'">
+            <div class="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center">✓</div>
+            <span class="text-xs font-bold">{{ localeStore.isRtl ? 'الفحص الأولي' : 'Screening' }}</span>
+          </div>
+
+          <!-- Step 2: Placement / Aptitude Test -->
+          <div
+            class="p-3 rounded-xl border bg-white flex flex-col items-center gap-1.5 shadow-xs"
+            :class="['placement_test', 'interview', 'final_decision', 'completed'].includes(appData.stage) ? 'border-emerald-300 text-emerald-900' : 'border-slate-200 text-slate-400'"
+          >
+            <div
+              class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center"
+              :class="['placement_test', 'interview', 'final_decision', 'completed'].includes(appData.stage) ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'"
+            >
+              <span v-if="['interview', 'final_decision', 'completed'].includes(appData.stage)">✓</span>
+              <span v-else>2</span>
+            </div>
+            <span class="text-xs font-bold">{{ localeStore.isRtl ? 'اختبار القدرات' : 'Placement Test' }}</span>
+          </div>
+
+          <!-- Step 3: Interview -->
+          <div
+            class="p-3 rounded-xl border bg-white flex flex-col items-center gap-1.5 shadow-xs"
+            :class="['interview', 'final_decision', 'completed'].includes(appData.stage) ? 'border-emerald-300 text-emerald-900' : 'border-slate-200 text-slate-400'"
+          >
+            <div
+              class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center"
+              :class="['interview', 'final_decision', 'completed'].includes(appData.stage) ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'"
+            >
+              <span v-if="['final_decision', 'completed'].includes(appData.stage)">✓</span>
+              <span v-else>3</span>
+            </div>
+            <span class="text-xs font-bold">{{ localeStore.isRtl ? 'المقابلة الشخصية' : 'Interview' }}</span>
+          </div>
+
+          <!-- Step 4: Final Offer -->
+          <div
+            class="p-3 rounded-xl border bg-white flex flex-col items-center gap-1.5 shadow-xs"
+            :class="['final_decision', 'completed'].includes(appData.stage) ? 'border-emerald-300 text-emerald-900' : 'border-slate-200 text-slate-400'"
+          >
+            <div
+              class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center"
+              :class="['final_decision', 'completed'].includes(appData.stage) ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'"
+            >
+              <span v-if="appData.status === 'accepted'">🎓</span>
+              <span v-else>4</span>
+            </div>
+            <span class="text-xs font-bold">{{ localeStore.isRtl ? 'القرار النهائي' : 'Final Offer' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheduled Interview Notice Card (If scheduled) -->
+      <div v-if="appData.interview_scheduled_at" class="p-5 bg-gradient-to-r from-navy-950 to-navy-900 text-white rounded-2xl shadow-md border border-navy-800 flex items-center justify-between gap-4">
+        <div>
+          <div class="text-xs text-gold-400 font-bold uppercase tracking-wider mb-1">
+            {{ localeStore.isRtl ? 'موعد المقابلة الشخصية للقبول' : 'Scheduled Admissions Interview' }}
+          </div>
+          <div class="text-lg font-black text-white">
+            {{ new Date(appData.interview_scheduled_at).toLocaleString(localeStore.locale === 'ar' ? 'ar-EG' : 'en-US', { dateStyle: 'full', timeStyle: 'short' }) }}
+          </div>
+          <p class="text-xs text-slate-300 mt-1">
+            {{ localeStore.isRtl ? 'يرجى الحضور إلى مقر الكلية مصطحباً بطاقة الرقم القومي وأصل المستندات.' : 'Please report to the faculty deanery with original identification and credentials.' }}
+          </p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-gold-500 text-navy-950 flex items-center justify-center font-bold text-xl shrink-0 shadow-gold-glow">
+          🗓️
+        </div>
+      </div>
+
       <!-- Committee Reviewer Notes -->
       <div v-if="appData.notes" class="p-4 bg-primary-50 border border-primary-200 rounded-xl space-y-1 text-xs">
         <strong class="text-primary-900 block font-bold">📝 {{ $t('tracking.adminNotes') }}:</strong>

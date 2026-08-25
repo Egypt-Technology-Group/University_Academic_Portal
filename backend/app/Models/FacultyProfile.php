@@ -29,6 +29,10 @@ class FacultyProfile extends Model
         'office_location',
         'avatar',
         'cv_path',
+        'google_scholar_url',
+        'orcid_id',
+        'office_hours',
+        'publications',
         'is_featured',
     ];
 
@@ -36,6 +40,8 @@ class FacultyProfile extends Model
     {
         return [
             'is_featured' => 'boolean',
+            'office_hours' => 'array',
+            'publications' => 'array',
         ];
     }
 

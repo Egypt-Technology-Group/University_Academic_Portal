@@ -392,17 +392,92 @@
             </div>
           </div>
 
-          <!-- Committee Notes Textarea -->
+          <!-- Workflow Stage & Next Actions -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                {{ localeStore.isRtl ? 'المرحلة الحالية في خط سير القبول' : 'Admission Workflow Stage' }}
+              </label>
+              <select
+                v-model="reviewForm.stage"
+                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:border-navy-900"
+              >
+                <option value="initial_screening">{{ localeStore.isRtl ? 'الفحص والفرز الأولي' : 'Initial Document Screening' }}</option>
+                <option value="placement_test">{{ localeStore.isRtl ? 'اختبار تحديد المستوى والقدرات' : 'Placement & Aptitude Test' }}</option>
+                <option value="interview">{{ localeStore.isRtl ? 'المقابلة الشخصية للقبول' : 'Admissions Interview' }}</option>
+                <option value="final_decision">{{ localeStore.isRtl ? 'القرار النهائي واعتماد العميد' : 'Final Dean Decision' }}</option>
+                <option value="completed">{{ localeStore.isRtl ? 'مكتمل - قيد التسجيل الأكاديمي' : 'Completed & Matriculated' }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                {{ localeStore.isRtl ? 'موعد المقابلة / الاختبار (إن وُجد)' : 'Scheduled Test / Interview Date' }}
+              </label>
+              <input
+                v-model="reviewForm.interview_scheduled_at"
+                type="datetime-local"
+                class="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-navy-900"
+              />
+            </div>
+          </div>
+
+          <!-- Committee Decision Notes & Templates -->
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">
-              {{ $t('admin.admissions.committeeNotesLabel') }}
-            </label>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-bold text-slate-700">
+                {{ $t('admin.admissions.committeeNotesLabel') }}
+              </label>
+              <!-- Quick Decision Template Chips -->
+              <div class="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-medium cursor-pointer"
+                  @click="reviewForm.notes = localeStore.isRtl ? 'استيفاء كافة شروط القبول والتفوق الأكاديمي في الثانوية العامة.' : 'All academic admission criteria and high school prerequisites met.'"
+                >
+                  {{ localeStore.isRtl ? 'مستوفي للشروط' : 'Eligible' }}
+                </button>
+                <button
+                  type="button"
+                  class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-0.5 rounded font-medium cursor-pointer"
+                  @click="reviewForm.notes = localeStore.isRtl ? 'مطلوب إحضار أصل شهادة الثانوية العامة والموقف من التجنيد.' : 'Original secondary certificate and military status documents required.'"
+                >
+                  {{ localeStore.isRtl ? 'نقص مستندات' : 'Missing Docs' }}
+                </button>
+              </div>
+            </div>
             <textarea
               v-model="reviewForm.notes"
               rows="3"
               class="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm text-slate-800 focus:border-navy-900 focus:ring-1 focus:ring-navy-900"
               :placeholder="$t('admin.admissions.committeeNotesPlaceholder')"
             ></textarea>
+          </div>
+
+          <!-- Historical Audit & Action Timeline -->
+          <div v-if="activeApp.timeline && activeApp.timeline.length > 0" class="pt-4 border-t border-slate-200">
+            <h4 class="text-xs font-black text-navy-950 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Clock class="w-3.5 h-3.5 text-gold-500" />
+              <span>{{ localeStore.isRtl ? 'سجل العمليات والقرارات السابقة' : 'Application Decision History' }}</span>
+            </h4>
+            <div class="space-y-2 max-h-36 overflow-y-auto pr-1">
+              <div
+                v-for="(event, eIdx) in activeApp.timeline"
+                :key="eIdx"
+                class="text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start justify-between gap-3"
+              >
+                <div>
+                  <div class="font-bold text-navy-950 flex items-center gap-1.5">
+                    <span>{{ event.title }}</span>
+                    <span class="text-[10px] text-slate-400 font-normal">({{ event.actor }})</span>
+                  </div>
+                  <div v-if="event.details" class="text-[11px] text-slate-600 mt-0.5">{{ event.details }}</div>
+                </div>
+                <div class="text-[10px] text-slate-400 whitespace-nowrap font-mono">
+                  {{ new Date(event.timestamp).toLocaleDateString() }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -474,6 +549,8 @@ const activeApp = ref(null)
 
 const reviewForm = reactive({
   status: 'under_review',
+  stage: 'initial_screening',
+  interview_scheduled_at: '',
   notes: '',
 })
 
@@ -617,6 +694,8 @@ const loadApplications = async () => {
 const openReviewModal = (app) => {
   activeApp.value = app
   reviewForm.status = app.status === 'approved' ? 'accepted' : app.status
+  reviewForm.stage = app.stage || 'initial_screening'
+  reviewForm.interview_scheduled_at = app.interview_scheduled_at ? app.interview_scheduled_at.substring(0, 16) : ''
   reviewForm.notes = app.notes || ''
   updateSuccessMessage.value = ''
   isReviewModalOpen.value = true
@@ -634,10 +713,14 @@ const saveDecision = async () => {
   updateSuccessMessage.value = ''
 
   try {
-    const updated = await api.updateApplicationStatus(activeApp.value.id, {
+    const response = await api.updateApplicationStatus(activeApp.value.id, {
       status: reviewForm.status,
+      stage: reviewForm.stage,
+      interview_scheduled_at: reviewForm.interview_scheduled_at || null,
       notes: reviewForm.notes,
     })
+
+    const updatedApp = response?.data || response
 
     // Update in local list
     const index = applications.value.findIndex((a) => a.id === activeApp.value.id)
@@ -645,7 +728,10 @@ const saveDecision = async () => {
       applications.value[index] = {
         ...applications.value[index],
         status: reviewForm.status,
+        stage: reviewForm.stage,
+        interview_scheduled_at: reviewForm.interview_scheduled_at || null,
         notes: reviewForm.notes,
+        timeline: updatedApp?.timeline || applications.value[index].timeline || [],
       }
       activeApp.value = applications.value[index]
     }

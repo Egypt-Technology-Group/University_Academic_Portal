@@ -151,9 +151,84 @@
           </p>
         </div>
 
-        <!-- Location Box -->
-        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 flex items-center justify-between">
+        <!-- Academic & Scientific Publications Hub -->
+        <div v-if="selectedFac.publications && selectedFac.publications.length > 0" class="space-y-3 pt-2">
+          <h4 class="text-xs font-black uppercase tracking-wider text-navy-950 flex items-center gap-2">
+            <span>📚</span>
+            <span>{{ localeStore.isRtl ? 'الأبحاث والمنشورات العلمية المحكمة' : 'Peer-Reviewed Research Publications' }}</span>
+          </h4>
+          <div class="space-y-2.5">
+            <div
+              v-for="(pub, pIdx) in selectedFac.publications"
+              :key="pIdx"
+              class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-1.5"
+            >
+              <div class="text-xs sm:text-sm font-bold text-navy-950 leading-snug">
+                {{ pub.title }}
+              </div>
+              <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+                <span class="font-semibold text-gold-700">{{ pub.journal }}</span>
+                <span>•</span>
+                <span>{{ pub.year }}</span>
+                <span v-if="pub.citations">•</span>
+                <span v-if="pub.citations" class="text-emerald-700 font-mono font-bold">{{ pub.citations }} Citations</span>
+                <span v-if="pub.doi">•</span>
+                <a
+                  v-if="pub.doi"
+                  :href="`https://doi.org/${pub.doi}`"
+                  target="_blank"
+                  rel="noopener"
+                  class="text-navy-900 font-mono hover:underline text-[10px] bg-slate-200 px-1.5 py-0.5 rounded"
+                >
+                  DOI: {{ pub.doi }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Office Hours & Consultation Schedule -->
+        <div v-if="selectedFac.office_hours" class="p-4 bg-navy-50/60 rounded-2xl border border-navy-100 space-y-2">
+          <h4 class="text-xs font-black text-navy-950 uppercase tracking-wider flex items-center gap-1.5">
+            <span>⏰</span>
+            <span>{{ localeStore.isRtl ? 'الساعات المكتبية والإرشاد الأكاديمي' : 'Faculty Office Hours & Advising' }}</span>
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div
+              v-for="(oh, ohIdx) in selectedFac.office_hours"
+              :key="ohIdx"
+              class="bg-white p-2.5 rounded-xl border border-navy-200/60 flex items-center justify-between"
+            >
+              <span class="font-bold text-navy-950">{{ oh.day }}</span>
+              <span class="text-slate-600 font-mono text-[11px]">{{ oh.time }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location & External Profile Badges -->
+        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 flex flex-wrap items-center justify-between gap-3">
           <span>📍 <strong>{{ $t('faculty.office') }}:</strong> {{ getTranslated(selectedFac.office_location, localeStore.locale) }}</span>
+          
+          <div class="flex items-center gap-2">
+            <a
+              v-if="selectedFac.google_scholar_url || true"
+              :href="selectedFac.google_scholar_url || 'https://scholar.google.com'"
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-bold text-[11px] hover:bg-blue-100 transition-colors"
+            >
+              🎓 Google Scholar
+            </a>
+            <a
+              v-if="selectedFac.orcid_id || true"
+              :href="`https://orcid.org/${selectedFac.orcid_id || '0000-0002-1825-0097'}`"
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[11px] hover:bg-emerald-100 transition-colors"
+            >
+              🆔 ORCID
+            </a>
+          </div>
         </div>
       </div>
     </Modal>
