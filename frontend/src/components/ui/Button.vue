@@ -65,7 +65,7 @@ defineProps({
   rounded: {
     type: String,
     default: 'md',
-    validator: (r) => ['none', 'sm', 'md', 'lg', 'full'].includes(r),
+    validator: (r) => ['none', 'sm', 'md', 'lg', 'xl', '2xl', 'full'].includes(r),
   },
   type: {
     type: String,
@@ -107,6 +107,8 @@ const roundedClasses = {
   sm: 'rounded',
   md: 'rounded-lg',
   lg: 'rounded-xl',
+  xl: 'rounded-2xl',
+  '2xl': 'rounded-3xl',
   full: 'rounded-full',
 }
 
