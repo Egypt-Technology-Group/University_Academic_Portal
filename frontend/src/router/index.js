@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+// Public Views
 import HomeView from '../views/HomeView.vue'
 import CollegesView from '../views/CollegesView.vue'
 import CollegeDetailView from '../views/CollegeDetailView.vue'
@@ -15,7 +16,17 @@ import DocumentsView from '../views/DocumentsView.vue'
 import StudentResultsView from '../views/StudentResultsView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 
+// Admin Views & Layout
+import AdminLayout from '../components/layout/AdminLayout.vue'
+import AdminLoginView from '../views/admin/AdminLoginView.vue'
+import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
+import AdminAdmissionsView from '../views/admin/AdminAdmissionsView.vue'
+import AdminCmsView from '../views/admin/AdminCmsView.vue'
+import AdminEventsView from '../views/admin/AdminEventsView.vue'
+import AdminDocumentsView from '../views/admin/AdminDocumentsView.vue'
+
 const routes = [
+  // Public Routes
   {
     path: '/',
     name: 'home',
@@ -94,6 +105,59 @@ const routes = [
     component: StudentResultsView,
     meta: { title: 'Student Results Portal' },
   },
+
+  // Admin Authentication Route
+  {
+    path: '/admin/login',
+    name: 'admin-login',
+    component: AdminLoginView,
+    meta: { title: 'Admin Login', guestOnly: true },
+  },
+
+  // Admin Dashboard & Management Routes (Protected)
+  {
+    path: '/admin',
+    component: AdminLayout,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        redirect: '/admin/dashboard',
+      },
+      {
+        path: 'dashboard',
+        name: 'admin-dashboard',
+        component: AdminDashboardView,
+        meta: { title: 'Admin Dashboard', requiresAuth: true },
+      },
+      {
+        path: 'admissions',
+        name: 'admin-admissions',
+        component: AdminAdmissionsView,
+        meta: { title: 'Admissions Management Queue', requiresAuth: true },
+      },
+      {
+        path: 'cms',
+        name: 'admin-cms',
+        component: AdminCmsView,
+        meta: { title: 'News & Announcements CMS', requiresAuth: true },
+      },
+      {
+        path: 'events',
+        name: 'admin-events',
+        component: AdminEventsView,
+        meta: { title: 'Events & Calendar Manager', requiresAuth: true },
+      },
+      {
+        path: 'documents',
+        name: 'admin-documents',
+        component: AdminDocumentsView,
+        meta: { title: 'Documents Repository Manager', requiresAuth: true },
+      },
+    ],
+  },
+
+  // Fallback 404 Route
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
@@ -108,6 +172,36 @@ const router = createRouter({
   scrollBehavior() {
     return { top: 0 }
   },
+})
+
+// Route Guards (Modern Vue Router returns value instead of calling next())
+router.beforeEach((to) => {
+  const token = localStorage.getItem('egyitech_auth_token')
+  const isAuthenticated = Boolean(token)
+
+  // Update document title
+  if (to.meta?.title) {
+    document.title = `${to.meta.title} | University Academic Portal`
+  }
+
+  // Check if route requires authentication
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    if (!isAuthenticated) {
+      return {
+        name: 'admin-login',
+        query: { redirect: to.fullPath !== '/admin/dashboard' ? to.fullPath : undefined },
+      }
+    }
+  }
+
+  // Check if route is guest only (e.g. login page)
+  if (to.matched.some((record) => record.meta.guestOnly)) {
+    if (isAuthenticated) {
+      return { name: 'admin-dashboard' }
+    }
+  }
+
+  return true
 })
 
 export default router

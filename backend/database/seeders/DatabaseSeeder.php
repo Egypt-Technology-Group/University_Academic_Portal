@@ -29,15 +29,26 @@ class DatabaseSeeder extends Seeder
         }
 
         // Create Super Admin User
-        $adminUser = User::firstOrCreate(
+        $adminUser = User::updateOrCreate(
             ['email' => 'admin@university.edu.eg'],
             [
-                'name' => 'System Administrator',
-                'password' => Hash::make('SuperAdmin@2025!'),
+                'name' => 'System Administrator (Super Admin)',
+                'password' => Hash::make('admin123'),
                 'email_verified_at' => now(),
             ]
         );
         $adminUser->assignRole('super-admin');
+
+        // Create Admissions Officer User
+        $admissionsUser = User::updateOrCreate(
+            ['email' => 'admissions@university.edu.eg'],
+            [
+                'name' => 'Admissions & Registration Officer',
+                'password' => Hash::make('admissions123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $admissionsUser->assignRole('admissions-officer');
 
         // 2. Call Domain Seeders
         $this->call([

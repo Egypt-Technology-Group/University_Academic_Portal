@@ -831,19 +831,21 @@ export const mockApplications = {
     email: 'mohamed.ali@gmail.com',
     phone: '+201012345678',
     high_school_score: 89.5,
-    status: 'approved',
+    status: 'accepted',
     notes: 'تم استيفاء كافة الشروط ومطابقة أصول الشهادات بنجاح، مرحباً بك في جامعة إيجي تك.',
     created_at: '2025-05-10T11:20:00Z',
+    program_id: 1,
     program: {
-      name: { ar: 'بكالوريوس الذكاء الاصطناعي وعلم البيانات', en: 'B.Sc. in AI & Data Science' },
+      id: 1,
+      name: { ar: 'الذكاء الاصطناعي وعلم البيانات', en: 'AI & Data Science' },
       degree_level: 'bachelor',
       college_name: { ar: 'كلية الحاسبات والذكاء الاصطناعي', en: 'Faculty of Computers & AI' }
     },
     documents: [
-      { id: 1, document_type: 'high_school_certificate', verification_status: 'verified' },
-      { id: 2, document_type: 'national_id_card', verification_status: 'verified' },
-      { id: 3, document_type: 'passport_photo', verification_status: 'verified' },
-      { id: 4, document_type: 'birth_certificate', verification_status: 'verified' }
+      { id: 1, document_type: 'high_school_certificate', name: 'شهادة إتمام الثانوية العامة', verification_status: 'verified' },
+      { id: 2, document_type: 'national_id_card', name: 'بطاقة الرقم القومي', verification_status: 'verified' },
+      { id: 3, document_type: 'passport_photo', name: 'الصور الشخصية الحديثة', verification_status: 'verified' },
+      { id: 4, document_type: 'birth_certificate', name: 'شهادة الميلاد المميكنة', verification_status: 'verified' }
     ]
   },
   'APP-2025-X7K9P': {
@@ -859,15 +861,173 @@ export const mockApplications = {
     status: 'under_review',
     notes: 'الطلب قيد المراجعة والتدقيق بواسطة لجنة شؤون الطلاب.',
     created_at: '2025-05-18T14:45:00Z',
+    program_id: 3,
     program: {
-      name: { ar: 'بكالوريوس الأمن السيبراني والدفاع الرقمي', en: 'B.Sc. in Cybersecurity' },
+      id: 3,
+      name: { ar: 'الأمن السيبراني والدفاع الرقمي', en: 'Cybersecurity & Digital Defense' },
       degree_level: 'bachelor',
       college_name: { ar: 'كلية الحاسبات والذكاء الاصطناعي', en: 'Faculty of Computers & AI' }
     },
     documents: [
-      { id: 5, document_type: 'high_school_certificate', verification_status: 'verified' },
-      { id: 6, document_type: 'national_id_card', verification_status: 'pending' },
-      { id: 7, document_type: 'passport_photo', verification_status: 'verified' }
+      { id: 5, document_type: 'high_school_certificate', name: 'شهادة إتمام الثانوية العامة', verification_status: 'verified' },
+      { id: 6, document_type: 'national_id_card', name: 'بطاقة الرقم القومي', verification_status: 'pending' },
+      { id: 7, document_type: 'passport_photo', name: 'الصور الشخصية الحديثة', verification_status: 'verified' }
+    ]
+  },
+  'APP-2025-N8M2Q': {
+    id: 3,
+    application_number: 'APP-2025-N8M2Q',
+    cycle: 'الفصل الدراسي الأول 2025/2026',
+    first_name: 'يوسف',
+    last_name: 'طارق عبد الله',
+    national_id: '30401150102345',
+    email: 'youssef.tarek@yahoo.com',
+    phone: '+201234567890',
+    high_school_score: 93.8,
+    status: 'submitted',
+    notes: 'طلب جديد تم تقديمه عبر البوابة بانتظار الفحص الأولي للوثائق.',
+    created_at: '2025-05-22T09:15:00Z',
+    program_id: 2,
+    program: {
+      id: 2,
+      name: { ar: 'هندسة البرمجيات والأنظمة الذكية', en: 'Software Engineering' },
+      degree_level: 'bachelor',
+      college_name: { ar: 'كلية الحاسبات والذكاء الاصطناعي', en: 'Faculty of Computers & AI' }
+    },
+    documents: [
+      { id: 8, document_type: 'high_school_certificate', name: 'شهادة إتمام الثانوية العامة', verification_status: 'pending' },
+      { id: 9, document_type: 'national_id_card', name: 'بطاقة الرقم القومي', verification_status: 'pending' },
+      { id: 10, document_type: 'birth_certificate', name: 'شهادة الميلاد المميكنة', verification_status: 'pending' }
+    ]
+  },
+  'APP-2025-V4L9D': {
+    id: 4,
+    application_number: 'APP-2025-V4L9D',
+    cycle: 'الفصل الدراسي الأول 2025/2026',
+    first_name: 'نور',
+    last_name: 'هشام خليل',
+    national_id: '30311020109988',
+    email: 'nour.hesham@gmail.com',
+    phone: '+201098765432',
+    high_school_score: 91.2,
+    status: 'accepted',
+    notes: 'تم اجتياز المقابلة واختبار القدرات بنجاح، وتم تسليم إشعار القبول الرسمي.',
+    created_at: '2025-05-20T16:30:00Z',
+    program_id: 1,
+    program: {
+      id: 1,
+      name: { ar: 'الذكاء الاصطناعي وعلم البيانات', en: 'AI & Data Science' },
+      degree_level: 'bachelor',
+      college_name: { ar: 'كلية الحاسبات والذكاء الاصطناعي', en: 'Faculty of Computers & AI' }
+    },
+    documents: [
+      { id: 11, document_type: 'high_school_certificate', name: 'شهادة إتمام الثانوية العامة', verification_status: 'verified' },
+      { id: 12, document_type: 'national_id_card', name: 'بطاقة الرقم القومي', verification_status: 'verified' },
+      { id: 13, document_type: 'passport_photo', name: 'الصور الشخصية الحديثة', verification_status: 'verified' },
+      { id: 14, document_type: 'birth_certificate', name: 'شهادة الميلاد المميكنة', verification_status: 'verified' }
+    ]
+  },
+  'APP-2025-Z3R8T': {
+    id: 5,
+    application_number: 'APP-2025-Z3R8T',
+    cycle: 'الفصل الدراسي الأول 2025/2026',
+    first_name: 'كريم',
+    last_name: 'محمود الصاوي',
+    national_id: '30209190103322',
+    email: 'karim.sawi@hotmail.com',
+    phone: '+201155667788',
+    high_school_score: 68.5,
+    status: 'rejected',
+    notes: 'المجموع الكلي للثانوية العامة لا يفي بالحد الأدنى للقبول في التخصص المطلوب (الحد الأدنى 75%).',
+    created_at: '2025-05-15T10:00:00Z',
+    program_id: 3,
+    program: {
+      id: 3,
+      name: { ar: 'الأمن السيبراني والدفاع الرقمي', en: 'Cybersecurity & Digital Defense' },
+      degree_level: 'bachelor',
+      college_name: { ar: 'كلية الحاسبات والذكاء الاصطناعي', en: 'Faculty of Computers & AI' }
+    },
+    documents: [
+      { id: 15, document_type: 'high_school_certificate', name: 'شهادة إتمام الثانوية العامة', verification_status: 'verified' },
+      { id: 16, document_type: 'national_id_card', name: 'بطاقة الرقم القومي', verification_status: 'verified' }
+    ]
+  },
+  'APP-2025-W1F5G': {
+    id: 6,
+    application_number: 'APP-2025-W1F5G',
+    cycle: 'الفصل الدراسي الأول 2025/2026',
+    first_name: 'فاطمة',
+    last_name: 'إبراهيم الشاذلي',
+    national_id: '30304040107766',
+    email: 'fatma.shazly@gmail.com',
+    phone: '+201066554433',
+    high_school_score: 87.0,
+    status: 'under_review',
+    notes: 'بانتظار تقديم صورة أصل بطاقة الرقم القومي للمطابقة.',
+    created_at: '2025-05-24T12:10:00Z',
+    program_id: 4,
+    program: {
+      id: 4,
+      name: { ar: 'المعلوماتية الحيوية الطبية', en: 'Medical Bioinformatics' },
+      degree_level: 'bachelor',
+      college_name: { ar: 'كلية الحاسبات والذكاء الاصطناعي', en: 'Faculty of Computers & AI' }
+    },
+    documents: [
+      { id: 17, document_type: 'high_school_certificate', name: 'شهادة إتمام الثانوية العامة', verification_status: 'verified' },
+      { id: 18, document_type: 'national_id_card', name: 'بطاقة الرقم القومي', verification_status: 'pending' },
+      { id: 19, document_type: 'birth_certificate', name: 'شهادة الميلاد المميكنة', verification_status: 'verified' }
+    ]
+  },
+  'APP-2025-J9K2L': {
+    id: 7,
+    application_number: 'APP-2025-J9K2L',
+    cycle: 'الفصل الدراسي الأول 2025/2026',
+    first_name: 'عمر',
+    last_name: 'سعيد عبد العزيز',
+    national_id: '30407120101144',
+    email: 'omar.saeed@gmail.com',
+    phone: '+201277889900',
+    high_school_score: 95.2,
+    status: 'accepted',
+    notes: 'تم منحه منحة التفوق الأكاديمي الجزئية لاحتلاله أحد المراكز المتقدمة.',
+    created_at: '2025-05-25T08:40:00Z',
+    program_id: 1,
+    program: {
+      id: 1,
+      name: { ar: 'الذكاء الاصطناعي وعلم البيانات', en: 'AI & Data Science' },
+      degree_level: 'bachelor',
+      college_name: { ar: 'كلية الحاسبات والذكاء الاصطناعي', en: 'Faculty of Computers & AI' }
+    },
+    documents: [
+      { id: 20, document_type: 'high_school_certificate', name: 'شهادة إتمام الثانوية العامة', verification_status: 'verified' },
+      { id: 21, document_type: 'national_id_card', name: 'بطاقة الرقم القومي', verification_status: 'verified' },
+      { id: 22, document_type: 'passport_photo', name: 'الصور الشخصية الحديثة', verification_status: 'verified' },
+      { id: 23, document_type: 'birth_certificate', name: 'شهادة الميلاد المميكنة', verification_status: 'verified' }
     ]
   }
 }
+
+export const mockAdminStats = {
+  total_colleges: 5,
+  total_programs: 28,
+  total_faculty: 480,
+  total_students: 15420,
+  total_applications: 148,
+  pending_applications: 14,
+  under_review_applications: 22,
+  accepted_applications: 106,
+  rejected_applications: 6,
+  total_news: 18,
+  total_announcements: 9,
+  total_events: 12,
+  total_documents: 24,
+  total_downloads: 14520,
+  system_status: {
+    status: 'healthy',
+    database: 'connected',
+    storage: 'operational',
+    version: 'v2.5.0',
+    uptime: '99.98%'
+  }
+}
+

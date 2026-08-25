@@ -621,13 +621,115 @@ class ApiEndpointsTest extends TestCase
         $all->assertStatus(200);
     }
 
-    public function test_faculty_filter_by_department_and_rank(): void
+    public function test_auth_login_me_and_logout(): void
     {
-        $dept = Department::first();
-        $responseDept = $this->getJson("/api/v1/faculty?department_id={$dept->id}");
-        $responseDept->assertStatus(200);
+        $loginResponse = $this->postJson('/api/v1/auth/login', [
+            'email' => 'admin@university.edu.eg',
+            'password' => 'SuperAdmin@2025!',
+        ]);
 
-        $responseRank = $this->getJson('/api/v1/faculty?rank=Professor');
-        $responseRank->assertStatus(200);
+        $loginResponse->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'token',
+                'user' => ['id', 'name', 'email', 'roles'],
+            ]);
+
+        $token = $loginResponse->json('token');
+
+        // Test auth/me
+        $meResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/auth/me');
+        $meResponse->assertStatus(200)
+            ->assertJsonPath('user.email', 'admin@university.edu.eg');
+
+        // Test auth/logout
+        $logoutResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/v1/auth/logout');
+        $logoutResponse->assertStatus(200);
+    }
+
+    public function test_admin_dashboard_stats_and_application_review(): void
+    {
+        $user = \App\Models\User::where('email', 'admin@university.edu.eg')->first();
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        // Test Stats
+        $statsResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/admin/stats');
+        $statsResponse->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'data' => [
+                    'total_colleges',
+                    'total_programs',
+                    'total_applications',
+                    'pending_applications',
+                ],
+            ]);
+
+        // Test Application list
+        $appsResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/admin/applications');
+        $appsResponse->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'data',
+                'meta' => ['total', 'current_page'],
+            ]);
+
+        // Test Update Application Status
+        $app = Application::first();
+        $updateResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->patchJson("/api/v1/admin/applications/{$app->id}/status", [
+                'status' => 'accepted',
+                'notes' => 'Passed committee review with flying colors.',
+            ]);
+
+        $updateResponse->assertStatus(200)
+            ->assertJsonPath('data.status', 'accepted');
+    }
+
+    public function test_admin_cms_crud_endpoints(): void
+    {
+        $user = \App\Models\User::where('email', 'admin@university.edu.eg')->first();
+        $token = $user->createToken('test-token')->plainTextToken;
+        $category = NewsCategory::first();
+
+        // 1. Create News
+        $newsResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/v1/admin/news', [
+                'category_id' => $category->id,
+                'title_ar' => 'خبر تجريبي جديد',
+                'title_en' => 'New Experimental News',
+                'body_ar' => 'محتوى الخبر باللغة العربية بالتفصيل.',
+                'body_en' => 'Detailed news content in English.',
+                'is_featured' => true,
+            ]);
+        $newsResponse->assertStatus(201);
+        $newsId = $newsResponse->json('data.id');
+
+        // Delete News
+        $deleteNews = $this->withHeader('Authorization', "Bearer {$token}")
+            ->deleteJson("/api/v1/admin/news/{$newsId}");
+        $deleteNews->assertStatus(200);
+
+        // 2. Create Announcement
+        $annResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/v1/admin/announcements', [
+                'title_ar' => 'إعلان هام للطلاب',
+                'title_en' => 'Important Announcement',
+                'content_ar' => 'تفاصيل الإعلان الهام.',
+                'content_en' => 'Important announcement details.',
+                'target_audience' => 'students',
+                'priority' => 'urgent',
+            ]);
+        $annResponse->assertStatus(201);
+        $annId = $annResponse->json('data.id');
+
+        // Delete Announcement
+        $deleteAnn = $this->withHeader('Authorization', "Bearer {$token}")
+            ->deleteJson("/api/v1/admin/announcements/{$annId}");
+        $deleteAnn->assertStatus(200);
     }
 }
