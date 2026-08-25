@@ -125,6 +125,15 @@
             <option value="rejected">{{ localeStore.isRtl ? 'مرفوض' : 'Rejected' }}</option>
           </select>
         </div>
+
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer shrink-0"
+          @click="exportRequestsCsv"
+        >
+          <Download class="w-3.5 h-3.5 text-gold-400" />
+          <span>{{ localeStore.isRtl ? 'تصدير CSV' : 'Export CSV' }}</span>
+        </button>
       </div>
 
       <!-- Requests Table -->
@@ -436,7 +445,8 @@ import {
   CheckCircle,
   QrCode,
   Award,
-  Printer
+  Printer,
+  Download
 } from 'lucide-vue-next'
 
 const localeStore = useLocaleStore()
@@ -555,6 +565,29 @@ const submitStatementForm = async () => {
 
 const printStatement = (st) => {
   window.print()
+}
+
+const exportRequestsCsv = () => {
+  const headers = ['Request Number', 'Student Name', 'Student ID', 'Service Type', 'Status', 'Fee Paid', 'Admin Notes', 'Date']
+  const rows = filteredRequests.value.map((r) => [
+    r.request_number,
+    `"${r.student_name}"`,
+    `'${r.student_id_number}'`,
+    getServiceLabel(r.service_type),
+    r.status,
+    r.is_fee_paid ? 'Yes' : 'No',
+    `"${r.admin_notes || ''}"`,
+    r.created_at || ''
+  ])
+
+  const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n')
+  const encodedUri = encodeURI(csvContent)
+  const link = document.createElement('a')
+  link.setAttribute('href', encodedUri)
+  link.setAttribute('download', `EgyiTech_Student_Requests_${new Date().toISOString().slice(0, 10)}.csv`)
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 onMounted(() => {
