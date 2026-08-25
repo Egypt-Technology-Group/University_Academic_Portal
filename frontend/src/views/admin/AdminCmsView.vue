@@ -630,6 +630,8 @@ const loadData = async () => {
 }
 
 const openNewNewsModal = () => {
+  newsSelectedFile.value = null
+  newsImagePreview.value = ''
   newsForm.title_ar = ''
   newsForm.title_en = ''
   newsForm.summary_ar = ''
