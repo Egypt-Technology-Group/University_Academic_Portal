@@ -638,6 +638,9 @@ const openNewNewsModal = () => {
   newsForm.summary_en = ''
   newsForm.content_ar = ''
   newsForm.content_en = ''
+  newsForm.featured_image = ''
+  newsForm.category = 'academic'
+  newsForm.is_featured = false
   isNewsModalOpen.value = true
 }
 
@@ -646,6 +649,7 @@ const openNewAnnouncementModal = () => {
   announcementForm.title_en = ''
   announcementForm.content_ar = ''
   announcementForm.content_en = ''
+  announcementForm.target_audience = 'all'
   announcementForm.is_urgent = false
   isAnnouncementModalOpen.value = true
 }

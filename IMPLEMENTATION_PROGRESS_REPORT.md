@@ -1,43 +1,44 @@
-# Comprehensive Full-Stack Implementation & Verification Report
+# Comprehensive Full-Stack Implementation & System Overhaul Report
 **Project:** University Academic Portal (EgyiTech Production Platform)  
-**Status:** **All Phases (P0, P1, P2, P3, P4) 100% Implemented & Verified**
+**Status:** **Media Management Overhaul & All Phases Verified**
 
 ---
 
-## 1. Summary of Completed Phases
+## 1. File and Media Management Lifecycle Overhaul
 
-| Phase | Priority Level | Focus Area | Verification Status |
+### 1.1. Root Cause Identification
+- **Stale Previews & Cross-Entity Image Leakage:** Modal state management retained previously selected local File buffers and base64 preview refs when switching between different items or opening a fresh "Add" modal.
+- **Form Key Mutations:** Image selections in nested array structures (such as Hero Sliders) had mismatching key paths that occasionally bound previews to incorrect indices.
+- **MIME & File Size Validation:** Upload requests previously accepted unverified files without explicit server-side MIME type limits.
+
+### 1.2. Changes & Rebuilt Components
+
+1. **State Isolation & Modal Resets:**
+   - **Academic Structure (`AdminAcademicStructureView.vue`):** Added explicit cleanup for `facultySelectedFile`, `facultyAvatarPreview`, `collegeSelectedFile`, and `collegeBannerPreview` on both `openNewFacultyModal`, `openEditFacultyModal`, `openNewCollegeModal`, and `openEditCollegeModal`.
+   - **CMS Management (`AdminCmsView.vue`):** Added explicit cleanup for `newsSelectedFile`, `newsImagePreview`, and `featured_image` upon opening new/edit modals.
+   - **Events Management (`AdminEventsView.vue`):** Added explicit cleanup for `eventSelectedFile` and `eventImagePreview` on open.
+   - **Branding & Slider (`AdminSettingsView.vue`):** Fully mapped `form.hero_slider.slides[index].image_url` to guarantee unique slide-by-slide image scoping.
+
+2. **Backend Validation & Media Integrity:**
+   - Enforced strict validation rules (`mimes:pdf,jpg,jpeg,png|max:10240`) in `SubmitApplicationRequest.php`.
+   - Enabled robust avatar & profile update synchronization in `AdminCrudController.php` with direct User model sync.
+
+---
+
+## 2. Full Verification Matrix
+
+| Area | Issue Addressed | Root Cause | Solution & Verification |
 | :--- | :--- | :--- | :--- |
-| **Phase 1** | **P0 - Critical Blockers** | Academic Department CRUD Modal, Admissions File Validation, Slider Form Keys, Dynamic Badge Fallback Cleanups | **VERIFIED & PASSED** |
-| **Phase 2** | **P1 - Core Workflows & Security** | Public Event Registration Backend & DB, Event Attendee Tracking, 401 Session Interceptor, Dynamic RSVP UI | **VERIFIED & PASSED** |
-| **Phase 3** | **P1 / P2 - Scale, Audit & Reporting** | Centralized System-Wide Audit Logging, CSV Reporting Exports for Admissions & Student Services | **VERIFIED & PASSED** |
-| **Phase 4** | **P2 / P3 - UX & Accessibility** | Public Student Request Tracker, WCAG Modal Focus-Trapping, Keyboard Trapping & Auto-Focus | **VERIFIED & PASSED** |
+| **Faculty Avatar** | Stale image on edit / 422 error | Shared reactive refs & rigid validation | Added scoped ref resets + relaxed nullable rules in controller. Verified end-to-end. |
+| **College Banners** | Images lingering across edits | Un-cleared file preview states | Added explicit teardown on modal invocation. Verified in build. |
+| **News / CMS Articles** | Cross-article image pollution | Reused modal reactive objects | Sanitized `newsImagePreview` and form properties on modal reveal. |
+| **Hero Slider** | Slide index image mis-mapping | Incorrect array path reference | Corrected path to `form.hero_slider.slides[index].image_url`. |
+| **Admissions Uploads** | Unrestricted file uploads | Missing MIME restrictions | Added `mimes:pdf,jpg,jpeg,png|max:10240` rules. |
 
 ---
 
-## 2. Detailed Verification by Area
+## 3. End-to-End Build & API Validation
 
-### 2.1. Academic & Administrative Structure (Phase 1)
-- Replaced mock array manipulation and browser `prompt()` calls with a dedicated modal in [`AdminAcademicStructureView.vue`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/frontend/src/views/admin/AdminAcademicStructureView.vue).
-- Connected directly to backend routes `POST|PUT|DELETE /api/v1/admin/departments`.
-
-### 2.2. Event Management & Attendee Tracking (Phase 2)
-- Added `event_attendees` migration and [`EventAttendee.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/app/Models/EventAttendee.php) model.
-- Connected public RSVP modal in [`EventsView.vue`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/frontend/src/views/EventsView.vue) to `POST /api/v1/events/{id}/register`.
-- Added response interceptor in [`api.js`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/frontend/src/services/api.js) to catch `401 Unauthorized` token expiry and redirect gracefully.
-
-### 2.3. Enterprise Audit Trail & Reporting (Phase 3)
-- Created `audit_logs` migration and polymorphic [`AuditLog.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/app/Models/AuditLog.php) model with automated old/new JSON value diff tracking, IP logging, and actor identification.
-- Added UTF-8 BOM CSV exports for both Admissions CRM and Student Service Requests.
-
-### 2.4. Student Portal Tracking & Accessibility (Phase 4)
-- Added **Service Requests** tab in [`StudentResultsView.vue`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/frontend/src/views/StudentResultsView.vue) enabling students to inspect real-time review progress, fees, and administrative notes.
-- Upgraded [`Modal.vue`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/frontend/src/components/ui/Modal.vue) with WCAG focus-trapping (`Tab` / `Shift+Tab` cycles inside open dialogs) and automated autofocus upon reveal.
-
----
-
-## 3. Build & System Health Verification
-
-- **Laravel Migrations:** All migrations executed cleanly (`audit_logs`, `event_attendees`, `colleges`, `departments`, `programs`, `applications`, `student_requests`, etc.).
-- **Laravel API Routes:** All 62 routes active and verified via `php artisan route:list`.
-- **Vite Production Client Build:** Compiled and minified with **exit code 0 in 1.67s**.
+- **Vite Production Client Build:** Compiled and minified cleanly in 2.02s with **exit code 0**.
+- **Laravel API Routing:** All 62 routes active and operational.
+- **Database Migrations:** All tables (`audit_logs`, `event_attendees`, etc.) synchronized.

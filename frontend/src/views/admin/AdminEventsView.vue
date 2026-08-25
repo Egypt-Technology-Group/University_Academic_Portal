@@ -411,9 +411,15 @@ const loadEvents = async () => {
 }
 
 const openNewEventModal = () => {
+  eventSelectedFile.value = null
+  eventImagePreview.value = ''
   form.title_ar = ''
   form.title_en = ''
+  form.banner_image = ''
   form.description_ar = ''
+  form.event_date = new Date().toISOString().slice(0, 10)
+  form.start_time = '10:00'
+  form.end_time = '14:00'
   isModalOpen.value = true
 }
 

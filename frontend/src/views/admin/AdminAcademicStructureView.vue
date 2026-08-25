@@ -718,6 +718,8 @@ const filteredFaculty = computed(() => {
 const openNewFacultyModal = () => {
   isEditingFaculty.value = false
   editingFacultyId.value = null
+  facultySelectedFile.value = null
+  facultyAvatarPreview.value = ''
   facultyForm.department_id = sampleDepartments.value[0]?.id || 1
   facultyForm.name_ar = ''
   facultyForm.name_en = ''
@@ -732,6 +734,8 @@ const openNewFacultyModal = () => {
 const openEditFacultyModal = (fac) => {
   isEditingFaculty.value = true
   editingFacultyId.value = fac.id
+  facultySelectedFile.value = null
+  facultyAvatarPreview.value = ''
   facultyForm.name_ar = fac.name || ''
   facultyForm.name_en = fac.name || ''
   facultyForm.academic_title_ar = fac.academic_title?.ar || ''
@@ -858,6 +862,8 @@ const loadData = async () => {
 const openNewCollegeModal = () => {
   isEditingCollege.value = false
   editingCollegeId.value = null
+  collegeSelectedFile.value = null
+  collegeBannerPreview.value = ''
   collegeForm.name_ar = ''
   collegeForm.name_en = ''
   collegeForm.dean_name_ar = ''
@@ -871,6 +877,8 @@ const openNewCollegeModal = () => {
 const openEditCollegeModal = (col) => {
   isEditingCollege.value = true
   editingCollegeId.value = col.id
+  collegeSelectedFile.value = null
+  collegeBannerPreview.value = ''
   collegeForm.name_ar = col.name?.ar || ''
   collegeForm.name_en = col.name?.en || ''
   collegeForm.dean_name_ar = col.dean_name?.ar || ''
