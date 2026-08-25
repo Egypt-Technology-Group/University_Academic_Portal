@@ -33,6 +33,7 @@ class SubmitApplicationRequest extends FormRequest
             'notes' => 'nullable|string|max:1000',
             'documents' => 'nullable|array',
             'documents.*' => 'nullable',
+            'documents.*.file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ];
     }
 }

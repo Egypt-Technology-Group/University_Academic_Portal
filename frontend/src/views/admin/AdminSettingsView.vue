@@ -869,7 +869,9 @@ const handleSlideImageSelect = (e, index) => {
   if (!file) return
   const reader = new FileReader()
   reader.onload = (ev) => {
-    form.hero_slides[index].image_url = ev.target.result
+    if (form.hero_slider?.slides && form.hero_slider.slides[index]) {
+      form.hero_slider.slides[index].image_url = ev.target.result
+    }
   }
   reader.readAsDataURL(file)
 }
