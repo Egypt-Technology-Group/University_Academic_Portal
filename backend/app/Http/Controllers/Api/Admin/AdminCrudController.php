@@ -350,8 +350,8 @@ class AdminCrudController extends Controller
         $college = College::findOrFail($id);
 
         $validated = $request->validate([
-            'name_ar' => 'sometimes|required|string|max:255',
-            'name_en' => 'sometimes|required|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
+            'name_en' => 'nullable|string|max:255',
             'dean_name_ar' => 'nullable|string|max:255',
             'dean_name_en' => 'nullable|string|max:255',
             'about_ar' => 'nullable|string',
@@ -361,21 +361,21 @@ class AdminCrudController extends Controller
             'mission_ar' => 'nullable|string',
             'mission_en' => 'nullable|string',
             'banner_image' => 'nullable|string',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer',
+            'is_active' => 'nullable|boolean',
+            'sort_order' => 'nullable|integer',
         ]);
 
-        if (isset($validated['name_ar'])) $college->setTranslation('name', 'ar', $validated['name_ar']);
-        if (isset($validated['name_en'])) $college->setTranslation('name', 'en', $validated['name_en']);
-        if (isset($validated['dean_name_ar'])) $college->setTranslation('dean_name', 'ar', $validated['dean_name_ar']);
-        if (isset($validated['dean_name_en'])) $college->setTranslation('dean_name', 'en', $validated['dean_name_en']);
-        if (isset($validated['about_ar'])) $college->setTranslation('about', 'ar', $validated['about_ar']);
-        if (isset($validated['about_en'])) $college->setTranslation('about', 'en', $validated['about_en']);
-        if (isset($validated['vision_ar'])) $college->setTranslation('vision', 'ar', $validated['vision_ar']);
-        if (isset($validated['vision_en'])) $college->setTranslation('vision', 'en', $validated['vision_en']);
-        if (isset($validated['mission_ar'])) $college->setTranslation('mission', 'ar', $validated['mission_ar']);
-        if (isset($validated['mission_en'])) $college->setTranslation('mission', 'en', $validated['mission_en']);
-        if (isset($validated['banner_image'])) $college->banner_image = $validated['banner_image'];
+        if (!empty($validated['name_ar'])) $college->setTranslation('name', 'ar', $validated['name_ar']);
+        if (!empty($validated['name_en'])) $college->setTranslation('name', 'en', $validated['name_en']);
+        if (array_key_exists('dean_name_ar', $validated)) $college->setTranslation('dean_name', 'ar', $validated['dean_name_ar'] ?? '');
+        if (array_key_exists('dean_name_en', $validated)) $college->setTranslation('dean_name', 'en', $validated['dean_name_en'] ?? '');
+        if (array_key_exists('about_ar', $validated)) $college->setTranslation('about', 'ar', $validated['about_ar'] ?? '');
+        if (array_key_exists('about_en', $validated)) $college->setTranslation('about', 'en', $validated['about_en'] ?? '');
+        if (array_key_exists('vision_ar', $validated)) $college->setTranslation('vision', 'ar', $validated['vision_ar'] ?? '');
+        if (array_key_exists('vision_en', $validated)) $college->setTranslation('vision', 'en', $validated['vision_en'] ?? '');
+        if (array_key_exists('mission_ar', $validated)) $college->setTranslation('mission', 'ar', $validated['mission_ar'] ?? '');
+        if (array_key_exists('mission_en', $validated)) $college->setTranslation('mission', 'en', $validated['mission_en'] ?? '');
+        if (array_key_exists('banner_image', $validated)) $college->banner_image = $validated['banner_image'];
         if (isset($validated['is_active'])) $college->is_active = (bool) $validated['is_active'];
         if (isset($validated['sort_order'])) $college->sort_order = (int) $validated['sort_order'];
 
@@ -599,11 +599,11 @@ class AdminCrudController extends Controller
     public function storeFaculty(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'department_id' => 'required|exists:departments,id',
-            'name_ar' => 'required|string|max:255',
-            'name_en' => 'required|string|max:255',
-            'academic_title_ar' => 'required|string|max:255',
-            'academic_title_en' => 'required|string|max:255',
+            'department_id' => 'nullable|integer',
+            'name_ar' => 'nullable|string|max:255',
+            'name_en' => 'nullable|string|max:255',
+            'academic_title_ar' => 'nullable|string|max:255',
+            'academic_title_en' => 'nullable|string|max:255',
             'bio_ar' => 'nullable|string',
             'bio_en' => 'nullable|string',
             'research_interests_ar' => 'nullable|string',
@@ -618,22 +618,32 @@ class AdminCrudController extends Controller
             'orcid_id' => 'nullable|string|max:50',
             'office_hours' => 'nullable|array',
             'publications' => 'nullable|array',
-            'is_featured' => 'boolean',
+            'is_featured' => 'nullable|boolean',
         ]);
+
+        $nameAr = $validated['name_ar'] ?? ($validated['name_en'] ?? 'عضو هيئة تدريس');
+        $nameEn = $validated['name_en'] ?? ($validated['name_ar'] ?? 'Faculty Member');
+        $titleAr = $validated['academic_title_ar'] ?? ($validated['academic_title_en'] ?? 'أستاذ دكتور');
+        $titleEn = $validated['academic_title_en'] ?? ($validated['academic_title_ar'] ?? 'Professor');
+
+        $deptId = $validated['department_id'] ?? null;
+        if (!$deptId || !Department::where('id', $deptId)->exists()) {
+            $deptId = Department::value('id') ?? 1;
+        }
 
         // Create associated user or profile
         $user = User::firstOrCreate(
             ['email' => $validated['email']],
             [
-                'name' => $validated['name_en'],
+                'name' => $nameEn,
                 'password' => bcrypt('password123'),
             ]
         );
 
         $faculty = FacultyProfile::create([
             'user_id' => $user->id,
-            'department_id' => $validated['department_id'],
-            'academic_title' => ['ar' => $validated['academic_title_ar'], 'en' => $validated['academic_title_en']],
+            'department_id' => $deptId,
+            'academic_title' => ['ar' => $titleAr, 'en' => $titleEn],
             'bio' => ['ar' => $validated['bio_ar'] ?? '', 'en' => $validated['bio_en'] ?? ''],
             'research_interests' => ['ar' => $validated['research_interests_ar'] ?? '', 'en' => $validated['research_interests_en'] ?? ''],
             'email' => $validated['email'],
@@ -645,7 +655,7 @@ class AdminCrudController extends Controller
             'orcid_id' => $validated['orcid_id'] ?? null,
             'office_hours' => $validated['office_hours'] ?? null,
             'publications' => $validated['publications'] ?? null,
-            'is_featured' => $validated['is_featured'] ?? false,
+            'is_featured' => (bool) ($validated['is_featured'] ?? false),
         ]);
 
         return response()->json([

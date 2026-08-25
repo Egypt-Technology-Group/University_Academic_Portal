@@ -342,9 +342,35 @@
           </div>
         </div>
 
+        <!-- College Banner Image Upload -->
         <div>
-          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'رابط صورة الغلاف أو البانر' : 'Banner Image URL' }}</label>
-          <input v-model="collegeForm.banner_image" type="url" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="https://images.unsplash.com/..." />
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'صورة الغلاف أو البانر للكلية' : 'College Banner Photo' }}</label>
+          <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <img
+              :src="collegeBannerPreview || collegeForm.banner_image || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=400&q=80'"
+              class="w-16 h-12 rounded-lg object-cover border border-slate-200 shadow-xs shrink-0"
+            />
+            <div class="flex-1 min-w-0">
+              <input
+                ref="collegeBannerFileInput"
+                type="file"
+                accept="image/*"
+                class="hidden"
+                @change="handleCollegeBannerSelect"
+              />
+              <button
+                type="button"
+                class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-navy-950 font-bold text-xs cursor-pointer inline-flex items-center gap-1.5 border border-slate-300"
+                @click="$refs.collegeBannerFileInput.click()"
+              >
+                <Upload class="w-3.5 h-3.5 text-gold-600" />
+                <span>{{ localeStore.isRtl ? 'اختيار بانر من جهازك' : 'Choose Banner from Device' }}</span>
+              </button>
+              <div v-if="collegeSelectedFile" class="text-[10px] text-emerald-700 font-mono mt-1 truncate">
+                ✓ {{ collegeSelectedFile.name }} ({{ (collegeSelectedFile.size / 1024).toFixed(0) }} KB)
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -472,9 +498,36 @@
             <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'البريد الإلكتروني الجامعي' : 'University Email' }} *</label>
             <input v-model="facultyForm.email" type="email" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="h.adel@university.edu.eg" />
           </div>
+          
+          <!-- Faculty Avatar File Picker -->
           <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'رابط الصورة الشخصية' : 'Avatar Photo URL' }}</label>
-            <input v-model="facultyForm.avatar" type="url" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="https://images.unsplash.com/..." />
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الصورة الشخصية لعضو هيئة التدريس' : 'Faculty Profile Photo' }}</label>
+            <div class="flex items-center gap-3">
+              <img
+                :src="facultyAvatarPreview || facultyForm.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'"
+                class="w-10 h-10 rounded-xl object-cover border border-slate-300 shrink-0"
+              />
+              <div class="flex-1 min-w-0">
+                <input
+                  ref="facultyAvatarInput"
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleFacultyAvatarSelect"
+                />
+                <button
+                  type="button"
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-navy-950 font-bold text-[11px] cursor-pointer inline-flex items-center gap-1 border border-slate-300"
+                  @click="$refs.facultyAvatarInput.click()"
+                >
+                  <Upload class="w-3.5 h-3.5 text-gold-600" />
+                  <span>{{ localeStore.isRtl ? 'رفع صورة من جهازك' : 'Upload from Device' }}</span>
+                </button>
+                <div v-if="facultySelectedFile" class="text-[10px] text-emerald-700 font-mono mt-0.5 truncate">
+                  ✓ {{ facultySelectedFile.name }}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -508,6 +561,8 @@ import {
   Trash2,
   Edit3,
   UserCheck,
+  Upload,
+  X,
 } from 'lucide-vue-next'
 
 const localeStore = useLocaleStore()
@@ -519,6 +574,56 @@ const facultyList = ref([])
 const searchProgram = ref('')
 const searchFaculty = ref('')
 const filterDegree = ref('all')
+
+// Utility to compress images in client memory before upload
+const compressImage = (file, maxWidth = 400, quality = 0.75) => {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target.result
+      img.onload = () => {
+        const elem = document.createElement('canvas')
+        let width = img.width
+        let height = img.height
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width)
+          width = maxWidth
+        }
+        elem.width = width
+        elem.height = height
+        const ctx = elem.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(elem.toDataURL('image/jpeg', quality))
+      }
+    }
+  })
+}
+
+const collegeSelectedFile = ref(null)
+const collegeBannerPreview = ref('')
+
+const handleCollegeBannerSelect = async (e) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+  collegeSelectedFile.value = file
+  const compressed = await compressImage(file, 800, 0.7)
+  collegeBannerPreview.value = compressed
+  collegeForm.banner_image = compressed
+}
+
+const facultySelectedFile = ref(null)
+const facultyAvatarPreview = ref('')
+
+const handleFacultyAvatarSelect = async (e) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+  facultySelectedFile.value = file
+  const compressed = await compressImage(file, 300, 0.7)
+  facultyAvatarPreview.value = compressed
+  facultyForm.avatar = compressed
+}
 
 const isFacultyModalOpen = ref(false)
 const isEditingFaculty = ref(false)
@@ -555,6 +660,7 @@ const filteredFaculty = computed(() => {
 const openNewFacultyModal = () => {
   isEditingFaculty.value = false
   editingFacultyId.value = null
+  facultyForm.department_id = sampleDepartments.value[0]?.id || 1
   facultyForm.name_ar = ''
   facultyForm.name_en = ''
   facultyForm.academic_title_ar = ''

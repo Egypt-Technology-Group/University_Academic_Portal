@@ -478,24 +478,34 @@
             />
           </div>
 
-          <!-- President Photo URL -->
+          <!-- President Photo Upload -->
           <div class="md:col-span-2">
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
               {{ $t('admin.settings.fields.presidentAvatar') }}
             </label>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl border border-slate-200">
               <img
-                :src="form.president_message.avatar_url"
+                :src="form.president_message.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80'"
                 alt="President Avatar Preview"
                 class="w-16 h-16 rounded-2xl object-cover border-2 border-gold-400 shadow-sm shrink-0"
               />
-              <input
-                v-model="form.president_message.avatar_url"
-                type="url"
-                dir="ltr"
-                placeholder="https://images.unsplash.com/..."
-                class="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-sm font-medium focus:bg-white focus:border-navy-900"
-              />
+              <div class="flex-1 min-w-0">
+                <input
+                  ref="presidentAvatarInput"
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handlePresidentAvatarSelect"
+                />
+                <button
+                  type="button"
+                  class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-100 text-navy-950 font-bold text-xs cursor-pointer inline-flex items-center gap-2 border border-slate-300 shadow-xs"
+                  @click="$refs.presidentAvatarInput.click()"
+                >
+                  <Upload class="w-4 h-4 text-gold-600" />
+                  <span>{{ localeStore.isRtl ? 'اختيار صورة الرئيس من جهازك' : 'Choose Photo from Device' }}</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -633,10 +643,26 @@
               </div>
 
               <div class="md:col-span-2">
-                <label class="block text-xs font-bold text-slate-700 mb-1">Image URL</label>
-                <div class="flex items-center gap-3">
-                  <img :src="slide.image_url" class="w-12 h-12 rounded-xl object-cover border shrink-0" />
-                  <input v-model="slide.image_url" type="url" dir="ltr" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono" />
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'صورة الشريحة' : 'Slide Image' }}</label>
+                <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-200">
+                  <img :src="slide.image_url" class="w-16 h-12 rounded-lg object-cover border border-slate-200 shrink-0" />
+                  <div class="flex-1 min-w-0">
+                    <input
+                      :ref="(el) => { if (el) slideFileInputs[index] = el }"
+                      type="file"
+                      accept="image/*"
+                      class="hidden"
+                      @change="(e) => handleSlideImageSelect(e, index)"
+                    />
+                    <button
+                      type="button"
+                      class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-navy-950 font-bold text-xs cursor-pointer inline-flex items-center gap-1.5 border border-slate-300 shadow-xs"
+                      @click="triggerSlideFile(index)"
+                    >
+                      <Upload class="w-3.5 h-3.5 text-gold-600" />
+                      <span>{{ localeStore.isRtl ? 'اختيار صورة من جهازك' : 'Choose Image from Device' }}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -810,6 +836,7 @@ import {
   RotateCcw,
   Plus,
   CheckCircle2,
+  Upload,
 } from 'lucide-vue-next'
 
 const settingsStore = useSettingsStore()
@@ -819,6 +846,33 @@ const activeTab = ref('branding')
 const isSaving = ref(false)
 const isResetting = ref(false)
 const saveSuccess = ref(false)
+const slideFileInputs = ref([])
+
+const handlePresidentAvatarSelect = (e) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    form.president_message.avatar_url = ev.target.result
+  }
+  reader.readAsDataURL(file)
+}
+
+const triggerSlideFile = (index) => {
+  if (slideFileInputs.value[index]) {
+    slideFileInputs.value[index].click()
+  }
+}
+
+const handleSlideImageSelect = (e, index) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    form.hero_slides[index].image_url = ev.target.result
+  }
+  reader.readAsDataURL(file)
+}
 
 const tabs = computed(() => [
   { id: 'branding', label: localeStore.isRtl ? 'الهوية والشعار' : 'Branding & Identity', icon: Building2 },
