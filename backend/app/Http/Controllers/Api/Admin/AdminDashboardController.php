@@ -97,6 +97,11 @@ class AdminDashboardController extends Controller
             'interview_scheduled_at' => 'nullable|date',
             'placement_test_at' => 'nullable|date',
             'decision_reason' => 'nullable|string|max:500',
+            'scholarship_name' => 'nullable|string|max:100',
+            'scholarship_discount_percent' => 'nullable|integer|min:0|max:100',
+            'waitlist_position' => 'nullable|integer|min:1',
+            'enrollment_status' => ['nullable', Rule::in(['pending', 'documents_verified', 'tuition_paid', 'enrolled', 'withdrawn'])],
+            'verification_checklist' => 'nullable|array',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -119,6 +124,21 @@ class AdminDashboardController extends Controller
         if (isset($validated['decision_reason'])) {
             $application->decision_reason = $validated['decision_reason'];
         }
+        if (array_key_exists('scholarship_name', $validated)) {
+            $application->scholarship_name = $validated['scholarship_name'];
+        }
+        if (array_key_exists('scholarship_discount_percent', $validated)) {
+            $application->scholarship_discount_percent = $validated['scholarship_discount_percent'] ?? 0;
+        }
+        if (array_key_exists('waitlist_position', $validated)) {
+            $application->waitlist_position = $validated['waitlist_position'];
+        }
+        if (isset($validated['enrollment_status'])) {
+            $application->enrollment_status = $validated['enrollment_status'];
+        }
+        if (isset($validated['verification_checklist'])) {
+            $application->verification_checklist = $validated['verification_checklist'];
+        }
         if (isset($validated['notes'])) {
             $application->notes = $validated['notes'];
         }
@@ -131,6 +151,11 @@ class AdminDashboardController extends Controller
             actor: $currentUser,
             details: $validated['decision_reason'] ?? $validated['notes'] ?? "Transitioned from {$oldStatus} to {$newStatus}"
         );
+
+        // Automated notification log
+        if ($newStatus === 'accepted') {
+            $application->logCommunication('email', 'Official Acceptance & Enrollment Offer', "Congratulations {$application->first_name}! You have been accepted to {$application->program?->name}.");
+        }
 
         return response()->json([
             'success' => true,

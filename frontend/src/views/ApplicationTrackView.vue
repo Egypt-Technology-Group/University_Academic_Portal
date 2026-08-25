@@ -208,6 +208,30 @@
         </div>
       </div>
 
+      <!-- CRM: Scholarship Award Banner (If awarded) -->
+      <div v-if="appData.scholarship_name" class="p-5 bg-gradient-to-r from-gold-600 to-gold-500 text-navy-950 rounded-2xl shadow-md border border-gold-400 flex items-center justify-between gap-4">
+        <div>
+          <div class="text-xs font-black uppercase tracking-wider text-navy-950/80">
+            🎉 {{ localeStore.isRtl ? 'تم منحك منحة دراسية رسمية' : 'Official Scholarship Granted' }}
+          </div>
+          <div class="text-lg font-black text-navy-950">
+            {{ appData.scholarship_name }} ({{ appData.scholarship_discount_percent }}% {{ localeStore.isRtl ? 'خصم من المصروفات' : 'Tuition Waiver' }})
+          </div>
+          <p class="text-xs font-medium text-navy-900 mt-0.5">
+            {{ localeStore.isRtl ? 'تهانينا! يرجى مراجعة إدارة القبول لاستكمال مستندات القيد النهائي وتثبيت المنحة.' : 'Congratulations! Please finalize enrollment with Admissions to confirm your merit grant.' }}
+          </p>
+        </div>
+        <div class="text-3xl">🏅</div>
+      </div>
+
+      <!-- CRM: Waitlist Position Card (If on waitlist) -->
+      <div v-if="appData.waitlist_position" class="p-4 bg-amber-50 border border-amber-300 rounded-2xl flex items-center justify-between text-amber-950 text-xs sm:text-sm">
+        <div>
+          <strong class="font-black block">⏳ {{ localeStore.isRtl ? 'حالة قائمة الانتظار' : 'Waitlist Status' }}</strong>
+          <span>{{ localeStore.isRtl ? `أنت في الترتيب رقم (${appData.waitlist_position}) على قائمة انتظار البرنامج.` : `You are currently position #${appData.waitlist_position} on the program waitlist.` }}</span>
+        </div>
+      </div>
+
       <!-- Scheduled Interview Notice Card (If scheduled) -->
       <div v-if="appData.interview_scheduled_at" class="p-5 bg-gradient-to-r from-navy-950 to-navy-900 text-white rounded-2xl shadow-md border border-navy-800 flex items-center justify-between gap-4">
         <div>
@@ -223,6 +247,25 @@
         </div>
         <div class="w-12 h-12 rounded-xl bg-gold-500 text-navy-950 flex items-center justify-center font-bold text-xl shrink-0 shadow-gold-glow">
           🗓️
+        </div>
+      </div>
+
+      <!-- CRM: Original Document Verification Checklist -->
+      <div v-if="appData.verification_checklist && appData.verification_checklist.length > 0" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+        <h4 class="text-xs font-black text-navy-950 uppercase tracking-wider">
+          📑 {{ localeStore.isRtl ? 'حالة فحص أصول المستندات المطلوبة للقيد:' : 'Required Document Verification Checklist:' }}
+        </h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div
+            v-for="(item, idx) in appData.verification_checklist"
+            :key="idx"
+            class="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between"
+          >
+            <span class="text-slate-800 font-medium">{{ item.label }}</span>
+            <Badge :variant="item.verified ? 'emerald' : 'amber'" size="xs" rounded="md">
+              {{ item.verified ? (localeStore.isRtl ? 'معتمد ومستوفى' : 'Verified') : (localeStore.isRtl ? 'قيد الاستيفاء' : 'Pending') }}
+            </Badge>
+          </div>
         </div>
       </div>
 

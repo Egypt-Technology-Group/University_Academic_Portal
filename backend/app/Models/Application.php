@@ -26,6 +26,12 @@ class Application extends Model
         'interview_scheduled_at',
         'placement_test_at',
         'decision_reason',
+        'scholarship_name',
+        'scholarship_discount_percent',
+        'waitlist_position',
+        'enrollment_status',
+        'verification_checklist',
+        'communication_logs',
         'timeline',
         'reviewed_by',
         'notes',
@@ -35,10 +41,28 @@ class Application extends Model
     {
         return [
             'high_school_score' => 'decimal:2',
+            'scholarship_discount_percent' => 'integer',
+            'waitlist_position' => 'integer',
             'interview_scheduled_at' => 'datetime',
             'placement_test_at' => 'datetime',
+            'verification_checklist' => 'array',
+            'communication_logs' => 'array',
             'timeline' => 'array',
         ];
+    }
+
+    public function logCommunication(string $channel, string $subject, string $message, ?string $recipient = null): void
+    {
+        $logs = $this->communication_logs ?? [];
+        $logs[] = [
+            'channel' => $channel, // email, sms, portal_notification
+            'subject' => $subject,
+            'message' => $message,
+            'recipient' => $recipient ?? $this->email,
+            'sent_at' => now()->toIso8601String(),
+        ];
+        $this->communication_logs = $logs;
+        $this->save();
     }
 
     public function recordTimelineEvent(string $title, string $action, ?string $actor = 'Committee', ?string $details = null): void

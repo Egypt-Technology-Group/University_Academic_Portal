@@ -36,6 +36,17 @@ class ApplicationResource extends JsonResource
             'interview_scheduled_at' => $this->interview_scheduled_at?->toISOString(),
             'placement_test_at' => $this->placement_test_at?->toISOString(),
             'decision_reason' => $this->decision_reason,
+            'scholarship_name' => $this->scholarship_name,
+            'scholarship_discount_percent' => (int) $this->scholarship_discount_percent,
+            'waitlist_position' => $this->waitlist_position,
+            'enrollment_status' => $this->enrollment_status ?? 'pending',
+            'verification_checklist' => $this->verification_checklist ?? [
+                ['key' => 'high_school_cert', 'label' => 'High School Certificate / أصل بيان النجاح', 'verified' => true],
+                ['key' => 'birth_cert', 'label' => 'Original Birth Certificate / شهادة الميلاد المميكنة', 'verified' => true],
+                ['key' => 'id_copy', 'label' => 'National ID / Passport Copy / صورة بطاقة الرقم القومي', 'verified' => true],
+                ['key' => 'medical_exam', 'label' => 'Medical Checkup / الكشف الطبي', 'verified' => false],
+            ],
+            'communication_logs' => $this->communication_logs ?? [],
             'timeline' => $this->timeline ?? [
                 [
                     'title' => 'Application Submitted',

@@ -392,7 +392,7 @@
             </div>
           </div>
 
-          <!-- Workflow Stage & Next Actions -->
+          <!-- Workflow Stage & Scheduled Interview/Test -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">
@@ -412,13 +412,92 @@
 
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                {{ localeStore.isRtl ? 'موعد المقابلة / الاختبار (إن وُجد)' : 'Scheduled Test / Interview Date' }}
+                {{ localeStore.isRtl ? 'موعد المقابلة / الاختبار' : 'Scheduled Test / Interview Date' }}
               </label>
               <input
                 v-model="reviewForm.interview_scheduled_at"
                 type="datetime-local"
                 class="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-navy-900"
               />
+            </div>
+          </div>
+
+          <!-- CRM: Scholarship & Financial Aid & Waitlist -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 bg-gold-50/50 rounded-2xl border border-gold-200/60">
+            <div>
+              <label class="block text-[11px] font-bold text-gold-950 mb-1">
+                {{ localeStore.isRtl ? 'المنحة الدراسية / التخفيض' : 'Scholarship Award' }}
+              </label>
+              <select
+                v-model="reviewForm.scholarship_name"
+                class="w-full rounded-lg border border-gold-300 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-800"
+              >
+                <option value="">{{ localeStore.isRtl ? 'بدون منحة' : 'No Scholarship' }}</option>
+                <option value="Academic Excellence Scholarship">{{ localeStore.isRtl ? 'منحة التفوق الأكاديمي (Excellence)' : 'Academic Excellence' }}</option>
+                <option value="STEM Innovation Grant">{{ localeStore.isRtl ? 'منحة الابتكار التكنولوجي (STEM)' : 'STEM Innovation Grant' }}</option>
+                <option value="Martyrs & Heroes Children Grant">{{ localeStore.isRtl ? 'منحة أبناء الشهداء' : 'Martyrs & Heroes Grant' }}</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-gold-950 mb-1">
+                {{ localeStore.isRtl ? 'نسبة الخصم (%)' : 'Discount (%)' }}
+              </label>
+              <input
+                v-model.number="reviewForm.scholarship_discount_percent"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="0"
+                class="w-full rounded-lg border border-gold-300 bg-white px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800"
+              />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-gold-950 mb-1">
+                {{ localeStore.isRtl ? 'ترتيب قائمة الانتظار' : 'Waitlist Position' }}
+              </label>
+              <input
+                v-model.number="reviewForm.waitlist_position"
+                type="number"
+                min="1"
+                placeholder="N/A"
+                class="w-full rounded-lg border border-gold-300 bg-white px-2.5 py-1.5 text-xs font-mono font-bold text-slate-800"
+              />
+            </div>
+          </div>
+
+          <!-- CRM: Enrollment Status & Document Verification Checklist -->
+          <div class="space-y-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-black text-navy-950 uppercase tracking-wider">
+                {{ localeStore.isRtl ? 'حالة القيد والتحقق من أصول المستندات' : 'Enrollment & Original Docs Verification' }}
+              </label>
+              <select
+                v-model="reviewForm.enrollment_status"
+                class="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-bold text-navy-950"
+              >
+                <option value="pending">{{ localeStore.isRtl ? 'قيد المراجعة' : 'Pending Verification' }}</option>
+                <option value="documents_verified">{{ localeStore.isRtl ? 'تم اعتماد أصول الأوراق' : 'Documents Verified' }}</option>
+                <option value="tuition_paid">{{ localeStore.isRtl ? 'تم سداد المصروفات' : 'Tuition Paid' }}</option>
+                <option value="enrolled">{{ localeStore.isRtl ? 'طالب مقيد رسمياً' : 'Officially Enrolled' }}</option>
+                <option value="withdrawn">{{ localeStore.isRtl ? 'منسحب / اعتذار' : 'Withdrawn' }}</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <label
+                v-for="check in verificationChecklist"
+                :key="check.key"
+                class="flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-200/80 cursor-pointer hover:bg-slate-100/50"
+              >
+                <input
+                  type="checkbox"
+                  v-model="check.verified"
+                  class="rounded text-navy-900 focus:ring-navy-900 cursor-pointer"
+                />
+                <span class="font-medium text-slate-700 text-[11px]">{{ check.label }}</span>
+              </label>
             </div>
           </div>
 
@@ -444,12 +523,19 @@
                 >
                   {{ localeStore.isRtl ? 'نقص مستندات' : 'Missing Docs' }}
                 </button>
+                <button
+                  type="button"
+                  class="text-[10px] bg-gold-100 hover:bg-gold-200 text-gold-900 px-2 py-0.5 rounded font-bold cursor-pointer"
+                  @click="reviewForm.notes = localeStore.isRtl ? 'تم ترشيح الطالب لمنحة التميز الأكاديمي مع تخفيض 25% من المصروفات الدراسية.' : 'Nominated for 25% Academic Excellence Merit Scholarship.'"
+                >
+                  {{ localeStore.isRtl ? 'ترشيح منحة' : 'Scholarship' }}
+                </button>
               </div>
             </div>
             <textarea
               v-model="reviewForm.notes"
-              rows="3"
-              class="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm text-slate-800 focus:border-navy-900 focus:ring-1 focus:ring-navy-900"
+              rows="2"
+              class="w-full rounded-xl border border-slate-300 bg-white p-2.5 text-xs sm:text-sm text-slate-800 focus:border-navy-900 focus:ring-1 focus:ring-navy-900"
               :placeholder="$t('admin.admissions.committeeNotesPlaceholder')"
             ></textarea>
           </div>
@@ -551,8 +637,19 @@ const reviewForm = reactive({
   status: 'under_review',
   stage: 'initial_screening',
   interview_scheduled_at: '',
+  scholarship_name: '',
+  scholarship_discount_percent: 0,
+  waitlist_position: null,
+  enrollment_status: 'pending',
   notes: '',
 })
+
+const verificationChecklist = ref([
+  { key: 'high_school_cert', label: 'أصل بيان درجات الثانوية العامة', verified: true },
+  { key: 'birth_cert', label: 'شهادة الميلاد المميكنة الأصلية', verified: true },
+  { key: 'id_copy', label: 'صورة بطاقة الرقم القومي / الجواز', verified: true },
+  { key: 'medical_exam', label: 'استمارة الفحص الطبي الشامل', verified: false },
+])
 
 const defaultDocumentsList = [
   { id: 1, name: 'شهادة الثانوية العامة الأصلية', verification_status: 'verified' },
@@ -696,7 +793,16 @@ const openReviewModal = (app) => {
   reviewForm.status = app.status === 'approved' ? 'accepted' : app.status
   reviewForm.stage = app.stage || 'initial_screening'
   reviewForm.interview_scheduled_at = app.interview_scheduled_at ? app.interview_scheduled_at.substring(0, 16) : ''
+  reviewForm.scholarship_name = app.scholarship_name || ''
+  reviewForm.scholarship_discount_percent = app.scholarship_discount_percent || 0
+  reviewForm.waitlist_position = app.waitlist_position || null
+  reviewForm.enrollment_status = app.enrollment_status || 'pending'
   reviewForm.notes = app.notes || ''
+  
+  if (app.verification_checklist && app.verification_checklist.length > 0) {
+    verificationChecklist.value = JSON.parse(JSON.stringify(app.verification_checklist))
+  }
+  
   updateSuccessMessage.value = ''
   isReviewModalOpen.value = true
 }
@@ -713,13 +819,19 @@ const saveDecision = async () => {
   updateSuccessMessage.value = ''
 
   try {
-    const response = await api.updateApplicationStatus(activeApp.value.id, {
+    const payload = {
       status: reviewForm.status,
       stage: reviewForm.stage,
       interview_scheduled_at: reviewForm.interview_scheduled_at || null,
+      scholarship_name: reviewForm.scholarship_name || null,
+      scholarship_discount_percent: Number(reviewForm.scholarship_discount_percent) || 0,
+      waitlist_position: reviewForm.waitlist_position ? Number(reviewForm.waitlist_position) : null,
+      enrollment_status: reviewForm.enrollment_status,
+      verification_checklist: verificationChecklist.value,
       notes: reviewForm.notes,
-    })
+    }
 
+    const response = await api.updateApplicationStatus(activeApp.value.id, payload)
     const updatedApp = response?.data || response
 
     // Update in local list
@@ -727,10 +839,7 @@ const saveDecision = async () => {
     if (index !== -1) {
       applications.value[index] = {
         ...applications.value[index],
-        status: reviewForm.status,
-        stage: reviewForm.stage,
-        interview_scheduled_at: reviewForm.interview_scheduled_at || null,
-        notes: reviewForm.notes,
+        ...payload,
         timeline: updatedApp?.timeline || applications.value[index].timeline || [],
       }
       activeApp.value = applications.value[index]

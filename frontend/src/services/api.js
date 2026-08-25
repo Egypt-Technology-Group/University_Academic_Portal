@@ -460,6 +460,21 @@ export const api = {
 
   // Admin Dashboard & Statistics
   async getAdminStats() {
+    const token = localStorage.getItem('egyitech_auth_token')
+    if (token && token.startsWith('egyitech_mock_jwt_')) {
+      return {
+        ...mockAdminStats,
+        total_news: mockNews.length,
+        total_announcements: mockAnnouncements.length,
+        total_events: mockEvents.length,
+        total_documents: mockDocuments.length,
+        total_colleges: mockColleges.length,
+        total_programs: mockPrograms.length,
+        total_faculty: mockFaculty.length,
+        total_applications: Object.keys(mockApplications).length
+      }
+    }
+
     try {
       const response = await apiClient.get('/admin/stats')
       return response.data.data || response.data
@@ -481,6 +496,39 @@ export const api = {
 
   // Admin Admissions Management
   async getAdminApplications(params = {}) {
+    const token = localStorage.getItem('egyitech_auth_token')
+    if (token && token.startsWith('egyitech_mock_jwt_')) {
+      let list = Object.values(mockApplications)
+
+      if (params.status && params.status !== 'all') {
+        list = list.filter((app) => app.status === params.status)
+      }
+
+      if (params.program_id && params.program_id !== 'all') {
+        list = list.filter((app) => app.program_id === Number(params.program_id) || app.program?.id === Number(params.program_id))
+      }
+
+      if (params.search) {
+        const q = params.search.toLowerCase()
+        list = list.filter((app) =>
+          app.application_number.toLowerCase().includes(q) ||
+          app.national_id.includes(q) ||
+          app.email.toLowerCase().includes(q) ||
+          `${app.first_name} ${app.last_name}`.toLowerCase().includes(q)
+        )
+      }
+
+      if (params.sort === 'score_desc') {
+        list.sort((a, b) => b.high_school_score - a.high_school_score)
+      } else if (params.sort === 'score_asc') {
+        list.sort((a, b) => a.high_school_score - b.high_school_score)
+      } else {
+        list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      }
+
+      return list
+    }
+
     try {
       const response = await apiClient.get('/admin/applications', { params })
       return response.data.data || response.data
@@ -520,12 +568,42 @@ export const api = {
     }
   },
 
-  async updateApplicationStatus(applicationId, { status, notes }) {
+  async updateApplicationStatus(applicationId, payload = {}) {
+    const token = localStorage.getItem('egyitech_auth_token')
+    if (token && token.startsWith('egyitech_mock_jwt_')) {
+      let found = null
+      for (const key in mockApplications) {
+        if (mockApplications[key].id === Number(applicationId) || mockApplications[key].application_number === applicationId) {
+          found = mockApplications[key]
+          break
+        }
+      }
+      if (found) {
+        if (payload.status) found.status = payload.status
+        if (payload.stage) found.stage = payload.stage
+        if (payload.notes) found.notes = payload.notes
+        if (payload.scholarship_name) found.scholarship_name = payload.scholarship_name
+        if (payload.scholarship_discount_percent !== undefined) found.scholarship_discount_percent = payload.scholarship_discount_percent
+        if (payload.waitlist_position !== undefined) found.waitlist_position = payload.waitlist_position
+        if (payload.enrollment_status) found.enrollment_status = payload.enrollment_status
+        if (payload.verification_checklist) found.verification_checklist = payload.verification_checklist
+        if (payload.interview_scheduled_at) found.interview_scheduled_at = payload.interview_scheduled_at
+        if (payload.placement_test_at) found.placement_test_at = payload.placement_test_at
+        found.timeline = found.timeline || []
+        found.timeline.push({
+          title: `Updated: ${payload.status || 'Reviewed'}`,
+          action: payload.status || 'review',
+          actor: 'Admissions Committee',
+          details: payload.notes || 'Updated via Admissions CRM',
+          timestamp: new Date().toISOString()
+        })
+        return found
+      }
+      return { success: true }
+    }
+
     try {
-      const response = await apiClient.patch(`/admin/applications/${applicationId}/status`, {
-        status,
-        notes
-      })
+      const response = await apiClient.patch(`/admin/applications/${applicationId}/status`, payload)
       return response.data.data || response.data
     } catch (e) {
       console.warn(`API /admin/applications/${applicationId}/status failed, updating local mock state:`, e.message)
@@ -536,20 +614,13 @@ export const api = {
           break
         }
       }
-
       if (found) {
-        if (status) found.status = status
-        if (notes !== undefined) found.notes = notes
-        found.updated_at = new Date().toISOString()
+        if (payload.status) found.status = payload.status
+        if (payload.stage) found.stage = payload.stage
+        if (payload.notes) found.notes = payload.notes
         return found
       }
-
-      return {
-        id: applicationId,
-        status,
-        notes,
-        updated_at: new Date().toISOString()
-      }
+      return { success: true }
     }
   },
 
