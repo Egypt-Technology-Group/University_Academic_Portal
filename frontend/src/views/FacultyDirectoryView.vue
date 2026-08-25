@@ -211,8 +211,8 @@
           
           <div class="flex items-center gap-2">
             <a
-              v-if="selectedFac.google_scholar_url || true"
-              :href="selectedFac.google_scholar_url || 'https://scholar.google.com'"
+              v-if="selectedFac.google_scholar_url"
+              :href="selectedFac.google_scholar_url"
               target="_blank"
               rel="noopener"
               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-bold text-[11px] hover:bg-blue-100 transition-colors"
@@ -220,8 +220,8 @@
               🎓 Google Scholar
             </a>
             <a
-              v-if="selectedFac.orcid_id || true"
-              :href="`https://orcid.org/${selectedFac.orcid_id || '0000-0002-1825-0097'}`"
+              v-if="selectedFac.orcid_id"
+              :href="`https://orcid.org/${selectedFac.orcid_id}`"
               target="_blank"
               rel="noopener"
               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[11px] hover:bg-emerald-100 transition-colors"

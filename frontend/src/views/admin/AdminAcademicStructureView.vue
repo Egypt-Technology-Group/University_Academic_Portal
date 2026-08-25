@@ -213,6 +213,13 @@
               <td class="py-3.5 px-4 text-end whitespace-nowrap">
                 <button
                   type="button"
+                  class="p-1.5 rounded-lg text-slate-500 hover:text-navy-900 hover:bg-slate-100 transition-colors cursor-pointer me-1"
+                  @click="openEditDepartmentModal(dept)"
+                >
+                  <Edit3 class="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
                   class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                   @click="handleDeleteDepartment(dept.id)"
                 >
@@ -311,6 +318,57 @@
         </div>
       </div>
     </div>
+
+    <!-- MODAL: CREATE/EDIT DEPARTMENT -->
+    <Modal
+      v-model="isDepartmentModalOpen"
+      :title="isEditingDepartment ? (localeStore.isRtl ? 'تعديل بيانات القسم العلمي' : 'Edit Department Details') : (localeStore.isRtl ? 'إضافة قسم علمي جديد' : 'New Academic Department')"
+      size="md"
+      @close="isDepartmentModalOpen = false"
+    >
+      <form @submit.prevent="submitDepartmentForm" class="space-y-4 text-start text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الكلية التابع لها القسم' : 'Affiliated College' }} *</label>
+          <select v-model="departmentForm.college_id" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold bg-white">
+            <option v-for="c in collegesList" :key="c.id" :value="c.id">
+              {{ getTranslated(c.name, localeStore.locale) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم القسم (عربي)' : 'Department Name (Ar)' }} *</label>
+            <input v-model="departmentForm.name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="قسم الذكاء الاصطناعي" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Department Name (En) *</label>
+            <input v-model="departmentForm.name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="Department of Artificial Intelligence" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'رئيس مجلس القسم (عربي)' : 'Head of Dept (Ar)' }}</label>
+            <input v-model="departmentForm.head_name_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="أ.د. حسام عادل" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Head of Dept (En)</label>
+            <input v-model="departmentForm.head_name_en" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="Prof. Dr. Hossam Adel" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'نبذة عن القسم العلمي' : 'Department Description' }}</label>
+          <textarea v-model="departmentForm.description_ar" rows="2.5" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="الخطة التدريسية ومجالات التخصص..."></textarea>
+        </div>
+      </form>
+
+      <template #footer>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isDepartmentModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitDepartmentForm">{{ localeStore.isRtl ? 'حفظ القسم' : 'Save Department' }}</button>
+      </template>
+    </Modal>
 
     <!-- MODAL: CREATE/EDIT COLLEGE -->
     <Modal
@@ -828,22 +886,65 @@ const handleDeleteCollege = async (id) => {
   }
 }
 
+const isDepartmentModalOpen = ref(false)
+const isEditingDepartment = ref(false)
+const editingDepartmentId = ref(null)
+const departmentForm = reactive({
+  college_id: 1,
+  name_ar: '',
+  name_en: '',
+  head_name_ar: '',
+  head_name_en: '',
+  description_ar: '',
+  description_en: '',
+})
+
 const openNewDepartmentModal = () => {
-  const nameAr = prompt(localeStore.isRtl ? 'اسم القسم العلمي بالعربية:' : 'Department name (Arabic):', 'قسم هندسة النظم الذكية')
-  if (!nameAr) return
-  const nameEn = prompt('Department name (English):', 'Department of Intelligent Systems')
-  if (!nameEn) return
-  sampleDepartments.value.unshift({
-    id: Date.now(),
-    college_id: collegesList.value[0]?.id || 1,
-    name: { ar: nameAr, en: nameEn },
-    head_name: { ar: 'أ.د. رئيس القسم', en: 'Prof. Dr. Head of Dept' },
-    description: { ar: 'قسم أكاديمي متقدم.', en: 'Advanced academic department.' }
-  })
+  isEditingDepartment.value = false
+  editingDepartmentId.value = null
+  departmentForm.college_id = collegesList.value[0]?.id || 1
+  departmentForm.name_ar = ''
+  departmentForm.name_en = ''
+  departmentForm.head_name_ar = ''
+  departmentForm.head_name_en = ''
+  departmentForm.description_ar = ''
+  departmentForm.description_en = ''
+  isDepartmentModalOpen.value = true
 }
 
-const handleDeleteDepartment = (id) => {
+const openEditDepartmentModal = (dept) => {
+  isEditingDepartment.value = true
+  editingDepartmentId.value = dept.id
+  departmentForm.college_id = dept.college_id || collegesList.value[0]?.id || 1
+  departmentForm.name_ar = dept.name?.ar || ''
+  departmentForm.name_en = dept.name?.en || ''
+  departmentForm.head_name_ar = dept.head_name?.ar || ''
+  departmentForm.head_name_en = dept.head_name?.en || ''
+  departmentForm.description_ar = dept.description?.ar || ''
+  departmentForm.description_en = dept.description?.en || ''
+  isDepartmentModalOpen.value = true
+}
+
+const submitDepartmentForm = async () => {
+  if (isEditingDepartment.value) {
+    await api.updateDepartment(editingDepartmentId.value, { ...departmentForm })
+    const idx = sampleDepartments.value.findIndex((d) => d.id === editingDepartmentId.value)
+    if (idx !== -1) {
+      sampleDepartments.value[idx].college_id = departmentForm.college_id
+      sampleDepartments.value[idx].name = { ar: departmentForm.name_ar, en: departmentForm.name_en }
+      sampleDepartments.value[idx].head_name = { ar: departmentForm.head_name_ar, en: departmentForm.head_name_en }
+      sampleDepartments.value[idx].description = { ar: departmentForm.description_ar, en: departmentForm.description_en }
+    }
+  } else {
+    const created = await api.createDepartment({ ...departmentForm })
+    sampleDepartments.value.unshift(created)
+  }
+  isDepartmentModalOpen.value = false
+}
+
+const handleDeleteDepartment = async (id) => {
   if (window.confirm(localeStore.isRtl ? 'حذف القسم العلمي؟' : 'Delete department?')) {
+    await api.deleteDepartment(id)
     sampleDepartments.value = sampleDepartments.value.filter((d) => d.id !== id)
   }
 }
