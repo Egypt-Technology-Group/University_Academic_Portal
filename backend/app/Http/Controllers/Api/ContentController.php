@@ -107,6 +107,33 @@ class ContentController extends Controller
     }
 
     /**
+     * Register an attendee for an academic event.
+     */
+    public function registerForEvent(Request $request, int $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:30',
+        ]);
+
+        $event = Event::findOrFail($id);
+
+        $attendee = $event->attendees()->create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'status' => 'registered',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Attendance registered successfully.',
+            'data' => $attendee,
+        ], 201);
+    }
+
+    /**
      * List active announcements with urgent and audience filters.
      */
     public function announcements(Request $request): AnonymousResourceCollection

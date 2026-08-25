@@ -35,4 +35,9 @@ class Event extends Model
             'end_time' => 'datetime',
         ];
     }
+
+    public function attendees(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EventAttendee::class);
+    }
 }

@@ -188,13 +188,27 @@ const openEventModal = (ev) => {
   showEventModal.value = true
 }
 
-const handleRegisterEvent = () => {
-  regSuccess.value = true
-  setTimeout(() => {
-    showEventModal.value = false
-    regName.value = ''
-    regEmail.value = ''
-  }, 2500)
+const isSubmittingReg = ref(false)
+
+const handleRegisterEvent = async () => {
+  if (!selectedEvent.value || !regName.value || !regEmail.value) return
+  isSubmittingReg.value = true
+  try {
+    await api.registerEvent(selectedEvent.value.id, {
+      name: regName.value,
+      email: regEmail.value,
+    })
+    regSuccess.value = true
+    setTimeout(() => {
+      showEventModal.value = false
+      regName.value = ''
+      regEmail.value = ''
+    }, 2500)
+  } catch (e) {
+    console.error('Registration failed:', e)
+  } finally {
+    isSubmittingReg.value = false
+  }
 }
 
 const getMonth = (dateStr) => {

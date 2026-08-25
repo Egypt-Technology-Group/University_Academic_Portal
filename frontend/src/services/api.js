@@ -37,6 +37,24 @@ apiClient.interceptors.request.use((config) => {
   return Promise.reject(error)
 })
 
+// Response Interceptor for handling token expiration and 401 errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const token = localStorage.getItem('egyitech_auth_token')
+      if (token && !token.startsWith('egyitech_mock_jwt_')) {
+        localStorage.removeItem('egyitech_auth_token')
+        localStorage.removeItem('egyitech_auth_user')
+        if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+          window.location.href = '/admin/login'
+        }
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
 // Translation helper utility for objects that contain { ar: '...', en: '...' } or strings
 export function getTranslated(field, locale = 'ar') {
   if (!field) return ''
@@ -180,6 +198,21 @@ export const api = {
     } catch (e) {
       console.warn('API /events failed, using fallback data:', e.message)
       return mockEvents
+    }
+  },
+
+  async registerEvent(eventId, attendeeData) {
+    try {
+      const response = await apiClient.post(`/events/${eventId}/register`, attendeeData)
+      return response.data.data || response.data
+    } catch (e) {
+      console.warn(`API /events/${eventId}/register failed, using fallback mock:`, e.message)
+      return {
+        id: Date.now(),
+        event_id: eventId,
+        ...attendeeData,
+        status: 'registered'
+      }
     }
   },
 

@@ -83,6 +83,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/news', [ContentController::class, 'news']);
     Route::get('/news/{slug}', [ContentController::class, 'getNews']);
     Route::get('/events', [ContentController::class, 'events']);
+    Route::post('/events/{id}/register', [ContentController::class, 'registerForEvent']);
     Route::get('/announcements', [ContentController::class, 'announcements']);
     Route::get('/documents', [ContentController::class, 'documents']);
     Route::post('/documents/{id}/download', [ContentController::class, 'incrementDocumentDownload']);
