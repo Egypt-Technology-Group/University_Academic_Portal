@@ -8,7 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Academic Primary Navy
+        // Dynamic Academic Primary Navy
         navy: {
           50: '#f0f4f9',
           100: '#d9e4f0',
@@ -18,9 +18,9 @@ export default {
           500: '#3c6fa8',
           600: '#2b578c',
           700: '#234470',
-          800: '#1a365d',
-          900: '#0f3460',
-          950: '#0a2540',
+          800: 'var(--color-navy-800, #1a365d)',
+          900: 'var(--color-navy-900, #0f3460)',
+          950: 'var(--color-navy-950, #0a2540)',
         },
         primary: {
           50: '#f0f5fa',
@@ -31,25 +31,25 @@ export default {
           500: '#387bb7',
           600: '#26609b',
           700: '#1f4e7e',
-          800: '#1a365d',
-          900: '#0f3460',
-          950: '#0a2540',
+          800: 'var(--color-navy-800, #1a365d)',
+          900: 'var(--color-navy-900, #0f3460)',
+          950: 'var(--color-navy-950, #0a2540)',
         },
-        // Secondary Academic Gold
+        // Dynamic Secondary Academic Gold
         gold: {
           50: '#fbf8ea',
           100: '#f5efc8',
           200: '#ebdE90',
           300: '#dec754',
-          400: '#d4af37',
-          500: '#c59b27',
+          400: 'var(--color-gold-400, #d4af37)',
+          500: 'var(--color-gold-500, #c59b27)',
           600: '#a87a1d',
           700: '#865b19',
           800: '#6f491b',
           900: '#5d3d1b',
           950: '#37200c',
         },
-        // Accent Emerald
+        // Dynamic Accent Emerald
         emerald: {
           50: '#ecfdf5',
           100: '#d1fae5',
@@ -57,7 +57,7 @@ export default {
           300: '#6ee7b7',
           400: '#34d399',
           500: '#10b981',
-          600: '#059669',
+          600: 'var(--color-emerald-600, #059669)',
           700: '#047857',
           800: '#065f46',
           900: '#064e3b',

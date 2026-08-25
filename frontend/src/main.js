@@ -4,11 +4,17 @@ import App from './App.vue'
 import router from './router'
 import i18n from './i18n'
 import './style.css'
+import { useSettingsStore } from './stores/settings'
 
 const app = createApp(App)
+const pinia = createPinia()
 
-app.use(createPinia())
+app.use(pinia)
 app.use(router)
 app.use(i18n)
+
+// Apply cached theme colors before DOM mount
+const settingsStore = useSettingsStore(pinia)
+settingsStore.applyThemeToCssVariables()
 
 app.mount('#app')

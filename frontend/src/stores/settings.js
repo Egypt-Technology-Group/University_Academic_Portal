@@ -225,27 +225,37 @@ export const useSettingsStore = defineStore('settings', {
     },
 
     /**
-     * Injects custom CSS custom variables into the document for dynamic branding.
+     * Injects custom CSS custom variables into the document for dynamic branding and theme updates.
      */
     applyThemeToCssVariables() {
       const colors = this.themeColors
-      if (!colors) return
-
       const root = document.documentElement
-      if (colors.primary_color) {
-        root.style.setProperty('--color-navy-950', colors.primary_color)
-      }
-      if (colors.secondary_gold) {
-        root.style.setProperty('--color-gold-500', colors.secondary_gold)
-      }
-      if (colors.accent_emerald) {
-        root.style.setProperty('--color-emerald-600', colors.accent_emerald)
+
+      if (colors) {
+        if (colors.primary_color) {
+          root.style.setProperty('--color-navy-950', colors.primary_color)
+          // Compute slightly brighter shades for gradients and hover states
+          root.style.setProperty('--color-navy-900', colors.primary_hover || colors.primary_color)
+          root.style.setProperty('--color-navy-800', colors.primary_hover || colors.primary_color)
+        }
+        if (colors.secondary_gold) {
+          root.style.setProperty('--color-gold-500', colors.secondary_gold)
+          root.style.setProperty('--color-gold-400', colors.secondary_gold_light || colors.secondary_gold)
+        }
+        if (colors.accent_emerald) {
+          root.style.setProperty('--color-emerald-600', colors.accent_emerald)
+        }
       }
 
       // Update favicon if custom one exists
       if (this.siteFaviconUrl) {
-        const link = document.querySelector("link[rel~='icon']")
-        if (link) link.href = this.siteFaviconUrl
+        let link = document.querySelector("link[rel~='icon']")
+        if (!link) {
+          link = document.createElement('link')
+          link.rel = 'icon'
+          document.head.appendChild(link)
+        }
+        link.href = this.siteFaviconUrl
       }
     },
 
