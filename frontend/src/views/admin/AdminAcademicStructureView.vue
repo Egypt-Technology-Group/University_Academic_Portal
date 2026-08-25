@@ -305,6 +305,13 @@
                   <div class="flex items-center justify-end gap-2">
                     <button
                       type="button"
+                      class="p-1.5 rounded-lg text-slate-500 hover:text-navy-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                      @click="openEditProgramModal(prog)"
+                    >
+                      <Edit3 class="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
                       class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                       @click="handleDeleteProgram(prog.id)"
                     >
@@ -318,6 +325,83 @@
         </div>
       </div>
     </div>
+
+    <!-- MODAL: CREATE/EDIT PROGRAM -->
+    <Modal
+      v-model="isProgramModalOpen"
+      :title="isEditingProgram ? (localeStore.isRtl ? 'تعديل البرنامج الأكاديمي والدرجة العلمية' : 'Edit Degree Program') : (localeStore.isRtl ? 'إضافة برنامج دراسي جديد' : 'New Degree Program')"
+      size="lg"
+      @close="isProgramModalOpen = false"
+    >
+      <form @submit.prevent="submitProgramForm" class="space-y-4 text-start text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'القسم العلمي التابع له البرنامج' : 'Affiliated Department' }} *</label>
+          <select v-model="programForm.department_id" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold bg-white">
+            <option v-for="d in sampleDepartments" :key="d.id" :value="d.id">
+              {{ getTranslated(d.name, localeStore.locale) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم البرنامج (عربي)' : 'Program Name (Ar)' }} *</label>
+            <input v-model="programForm.name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="بكالوريوس هندسة الذكاء الاصطناعي" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Program Name (En) *</label>
+            <input v-model="programForm.name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="B.Sc. in Artificial Intelligence Engineering" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المستوى / الدرجة' : 'Degree Level' }} *</label>
+            <select v-model="programForm.degree_level" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white">
+              <option value="bachelor">Bachelor (بكالوريوس)</option>
+              <option value="master">Master (ماجستير)</option>
+              <option value="doctorate">Doctorate (دكتوراه)</option>
+              <option value="diploma">Diploma (دبلوم)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'سنوات الدراسة' : 'Duration (Years)' }} *</label>
+            <input v-model.number="programForm.duration_years" type="number" min="1" max="7" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الساعات المعتمدة' : 'Credit Hours' }} *</label>
+            <input v-model.number="programForm.credit_hours" type="number" min="30" max="300" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المصروفات السنوية (عربي)' : 'Tuition Fees (Ar)' }}</label>
+            <input v-model="programForm.tuition_fees_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="55,000 جنيه مصري / العام الدراسي" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tuition Fees (En)</label>
+            <input v-model="programForm.tuition_fees_en" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="55,000 EGP / Academic Year" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'شروط القبول (عربي)' : 'Admission Requirements (Ar)' }}</label>
+            <textarea v-model="programForm.admission_requirements_ar" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="شهادة الثانوية العامة شعبة علمي رياضة أو ما يعادلها..."></textarea>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Admission Requirements (En)</label>
+            <textarea v-model="programForm.admission_requirements_en" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="High school diploma (Math section) or equivalent..."></textarea>
+          </div>
+        </div>
+      </form>
+
+      <template #footer>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isProgramModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitProgramForm">{{ localeStore.isRtl ? 'حفظ البرنامج' : 'Save Program' }}</button>
+      </template>
+    </Modal>
 
     <!-- MODAL: CREATE/EDIT DEPARTMENT -->
     <Modal
@@ -813,6 +897,8 @@ const collegeForm = reactive({
 })
 
 const isProgramModalOpen = ref(false)
+const isEditingProgram = ref(false)
+const editingProgramId = ref(null)
 const programForm = reactive({
   department_id: 1,
   name_ar: '',
@@ -821,7 +907,9 @@ const programForm = reactive({
   duration_years: 4,
   credit_hours: 136,
   tuition_fees_ar: '55,000 جنيه مصري / العام الدراسي',
-  tuition_fees_en: '55,000 EGP / Academic Year'
+  tuition_fees_en: '55,000 EGP / Academic Year',
+  admission_requirements_ar: '',
+  admission_requirements_en: '',
 })
 
 const filteredPrograms = computed(() => {
@@ -970,17 +1058,60 @@ const handleDeleteDepartment = async (id) => {
 }
 
 const openNewProgramModal = () => {
+  isEditingProgram.value = false
+  editingProgramId.value = null
+  programForm.department_id = sampleDepartments.value[0]?.id || 1
   programForm.name_ar = ''
   programForm.name_en = ''
   programForm.degree_level = 'bachelor'
   programForm.duration_years = 4
   programForm.credit_hours = 136
+  programForm.tuition_fees_ar = '55,000 جنيه مصري / العام الدراسي'
+  programForm.tuition_fees_en = '55,000 EGP / Academic Year'
+  programForm.admission_requirements_ar = ''
+  programForm.admission_requirements_en = ''
+  isProgramModalOpen.value = true
+}
+
+const openEditProgramModal = (prog) => {
+  isEditingProgram.value = true
+  editingProgramId.value = prog.id
+  programForm.department_id = prog.department_id || sampleDepartments.value[0]?.id || 1
+  programForm.name_ar = prog.name?.ar || ''
+  programForm.name_en = prog.name?.en || ''
+  programForm.degree_level = prog.degree_level || 'bachelor'
+  programForm.duration_years = prog.duration_years || 4
+  programForm.credit_hours = prog.credit_hours || 136
+  programForm.tuition_fees_ar = prog.tuition_fees?.ar || '55,000 جنيه مصري / العام الدراسي'
+  programForm.tuition_fees_en = prog.tuition_fees?.en || '55,000 EGP / Academic Year'
+  programForm.admission_requirements_ar = Array.isArray(prog.admission_requirements?.ar)
+    ? prog.admission_requirements.ar.join(', ')
+    : (prog.admission_requirements?.ar || '')
+  programForm.admission_requirements_en = Array.isArray(prog.admission_requirements?.en)
+    ? prog.admission_requirements.en.join(', ')
+    : (prog.admission_requirements?.en || '')
   isProgramModalOpen.value = true
 }
 
 const submitProgramForm = async () => {
-  const created = await api.createProgram({ ...programForm })
-  programsList.value.unshift(created)
+  if (isEditingProgram.value) {
+    const updated = await api.updateProgram(editingProgramId.value, { ...programForm })
+    const idx = programsList.value.findIndex((p) => p.id === editingProgramId.value)
+    if (idx !== -1) {
+      programsList.value[idx] = {
+        ...programsList.value[idx],
+        name: { ar: programForm.name_ar, en: programForm.name_en },
+        degree_level: programForm.degree_level,
+        duration_years: programForm.duration_years,
+        credit_hours: programForm.credit_hours,
+        tuition_fees: { ar: programForm.tuition_fees_ar, en: programForm.tuition_fees_en },
+        ...updated,
+      }
+    }
+  } else {
+    const created = await api.createProgram({ ...programForm })
+    programsList.value.unshift(created)
+  }
   isProgramModalOpen.value = false
 }
 

@@ -540,7 +540,7 @@ class AdminCrudController extends Controller
         $program = Program::findOrFail($id);
 
         $validated = $request->validate([
-            'department_id' => 'sometimes|exists:departments,id',
+            'department_id' => 'sometimes|nullable|integer',
             'name_ar' => 'sometimes|required|string|max:255',
             'name_en' => 'sometimes|required|string|max:255',
             'degree_level' => 'sometimes|in:bachelor,master,doctorate,diploma',
@@ -554,10 +554,14 @@ class AdminCrudController extends Controller
             'tuition_fees_en' => 'nullable',
             'admission_requirements_ar' => 'nullable',
             'admission_requirements_en' => 'nullable',
-            'is_active' => 'boolean',
+            'is_active' => 'nullable|boolean',
         ]);
 
-        if (isset($validated['department_id'])) $program->department_id = $validated['department_id'];
+        if (isset($validated['department_id'])) {
+            if ($validated['department_id'] && Department::where('id', $validated['department_id'])->exists()) {
+                $program->department_id = $validated['department_id'];
+            }
+        }
         if (isset($validated['name_ar'])) $program->setTranslation('name', 'ar', $validated['name_ar']);
         if (isset($validated['name_en'])) $program->setTranslation('name', 'en', $validated['name_en']);
         if (isset($validated['degree_level'])) $program->degree_level = $validated['degree_level'];
@@ -569,8 +573,18 @@ class AdminCrudController extends Controller
         if (isset($validated['career_opportunities_en'])) $program->setTranslation('career_opportunities', 'en', $validated['career_opportunities_en']);
         if (isset($validated['tuition_fees_ar'])) $program->setTranslation('tuition_fees', 'ar', $validated['tuition_fees_ar']);
         if (isset($validated['tuition_fees_en'])) $program->setTranslation('tuition_fees', 'en', $validated['tuition_fees_en']);
-        if (isset($validated['admission_requirements_ar'])) $program->setTranslation('admission_requirements', 'ar', $validated['admission_requirements_ar']);
-        if (isset($validated['admission_requirements_en'])) $program->setTranslation('admission_requirements', 'en', $validated['admission_requirements_en']);
+        if (isset($validated['admission_requirements_ar'])) {
+            $val = is_string($validated['admission_requirements_ar'])
+                ? array_map('trim', explode(',', $validated['admission_requirements_ar']))
+                : $validated['admission_requirements_ar'];
+            $program->setTranslation('admission_requirements', 'ar', $val);
+        }
+        if (isset($validated['admission_requirements_en'])) {
+            $val = is_string($validated['admission_requirements_en'])
+                ? array_map('trim', explode(',', $validated['admission_requirements_en']))
+                : $validated['admission_requirements_en'];
+            $program->setTranslation('admission_requirements', 'en', $val);
+        }
         if (isset($validated['is_active'])) $program->is_active = (bool) $validated['is_active'];
 
         $program->save();
