@@ -17,8 +17,10 @@
         <!-- Dialog Container -->
         <div class="flex min-h-full items-end sm:items-center justify-center p-2 sm:p-6 text-center">
           <div
+            ref="modalContainer"
+            tabindex="-1"
             :class="[
-              'relative transform overflow-hidden rounded-2xl sm:rounded-3xl bg-white text-start shadow-2xl transition-all w-full my-2 sm:my-8 border border-slate-100 flex flex-col',
+              'relative transform overflow-hidden rounded-2xl sm:rounded-3xl bg-white text-start shadow-2xl transition-all w-full my-2 sm:my-8 border border-slate-100 flex flex-col focus:outline-none',
               maxWidthClasses[size || maxWidth] || maxWidthClasses.lg,
             ]"
             @click.stop
@@ -63,7 +65,7 @@
 </template>
 
 <script setup>
-import { watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -112,9 +114,35 @@ const maxWidthClasses = {
   '5xl': 'max-w-5xl',
 }
 
+const modalContainer = ref(null)
+
 const handleKeydown = (e) => {
-  if (e.key === 'Escape' && props.modelValue && props.closeOnEsc) {
+  if (!props.modelValue) return
+
+  if (e.key === 'Escape' && props.closeOnEsc) {
     close()
+    return
+  }
+
+  if (e.key === 'Tab' && modalContainer.value) {
+    const focusable = modalContainer.value.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+
+    if (e.shiftKey) {
+      if (document.activeElement === first) {
+        last.focus()
+        e.preventDefault()
+      }
+    } else {
+      if (document.activeElement === last) {
+        first.focus()
+        e.preventDefault()
+      }
+    }
   }
 }
 
@@ -123,6 +151,16 @@ watch(
   (val) => {
     if (val) {
       document.body.style.overflow = 'hidden'
+      nextTick(() => {
+        if (modalContainer.value) {
+          const first = modalContainer.value.querySelector('input, select, textarea, button:not([aria-label="Close"])')
+          if (first) {
+            first.focus()
+          } else {
+            modalContainer.value.focus()
+          }
+        }
+      })
     } else {
       document.body.style.overflow = ''
     }

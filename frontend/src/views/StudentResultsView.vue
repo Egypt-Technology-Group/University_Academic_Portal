@@ -78,12 +78,12 @@
       </div>
     </div>
 
-    <!-- Tab Navigation: Transcript View vs Course Registration Simulator -->
-    <div v-if="resultData" class="flex items-center gap-2 p-1.5 bg-slate-200/80 rounded-2xl max-w-md mx-auto no-print">
+    <!-- Tab Navigation: Transcript View vs Course Registration Simulator vs Student Requests Tracking -->
+    <div v-if="resultData || studentId" class="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/80 rounded-2xl max-w-xl mx-auto no-print">
       <button
         type="button"
         :class="[
-          'flex-1 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2',
+          'flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5',
           activeTab === 'transcript'
             ? 'bg-navy-950 text-white shadow-md'
             : 'text-slate-600 hover:text-navy-950'
@@ -97,7 +97,7 @@
       <button
         type="button"
         :class="[
-          'flex-1 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-2',
+          'flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5',
           activeTab === 'simulator'
             ? 'bg-navy-950 text-white shadow-md'
             : 'text-slate-600 hover:text-navy-950'
@@ -106,6 +106,20 @@
       >
         <span>🎯</span>
         <span>{{ localeStore.isRtl ? 'محاكي تسجيل المقررات' : 'Registration Simulator' }}</span>
+      </button>
+
+      <button
+        type="button"
+        :class="[
+          'flex-1 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5',
+          activeTab === 'requests'
+            ? 'bg-navy-950 text-white shadow-md'
+            : 'text-slate-600 hover:text-navy-950'
+        ]"
+        @click="loadStudentRequests"
+      >
+        <span>📑</span>
+        <span>{{ localeStore.isRtl ? 'متابعة الطلبات الإدارية' : 'Service Requests' }}</span>
       </button>
     </div>
 
@@ -317,6 +331,56 @@
         </div>
       </div>
     </div>
+
+    <!-- TAB 3: SERVICE REQUESTS TRACKING -->
+    <div v-else-if="activeTab === 'requests'" class="bg-white rounded-3xl p-6 sm:p-10 shadow-academic-lg border border-slate-200/80 space-y-6">
+      <div class="border-b border-slate-100 pb-4">
+        <h3 class="text-lg font-black text-navy-950 flex items-center gap-2">
+          <span>📑</span>
+          <span>{{ localeStore.isRtl ? 'متابعة موقف الطلبات والخدمات الطلابية' : 'Student Administrative Service Requests' }}</span>
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+          {{ localeStore.isRtl ? 'عرض ومتابعة حالة الشهادات والإفادات والتظلمات المقدمة باسم الطالب.' : 'Track review progress, administrative processing, and pickup readiness for submitted applications.' }}
+        </p>
+      </div>
+
+      <div v-if="loadingRequests" class="text-center py-10">
+        <div class="text-xs text-slate-500 font-bold animate-pulse">{{ $t('common.loading') }}</div>
+      </div>
+
+      <div v-else-if="studentRequestsList.length === 0" class="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+        <p class="text-xs sm:text-sm text-slate-600 font-bold">
+          {{ localeStore.isRtl ? 'لا توجد طلبات إلكترونية مسجلة لهذا الرقم الأكاديمي حالياً.' : 'No electronic requests found for this student ID.' }}
+        </p>
+      </div>
+
+      <div v-else class="space-y-3">
+        <div
+          v-for="req in studentRequestsList"
+          :key="req.id"
+          class="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        >
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-bold text-navy-950 text-xs sm:text-sm">{{ req.request_number }}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase" :class="getStatusBadgeClass(req.status)">
+                {{ req.status }}
+              </span>
+            </div>
+            <div class="font-bold text-xs text-navy-900">{{ req.service_type }}</div>
+            <div class="text-xs text-slate-500">{{ getTranslated(req.purpose, localeStore.locale) }}</div>
+            <div v-if="req.admin_notes" class="text-[11px] text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-100 font-medium">
+              💬 <strong>{{ localeStore.isRtl ? 'توجيهات الإدارة:' : 'Admin Notes:' }}</strong> {{ req.admin_notes }}
+            </div>
+          </div>
+
+          <div class="text-start sm:text-end text-xs text-slate-400 font-mono shrink-0">
+            <div>{{ formatDate(req.created_at) }}</div>
+            <div class="text-[10px] font-bold text-navy-900 mt-1">{{ req.fee_amount ? req.fee_amount + ' EGP' : 'Free' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -408,5 +472,41 @@ const handleInquire = async () => {
 
 const printTranscript = () => {
   window.print()
+}
+
+const studentRequestsList = ref([])
+const loadingRequests = ref(false)
+
+const loadStudentRequests = async () => {
+  activeTab.value = 'requests'
+  loadingRequests.value = true
+  try {
+    const list = await api.getStudentRequests()
+    if (studentId.value) {
+      studentRequestsList.value = list.filter((r) => r.student_id_number === studentId.value.trim())
+    } else {
+      studentRequestsList.value = list
+    }
+  } catch (e) {
+    console.error('Failed to load student requests:', e)
+  } finally {
+    loadingRequests.value = false
+  }
+}
+
+const getStatusBadgeClass = (status) => {
+  if (status === 'approved') return 'bg-emerald-100 text-emerald-800'
+  if (status === 'processing') return 'bg-blue-100 text-blue-800'
+  if (status === 'rejected') return 'bg-red-100 text-red-800'
+  return 'bg-amber-100 text-amber-800'
+}
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString(localeStore.isRtl ? 'ar-EG' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  })
 }
 </script>
