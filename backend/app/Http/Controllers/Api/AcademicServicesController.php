@@ -278,4 +278,82 @@ class AcademicServicesController extends Controller
             'data' => $schedule->load(['program', 'academicTerm']),
         ], 201);
     }
+
+    /**
+     * Delete an electronic service request (Admin).
+     */
+    public function deleteRequest(int $id): JsonResponse
+    {
+        $req = StudentServiceRequest::findOrFail($id);
+        $req->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Service request deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Update exam schedule with halls and proctors (Admin).
+     */
+    public function updateExamSchedule(Request $request, int $id): JsonResponse
+    {
+        $schedule = ExamSchedule::findOrFail($id);
+
+        $validated = $request->validate([
+            'program_id' => 'nullable|integer',
+            'academic_term_id' => 'nullable|integer',
+            'course_code' => 'sometimes|required|string|max:30',
+            'course_name_ar' => 'sometimes|required|string|max:255',
+            'course_name_en' => 'sometimes|required|string|max:255',
+            'exam_type' => 'sometimes|required|in:midterm,final,practical,oral',
+            'exam_date' => 'sometimes|required|date',
+            'start_time' => 'sometimes|required',
+            'end_time' => 'sometimes|required',
+            'hall_location_ar' => 'sometimes|required|string|max:255',
+            'hall_location_en' => 'sometimes|required|string|max:255',
+            'chief_invigilator_ar' => 'nullable|string',
+            'chief_invigilator_en' => 'nullable|string',
+            'proctors_list' => 'nullable|array',
+            'seating_capacity' => 'nullable|integer',
+        ]);
+
+        if (isset($validated['program_id'])) $schedule->program_id = $validated['program_id'];
+        if (isset($validated['academic_term_id'])) $schedule->academic_term_id = $validated['academic_term_id'];
+        if (isset($validated['course_code'])) $schedule->course_code = $validated['course_code'];
+        if (isset($validated['course_name_ar'])) $schedule->setTranslation('course_name', 'ar', $validated['course_name_ar']);
+        if (isset($validated['course_name_en'])) $schedule->setTranslation('course_name', 'en', $validated['course_name_en']);
+        if (isset($validated['exam_type'])) $schedule->exam_type = $validated['exam_type'];
+        if (isset($validated['exam_date'])) $schedule->exam_date = $validated['exam_date'];
+        if (isset($validated['start_time'])) $schedule->start_time = $validated['start_time'];
+        if (isset($validated['end_time'])) $schedule->end_time = $validated['end_time'];
+        if (isset($validated['hall_location_ar'])) $schedule->setTranslation('hall_location', 'ar', $validated['hall_location_ar']);
+        if (isset($validated['hall_location_en'])) $schedule->setTranslation('hall_location', 'en', $validated['hall_location_en']);
+        if (isset($validated['chief_invigilator_ar'])) $schedule->setTranslation('chief_invigilator', 'ar', $validated['chief_invigilator_ar']);
+        if (isset($validated['chief_invigilator_en'])) $schedule->setTranslation('chief_invigilator', 'en', $validated['chief_invigilator_en']);
+        if (isset($validated['proctors_list'])) $schedule->proctors_list = $validated['proctors_list'];
+        if (isset($validated['seating_capacity'])) $schedule->seating_capacity = (int) $validated['seating_capacity'];
+
+        $schedule->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Exam timetable entry updated successfully.',
+            'data' => $schedule->load(['program', 'academicTerm']),
+        ]);
+    }
+
+    /**
+     * Delete exam schedule (Admin).
+     */
+    public function deleteExamSchedule(int $id): JsonResponse
+    {
+        $schedule = ExamSchedule::findOrFail($id);
+        $schedule->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Exam timetable entry deleted successfully.',
+        ]);
+    }
 }

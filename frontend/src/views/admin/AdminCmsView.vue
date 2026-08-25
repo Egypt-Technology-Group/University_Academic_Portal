@@ -163,6 +163,15 @@
 
                     <button
                       type="button"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100 transition-colors"
+                      title="Edit Article"
+                      @click="openEditNewsModal(article)"
+                    >
+                      <Edit3 class="w-4 h-4" />
+                    </button>
+
+                    <button
+                      type="button"
                       class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                       title="Delete Article"
                       @click="handleDeleteNews(article.id)"
@@ -218,23 +227,34 @@
               <span>{{ getAudienceLabel(item.target_audience) }}</span>
             </span>
 
-            <button
-              type="button"
-              class="text-red-500 hover:text-red-700 font-bold flex items-center gap-1 p-1 hover:bg-red-50 rounded"
-              @click="handleDeleteAnnouncement(item.id)"
-            >
-              <Trash2 class="w-3.5 h-3.5" />
-              <span>{{ $t('common.delete') || 'حذف' }}</span>
-            </button>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="text-navy-950 hover:text-navy-700 font-bold flex items-center gap-1 p-1 hover:bg-slate-100 rounded"
+                @click="openEditAnnouncementModal(item)"
+              >
+                <Edit3 class="w-3.5 h-3.5" />
+                <span>{{ localeStore.isRtl ? 'تعديل' : 'Edit' }}</span>
+              </button>
+
+              <button
+                type="button"
+                class="text-red-500 hover:text-red-700 font-bold flex items-center gap-1 p-1 hover:bg-red-50 rounded"
+                @click="handleDeleteAnnouncement(item.id)"
+              >
+                <Trash2 class="w-3.5 h-3.5" />
+                <span>{{ $t('common.delete') || 'حذف' }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- MODAL 1: PUBLISH NEWS -->
+    <!-- MODAL 1: PUBLISH / EDIT NEWS -->
     <Modal
       v-model="isNewsModalOpen"
-      :title="$t('admin.cms.modalNewsTitle')"
+      :title="isEditingNews ? (localeStore.isRtl ? 'تعديل الخبر الصحفي' : 'Edit News Article') : $t('admin.cms.modalNewsTitle')"
       max-width="2xl"
       @close="isNewsModalOpen = false"
     >
@@ -381,10 +401,10 @@
       </template>
     </Modal>
 
-    <!-- MODAL 2: POST ANNOUNCEMENT -->
+    <!-- MODAL 2: POST / EDIT ANNOUNCEMENT -->
     <Modal
       v-model="isAnnouncementModalOpen"
-      :title="$t('admin.cms.modalAnnouncementTitle')"
+      :title="isEditingAnnouncement ? (localeStore.isRtl ? 'تعديل الإعلان الإداري' : 'Edit Announcement') : $t('admin.cms.modalAnnouncementTitle')"
       max-width="xl"
       @close="isAnnouncementModalOpen = false"
     >
@@ -495,6 +515,7 @@ import {
   Plus,
   Search,
   ExternalLink,
+  Edit3,
   Trash2,
   Users,
   AlertTriangle,
@@ -514,7 +535,12 @@ const newsSearch = ref('')
 const newsCategoryFilter = ref('all')
 
 const isNewsModalOpen = ref(false)
+const isEditingNews = ref(false)
+const editingNewsId = ref(null)
+
 const isAnnouncementModalOpen = ref(false)
+const isEditingAnnouncement = ref(false)
+const editingAnnouncementId = ref(null)
 
 const newsSelectedFile = ref(null)
 const newsImagePreview = ref('')
@@ -630,6 +656,8 @@ const loadData = async () => {
 }
 
 const openNewNewsModal = () => {
+  isEditingNews.value = false
+  editingNewsId.value = null
   newsSelectedFile.value = null
   newsImagePreview.value = ''
   newsForm.title_ar = ''
@@ -644,13 +672,44 @@ const openNewNewsModal = () => {
   isNewsModalOpen.value = true
 }
 
+const openEditNewsModal = (article) => {
+  isEditingNews.value = true
+  editingNewsId.value = article.id
+  newsSelectedFile.value = null
+  newsImagePreview.value = article.featured_image || ''
+  newsForm.title_ar = article.title?.ar || article.title || ''
+  newsForm.title_en = article.title?.en || article.title || ''
+  newsForm.summary_ar = article.excerpt?.ar || article.excerpt || ''
+  newsForm.summary_en = article.excerpt?.en || article.excerpt || ''
+  newsForm.content_ar = article.body?.ar || article.body || ''
+  newsForm.content_en = article.body?.en || article.body || ''
+  newsForm.featured_image = article.featured_image || ''
+  newsForm.category = article.category?.slug || article.category || 'academic'
+  newsForm.is_featured = Boolean(article.is_featured)
+  isNewsModalOpen.value = true
+}
+
 const openNewAnnouncementModal = () => {
+  isEditingAnnouncement.value = false
+  editingAnnouncementId.value = null
   announcementForm.title_ar = ''
   announcementForm.title_en = ''
   announcementForm.content_ar = ''
   announcementForm.content_en = ''
   announcementForm.target_audience = 'all'
   announcementForm.is_urgent = false
+  isAnnouncementModalOpen.value = true
+}
+
+const openEditAnnouncementModal = (item) => {
+  isEditingAnnouncement.value = true
+  editingAnnouncementId.value = item.id
+  announcementForm.title_ar = item.title?.ar || item.title || ''
+  announcementForm.title_en = item.title?.en || item.title || ''
+  announcementForm.content_ar = item.content?.ar || item.content || ''
+  announcementForm.content_en = item.content?.en || item.content || ''
+  announcementForm.target_audience = item.target_audience || 'all'
+  announcementForm.is_urgent = Boolean(item.is_urgent)
   isAnnouncementModalOpen.value = true
 }
 
@@ -661,11 +720,28 @@ const submitNewsForm = async () => {
   }
 
   try {
-    const created = await api.createNews({ ...newsForm })
-    newsList.value.unshift(created)
+    if (isEditingNews.value) {
+      const updated = await api.updateNews(editingNewsId.value, { ...newsForm })
+      const idx = newsList.value.findIndex((n) => n.id === editingNewsId.value)
+      if (idx !== -1) {
+        newsList.value[idx] = {
+          ...newsList.value[idx],
+          title: { ar: newsForm.title_ar, en: newsForm.title_en },
+          excerpt: { ar: newsForm.summary_ar, en: newsForm.summary_en },
+          body: { ar: newsForm.content_ar, en: newsForm.content_en },
+          featured_image: newsForm.featured_image || newsList.value[idx].featured_image,
+          category: { name: { ar: newsForm.category, en: newsForm.category }, slug: newsForm.category },
+          is_featured: newsForm.is_featured,
+          ...updated,
+        }
+      }
+    } else {
+      const created = await api.createNews({ ...newsForm })
+      newsList.value.unshift(created)
+    }
     isNewsModalOpen.value = false
   } catch (err) {
-    alert('Failed to publish news article')
+    alert('Failed to save news article')
   }
 }
 
@@ -676,11 +752,26 @@ const submitAnnouncementForm = async () => {
   }
 
   try {
-    const created = await api.createAnnouncement({ ...announcementForm })
-    announcementsList.value.unshift(created)
+    if (isEditingAnnouncement.value) {
+      const updated = await api.updateAnnouncement(editingAnnouncementId.value, { ...announcementForm })
+      const idx = announcementsList.value.findIndex((a) => a.id === editingAnnouncementId.value)
+      if (idx !== -1) {
+        announcementsList.value[idx] = {
+          ...announcementsList.value[idx],
+          title: { ar: announcementForm.title_ar, en: announcementForm.title_en },
+          content: { ar: announcementForm.content_ar, en: announcementForm.content_en },
+          target_audience: announcementForm.target_audience,
+          is_urgent: announcementForm.is_urgent,
+          ...updated,
+        }
+      }
+    } else {
+      const created = await api.createAnnouncement({ ...announcementForm })
+      announcementsList.value.unshift(created)
+    }
     isAnnouncementModalOpen.value = false
   } catch (err) {
-    alert('Failed to post announcement')
+    alert('Failed to save announcement')
   }
 }
 

@@ -43,6 +43,16 @@
           <CalendarDays class="w-4 h-4 text-gold-400" />
           <span>{{ localeStore.isRtl ? 'إضافة موعد امتحان وقاعة' : 'Schedule Exam & Hall' }}</span>
         </button>
+
+        <button
+          v-if="activeTab === 'study_plans'"
+          type="button"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+          @click="openNewCourseModal"
+        >
+          <Plus class="w-4 h-4 text-gold-400" />
+          <span>{{ localeStore.isRtl ? 'إضافة مقرر دراسي للخطة' : 'Add Course to Plan' }}</span>
+        </button>
       </div>
     </div>
 
@@ -184,14 +194,24 @@
                 </td>
 
                 <td class="py-3.5 px-4 text-end whitespace-nowrap">
-                  <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-lg bg-navy-900 hover:bg-navy-950 text-white font-bold text-[11px] transition-colors cursor-pointer inline-flex items-center gap-1"
-                    @click="openReviewRequestModal(req)"
-                  >
-                    <CheckCircle class="w-3.5 h-3.5 text-gold-400" />
-                    <span>{{ localeStore.isRtl ? 'معالجة الطلب' : 'Process' }}</span>
-                  </button>
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      type="button"
+                      class="px-3 py-1.5 rounded-lg bg-navy-900 hover:bg-navy-950 text-white font-bold text-[11px] transition-colors cursor-pointer inline-flex items-center gap-1"
+                      @click="openReviewRequestModal(req)"
+                    >
+                      <CheckCircle class="w-3.5 h-3.5 text-gold-400" />
+                      <span>{{ localeStore.isRtl ? 'معالجة' : 'Process' }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title="Delete Request"
+                      @click="handleDeleteRequest(req.id)"
+                    >
+                      <Trash2 class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -278,6 +298,7 @@
                 <th class="py-3.5 px-4 text-start">{{ localeStore.isRtl ? 'القاعة والمدرج' : 'Hall / Location' }}</th>
                 <th class="py-3.5 px-4 text-start">{{ localeStore.isRtl ? 'رئيس اللجنة والمراقبون' : 'Proctors & Invigilators' }}</th>
                 <th class="py-3.5 px-4 text-center">{{ localeStore.isRtl ? 'السعة' : 'Capacity' }}</th>
+                <th class="py-3.5 px-4 text-end">{{ localeStore.isRtl ? 'الإجراءات' : 'Actions' }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
@@ -312,6 +333,27 @@
                 <td class="py-3.5 px-4 text-center font-mono font-bold text-navy-950">
                   {{ exam.seating_capacity || 80 }} Seats
                 </td>
+
+                <td class="py-3.5 px-4 text-end whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      type="button"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100 transition-colors"
+                      title="Edit Exam"
+                      @click="openEditExamModal(exam)"
+                    >
+                      <Edit3 class="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title="Delete Exam"
+                      @click="handleDeleteExam(exam.id)"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -325,22 +367,39 @@
         <div v-for="lvl in [1, 2, 3, 4]" :key="lvl" class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2">
             <h4 class="font-black text-navy-950 text-sm">{{ localeStore.isRtl ? 'المستوى الدراسي ' + lvl : 'Academic Level ' + lvl }}</h4>
-            <span class="text-[10px] font-mono bg-gold-100 text-gold-900 px-1.5 py-0.5 rounded font-bold">36 Credits</span>
+            <span class="text-[10px] font-mono bg-gold-100 text-gold-900 px-1.5 py-0.5 rounded font-bold">
+              {{ getLevelCourses(lvl).reduce((sum, c) => sum + (c.credits || 3), 0) }} Credits
+            </span>
           </div>
           <ul class="space-y-2 text-xs text-slate-600">
-            <li class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
-              <div>
-                <span class="font-mono font-bold text-navy-900">CS{{ lvl }}01</span>
-                <div class="text-[11px] text-slate-500 font-medium">Algorithms & Computation</div>
+            <li
+              v-for="course in getLevelCourses(lvl)"
+              :key="course.id"
+              class="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-100 hover:bg-slate-100/80 transition-colors"
+            >
+              <div class="flex-1 min-w-0 me-2">
+                <span class="font-mono font-bold text-navy-900 text-xs">{{ course.code }}</span>
+                <div class="text-[11px] text-slate-600 font-medium truncate">{{ getTranslated(course.name, localeStore.locale) }}</div>
               </div>
-              <span class="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-slate-200">3 Cr</span>
-            </li>
-            <li class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
-              <div>
-                <span class="font-mono font-bold text-navy-900">MATH{{ lvl }}02</span>
-                <div class="text-[11px] text-slate-500 font-medium">Discrete Mathematics</div>
+              <div class="flex items-center gap-1 shrink-0">
+                <span class="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-slate-200 font-bold me-1">{{ course.credits || 3 }} Cr</span>
+                <button
+                  type="button"
+                  class="p-1 rounded text-slate-400 hover:text-navy-900 hover:bg-white"
+                  title="Edit Course"
+                  @click="openEditCourseModal(course)"
+                >
+                  <Edit3 class="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  class="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-white"
+                  title="Delete Course"
+                  @click="handleDeleteCourse(course.id)"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
               </div>
-              <span class="font-mono text-[10px] bg-white px-1.5 py-0.5 rounded border border-slate-200">3 Cr</span>
             </li>
           </ul>
         </div>
@@ -424,7 +483,172 @@
 
       <template #footer>
         <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isStatementModalOpen = false">{{ $t('common.cancel') }}</button>
-        <button type="button" class="px-5 py-2 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitStatementForm">{{ localeStore.isRtl ? 'إصدار الوثيقة وتوليد QR' : 'Issue & Generate QR' }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitStatementForm">{{ localeStore.isRtl ? 'إصدار الوثيقة وتوليد QR' : 'Issue & Generate QR' }}</button>
+      </template>
+    </Modal>
+
+    <!-- MODAL: SCHEDULE / EDIT EXAM -->
+    <Modal
+      v-model="isExamModalOpen"
+      :title="isEditingExam ? (localeStore.isRtl ? 'تعديل موعد الامتحان ولجنة المراقبة' : 'Edit Exam Schedule & Invigilation') : (localeStore.isRtl ? 'جدولة امتحان جديد وتعيين القاعات' : 'Schedule Exam & Assign Halls')"
+      size="lg"
+      @close="isExamModalOpen = false"
+    >
+      <form @submit.prevent="submitExamForm" class="space-y-4 text-start text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'كود المقرر' : 'Course Code' }} *</label>
+            <input v-model="examForm.course_code" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono font-bold" placeholder="CS301" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم المقرر (عربي)' : 'Course Name (Ar)' }} *</label>
+            <input v-model="examForm.course_name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="الذكاء الاصطناعي وتعلم الآلة" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Course Name (En) *</label>
+            <input v-model="examForm.course_name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="Artificial Intelligence & ML" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'نوع الامتحان' : 'Exam Type' }} *</label>
+            <select v-model="examForm.exam_type" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white">
+              <option value="midterm">Midterm (نصفي)</option>
+              <option value="final">Final (نهائي)</option>
+              <option value="practical">Practical (عملي)</option>
+              <option value="oral">Oral (شفوي)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'تاريخ الامتحان' : 'Exam Date' }} *</label>
+            <input v-model="examForm.exam_date" type="date" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'وقت البدء' : 'Start Time' }} *</label>
+            <input v-model="examForm.start_time" type="time" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'وقت الانتهاء' : 'End Time' }} *</label>
+            <input v-model="examForm.end_time" type="time" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المدرج / القاعة (عربي)' : 'Hall Location (Ar)' }} *</label>
+            <input v-model="examForm.hall_location_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="مدرج الدكتور مجدي يعقوب (مبنى أ)" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Hall Location (En) *</label>
+            <input v-model="examForm.hall_location_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="Magdi Yacoub Auditorium (Hall A)" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'رئيس اللجنة (عربي)' : 'Chief Proctor (Ar)' }}</label>
+            <input v-model="examForm.chief_invigilator_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="أ.د. عصام النجار" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Chief Proctor (En)</label>
+            <input v-model="examForm.chief_invigilator_en" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="Prof. Dr. Essam El-Naggar" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'سعة القاعة' : 'Seating Capacity' }}</label>
+            <input v-model.number="examForm.seating_capacity" type="number" min="10" max="1000" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" />
+          </div>
+        </div>
+      </form>
+
+      <template #footer>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isExamModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitExamForm">{{ localeStore.isRtl ? 'حفظ الامتحان' : 'Save Exam Schedule' }}</button>
+      </template>
+    </Modal>
+
+    <!-- MODAL: ADD STUDENT REQUEST -->
+    <Modal
+      v-model="isNewRequestModalOpen"
+      :title="localeStore.isRtl ? 'تسجيل طلب طالب جديد' : 'New Student Service Request'"
+      size="md"
+      @close="isNewRequestModalOpen = false"
+    >
+      <form @submit.prevent="submitNewRequestForm" class="space-y-4 text-start text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'كود الطالب الجامعي' : 'Student ID Number' }} *</label>
+          <input v-model="newRequestForm.student_id_number" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="20241001" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم الطالب الرباعي' : 'Student Full Name' }} *</label>
+          <input v-model="newRequestForm.student_name" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="محمود سامي علي" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'نوع الخدمة المطلوبة' : 'Service Type' }} *</label>
+          <select v-model="newRequestForm.service_type" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white font-bold">
+            <option value="enrollment_cert">{{ localeStore.isRtl ? 'شهادة قيد رسمية' : 'Enrollment Certificate' }}</option>
+            <option value="transcript">{{ localeStore.isRtl ? 'كشف درجات معتمد' : 'Official Transcript' }}</option>
+            <option value="course_exemption">{{ localeStore.isRtl ? 'مقاصة ومعادلة مقررات' : 'Course Exemption' }}</option>
+            <option value="postponement">{{ localeStore.isRtl ? 'تأجيل فصل دراسي' : 'Term Postponement' }}</option>
+            <option value="id_card_replacement">{{ localeStore.isRtl ? 'بدل فاقد كارنيه' : 'ID Card Replacement' }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الغرض من الطلب' : 'Purpose' }}</label>
+          <textarea v-model="newRequestForm.purpose_ar" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="استخراج شهادة قيد موجهة إلى..."></textarea>
+        </div>
+      </form>
+
+      <template #footer>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isNewRequestModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitNewRequestForm">{{ localeStore.isRtl ? 'تقديم الطلب' : 'Submit Request' }}</button>
+      </template>
+    </Modal>
+
+    <!-- MODAL: ADD / EDIT COURSE -->
+    <Modal
+      v-model="isCourseModalOpen"
+      :title="isEditingCourse ? (localeStore.isRtl ? 'تعديل بيانات المقرر بالخطة الدراسية' : 'Edit Study Plan Course') : (localeStore.isRtl ? 'إضافة مقرر دراسي جديد للخطة' : 'Add Course to Curriculum')"
+      size="md"
+      @close="isCourseModalOpen = false"
+    >
+      <form @submit.prevent="submitCourseForm" class="space-y-4 text-start text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'كود المقرر' : 'Course Code' }} *</label>
+            <input v-model="courseForm.code" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono font-bold" placeholder="CS201" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المستوى الدراسي' : 'Academic Level' }} *</label>
+            <select v-model.number="courseForm.level" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white font-bold">
+              <option :value="1">Level 1 (المستوى الأول)</option>
+              <option :value="2">Level 2 (المستوى الثاني)</option>
+              <option :value="3">Level 3 (المستوى الثالث)</option>
+              <option :value="4">Level 4 (المستوى الرابع)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم المقرر (عربي)' : 'Course Name (Ar)' }} *</label>
+            <input v-model="courseForm.name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="هياكل البيانات والخوارزميات" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Course Name (En) *</label>
+            <input v-model="courseForm.name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="Data Structures & Algorithms" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'عدد الساعات المعتمدة' : 'Credit Hours' }} *</label>
+          <input v-model.number="courseForm.credits" type="number" min="1" max="6" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono font-bold" />
+        </div>
+      </form>
+
+      <template #footer>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isCourseModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitCourseForm">{{ localeStore.isRtl ? 'حفظ المقرر' : 'Save Course' }}</button>
       </template>
     </Modal>
   </div>
@@ -446,7 +670,10 @@ import {
   QrCode,
   Award,
   Printer,
-  Download
+  Download,
+  Plus,
+  Edit3,
+  Trash2
 } from 'lucide-vue-next'
 
 const localeStore = useLocaleStore()
@@ -463,6 +690,59 @@ const reviewForm = reactive({
   status: 'approved',
   admin_notes: ''
 })
+
+const isExamModalOpen = ref(false)
+const isEditingExam = ref(false)
+const editingExamId = ref(null)
+const examForm = reactive({
+  course_code: '',
+  course_name_ar: '',
+  course_name_en: '',
+  exam_type: 'final',
+  exam_date: new Date().toISOString().slice(0, 10),
+  start_time: '09:00',
+  end_time: '12:00',
+  hall_location_ar: 'مدرج الدكتور مجدي يعقوب (مبنى أ)',
+  hall_location_en: 'Magdi Yacoub Auditorium (Hall A)',
+  chief_invigilator_ar: 'أ.د. عصام النجار',
+  chief_invigilator_en: 'Prof. Dr. Essam El-Naggar',
+  seating_capacity: 120
+})
+
+const isNewRequestModalOpen = ref(false)
+const newRequestForm = reactive({
+  student_id_number: '',
+  student_name: '',
+  service_type: 'enrollment_cert',
+  purpose_ar: ''
+})
+
+const isCourseModalOpen = ref(false)
+const isEditingCourse = ref(false)
+const editingCourseId = ref(null)
+const courseForm = reactive({
+  code: '',
+  name_ar: '',
+  name_en: '',
+  credits: 3,
+  level: 1
+})
+
+const studyPlansCourses = ref([
+  { id: 101, level: 1, code: 'CS101', name: { ar: 'مقدمة في علوم الحاسب والبرمجة', en: 'Intro to Computer Science & Programming' }, credits: 3 },
+  { id: 102, level: 1, code: 'MATH101', name: { ar: 'التفاضل والتكامل والهندسة التحليلية', en: 'Calculus & Analytical Geometry' }, credits: 3 },
+  { id: 103, level: 1, code: 'PHYS101', name: { ar: 'الفيزياء العامة وتطبيقاتها الهندسية', en: 'General Physics & Engineering Applications' }, credits: 3 },
+  { id: 201, level: 2, code: 'CS201', name: { ar: 'هياكل البيانات والتحليل الخوارزمي', en: 'Data Structures & Algorithmic Analysis' }, credits: 3 },
+  { id: 202, level: 2, code: 'MATH202', name: { ar: 'الرياضيات المتقطعة ونظرية المخططات', en: 'Discrete Mathematics & Graph Theory' }, credits: 3 },
+  { id: 301, level: 3, code: 'AI301', name: { ar: 'أسس الذكاء الاصطناعي والتعلم الآلي', en: 'Foundations of AI & Machine Learning' }, credits: 3 },
+  { id: 302, level: 3, code: 'CS302', name: { ar: 'تصميم نظم قواعد البيانات الموزعة', en: 'Distributed Database Systems Design' }, credits: 3 },
+  { id: 401, level: 4, code: 'AI401', name: { ar: 'مشروع التخرج المتقدم (الجزء الأول)', en: 'Senior Capstone Project I' }, credits: 4 },
+  { id: 402, level: 4, code: 'SEC402', name: { ar: 'أمن الفضاء السيبراني واختبار الاختراق', en: 'Cybersecurity & Penetration Testing' }, credits: 3 }
+])
+
+const getLevelCourses = (lvl) => {
+  return studyPlansCourses.value.filter((c) => c.level === lvl)
+}
 
 const isStatementModalOpen = ref(false)
 const statementForm = reactive({
@@ -550,6 +830,166 @@ const saveRequestReview = async () => {
   activeRequest.value.status = reviewForm.status
   activeRequest.value.admin_notes = reviewForm.admin_notes
   isReviewModalOpen.value = false
+}
+
+const openNewRequestModal = () => {
+  newRequestForm.student_id_number = ''
+  newRequestForm.student_name = ''
+  newRequestForm.service_type = 'enrollment_cert'
+  newRequestForm.purpose_ar = ''
+  isNewRequestModalOpen.value = true
+}
+
+const submitNewRequestForm = async () => {
+  if (!newRequestForm.student_id_number || !newRequestForm.student_name) {
+    alert('يرجى ملء الحقول الإلزامية')
+    return
+  }
+  const created = await api.submitStudentRequest({ ...newRequestForm })
+  requestsList.value.unshift(created)
+  isNewRequestModalOpen.value = false
+}
+
+const handleDeleteRequest = async (id) => {
+  if (window.confirm(localeStore.isRtl ? 'هل تريد حذف هذا الطلب نهائياً؟' : 'Delete this student request?')) {
+    await api.deleteStudentRequest(id)
+    requestsList.value = requestsList.value.filter((r) => r.id !== id)
+  }
+}
+
+const openNewExamModal = () => {
+  isEditingExam.value = false
+  editingExamId.value = null
+  examForm.course_code = ''
+  examForm.course_name_ar = ''
+  examForm.course_name_en = ''
+  examForm.exam_type = 'final'
+  examForm.exam_date = new Date().toISOString().slice(0, 10)
+  examForm.start_time = '09:00'
+  examForm.end_time = '12:00'
+  examForm.hall_location_ar = 'مدرج الدكتور مجدي يعقوب (مبنى أ)'
+  examForm.hall_location_en = 'Magdi Yacoub Auditorium (Hall A)'
+  examForm.chief_invigilator_ar = 'أ.د. عصام النجار'
+  examForm.chief_invigilator_en = 'Prof. Dr. Essam El-Naggar'
+  examForm.seating_capacity = 120
+  isExamModalOpen.value = true
+}
+
+const openEditExamModal = (exam) => {
+  isEditingExam.value = true
+  editingExamId.value = exam.id
+  examForm.course_code = exam.course_code || ''
+  examForm.course_name_ar = exam.course_name?.ar || exam.course_name || ''
+  examForm.course_name_en = exam.course_name?.en || exam.course_name || ''
+  examForm.exam_type = exam.exam_type || 'final'
+  examForm.exam_date = exam.exam_date || new Date().toISOString().slice(0, 10)
+  examForm.start_time = exam.start_time ? exam.start_time.slice(0, 5) : '09:00'
+  examForm.end_time = exam.end_time ? exam.end_time.slice(0, 5) : '12:00'
+  examForm.hall_location_ar = exam.hall_location?.ar || exam.hall_location || 'مدرج الدكتور مجدي يعقوب (مبنى أ)'
+  examForm.hall_location_en = exam.hall_location?.en || exam.hall_location || 'Magdi Yacoub Auditorium (Hall A)'
+  examForm.chief_invigilator_ar = exam.chief_invigilator?.ar || exam.chief_invigilator || 'أ.د. عصام النجار'
+  examForm.chief_invigilator_en = exam.chief_invigilator?.en || exam.chief_invigilator || 'Prof. Dr. Essam El-Naggar'
+  examForm.seating_capacity = exam.seating_capacity || 120
+  isExamModalOpen.value = true
+}
+
+const submitExamForm = async () => {
+  if (!examForm.course_code || !examForm.course_name_ar || !examForm.exam_date) {
+    alert('يرجى ملء الحقول الإلزامية')
+    return
+  }
+
+  try {
+    if (isEditingExam.value) {
+      const updated = await api.updateExamSchedule(editingExamId.value, { ...examForm })
+      const idx = examSchedulesList.value.findIndex((e) => e.id === editingExamId.value)
+      if (idx !== -1) {
+        examSchedulesList.value[idx] = {
+          ...examSchedulesList.value[idx],
+          course_code: examForm.course_code,
+          course_name: { ar: examForm.course_name_ar, en: examForm.course_name_en },
+          exam_type: examForm.exam_type,
+          exam_date: examForm.exam_date,
+          start_time: examForm.start_time,
+          end_time: examForm.end_time,
+          hall_location: { ar: examForm.hall_location_ar, en: examForm.hall_location_en },
+          chief_invigilator: { ar: examForm.chief_invigilator_ar, en: examForm.chief_invigilator_en },
+          seating_capacity: examForm.seating_capacity,
+          ...updated,
+        }
+      }
+    } else {
+      const created = await api.storeExamSchedule({ ...examForm })
+      examSchedulesList.value.unshift(created)
+    }
+    isExamModalOpen.value = false
+  } catch (err) {
+    alert('Failed to save exam schedule')
+  }
+}
+
+const openNewCourseModal = () => {
+  isEditingCourse.value = false
+  editingCourseId.value = null
+  courseForm.code = ''
+  courseForm.name_ar = ''
+  courseForm.name_en = ''
+  courseForm.credits = 3
+  courseForm.level = 1
+  isCourseModalOpen.value = true
+}
+
+const openEditCourseModal = (course) => {
+  isEditingCourse.value = true
+  editingCourseId.value = course.id
+  courseForm.code = course.code || ''
+  courseForm.name_ar = course.name?.ar || course.name || ''
+  courseForm.name_en = course.name?.en || course.name || ''
+  courseForm.credits = course.credits || 3
+  courseForm.level = course.level || 1
+  isCourseModalOpen.value = true
+}
+
+const submitCourseForm = () => {
+  if (!courseForm.code || !courseForm.name_ar) {
+    alert('يرجى ملء الحقول الإلزامية')
+    return
+  }
+
+  if (isEditingCourse.value) {
+    const idx = studyPlansCourses.value.findIndex((c) => c.id === editingCourseId.value)
+    if (idx !== -1) {
+      studyPlansCourses.value[idx] = {
+        ...studyPlansCourses.value[idx],
+        code: courseForm.code,
+        name: { ar: courseForm.name_ar, en: courseForm.name_en },
+        credits: courseForm.credits,
+        level: courseForm.level
+      }
+    }
+  } else {
+    studyPlansCourses.value.push({
+      id: Date.now(),
+      code: courseForm.code,
+      name: { ar: courseForm.name_ar, en: courseForm.name_en },
+      credits: courseForm.credits,
+      level: courseForm.level
+    })
+  }
+  isCourseModalOpen.value = false
+}
+
+const handleDeleteCourse = (id) => {
+  if (window.confirm(localeStore.isRtl ? 'حذف هذا المقرر من الخطة الدراسية؟' : 'Delete this course from study plan?')) {
+    studyPlansCourses.value = studyPlansCourses.value.filter((c) => c.id !== id)
+  }
+}
+
+const handleDeleteExam = async (id) => {
+  if (window.confirm(localeStore.isRtl ? 'حذف هذا الموعد من جدول الامتحانات؟' : 'Delete exam schedule entry?')) {
+    await api.deleteExamSchedule(id)
+    examSchedulesList.value = examSchedulesList.value.filter((e) => e.id !== id)
+  }
 }
 
 const openIssueStatementModal = () => {

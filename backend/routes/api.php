@@ -37,10 +37,13 @@ Route::prefix('v1')->group(function () {
 
             // CMS Management
             Route::post('/news', [AdminCrudController::class, 'storeNews']);
+            Route::match(['put', 'patch'], '/news/{id}', [AdminCrudController::class, 'updateNews']);
             Route::delete('/news/{id}', [AdminCrudController::class, 'deleteNews']);
             Route::post('/announcements', [AdminCrudController::class, 'storeAnnouncement']);
+            Route::match(['put', 'patch'], '/announcements/{id}', [AdminCrudController::class, 'updateAnnouncement']);
             Route::delete('/announcements/{id}', [AdminCrudController::class, 'deleteAnnouncement']);
             Route::post('/events', [AdminCrudController::class, 'storeEvent']);
+            Route::match(['put', 'patch'], '/events/{id}', [AdminCrudController::class, 'updateEvent']);
             Route::delete('/events/{id}', [AdminCrudController::class, 'deleteEvent']);
             Route::post('/documents', [AdminCrudController::class, 'storeDocument']);
             Route::match(['put', 'patch'], '/documents/{id}', [AdminCrudController::class, 'updateDocument']);
@@ -65,10 +68,14 @@ Route::prefix('v1')->group(function () {
 
             // Academic & Student Services Management (Admin)
             Route::get('/student-requests', [AcademicServicesController::class, 'indexRequests']);
+            Route::post('/student-requests', [AcademicServicesController::class, 'submitRequest']);
             Route::patch('/student-requests/{id}/status', [AcademicServicesController::class, 'updateRequestStatus']);
+            Route::delete('/student-requests/{id}', [AcademicServicesController::class, 'deleteRequest']);
             Route::post('/official-statements/issue', [AcademicServicesController::class, 'issueStatement']);
             Route::get('/exam-schedules', [AcademicServicesController::class, 'indexExamSchedules']);
             Route::post('/exam-schedules', [AcademicServicesController::class, 'storeExamSchedule']);
+            Route::match(['put', 'patch'], '/exam-schedules/{id}', [AcademicServicesController::class, 'updateExamSchedule']);
+            Route::delete('/exam-schedules/{id}', [AcademicServicesController::class, 'deleteExamSchedule']);
         });
     });
 

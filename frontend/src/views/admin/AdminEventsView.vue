@@ -124,6 +124,15 @@
                 <div class="flex items-center justify-end gap-2">
                   <button
                     type="button"
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100 transition-colors"
+                    title="Edit Event"
+                    @click="openEditEventModal(ev)"
+                  >
+                    <Edit3 class="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
                     class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                     title="Delete Event"
                     @click="handleDeleteEvent(ev.id)"
@@ -138,10 +147,10 @@
       </div>
     </div>
 
-    <!-- MODAL: ADD EVENT -->
+    <!-- MODAL: ADD / EDIT EVENT -->
     <Modal
       v-model="isModalOpen"
-      :title="$t('admin.events.modalTitle')"
+      :title="isEditingEvent ? (localeStore.isRtl ? 'تعديل بيانات الفعالية والمؤتمر' : 'Edit Event / Conference') : $t('admin.events.modalTitle')"
       max-width="2xl"
       @close="isModalOpen = false"
     >
@@ -315,6 +324,7 @@ import {
   Plus,
   Search,
   MapPin,
+  Edit3,
   Trash2,
   CalendarX,
   Upload,
@@ -329,6 +339,8 @@ const isLoading = ref(true)
 const searchQuery = ref('')
 const categoryFilter = ref('all')
 const isModalOpen = ref(false)
+const isEditingEvent = ref(false)
+const editingEventId = ref(null)
 
 const eventSelectedFile = ref(null)
 const eventImagePreview = ref('')
@@ -411,15 +423,38 @@ const loadEvents = async () => {
 }
 
 const openNewEventModal = () => {
+  isEditingEvent.value = false
+  editingEventId.value = null
   eventSelectedFile.value = null
   eventImagePreview.value = ''
   form.title_ar = ''
   form.title_en = ''
   form.banner_image = ''
   form.description_ar = ''
+  form.description_en = ''
   form.event_date = new Date().toISOString().slice(0, 10)
   form.start_time = '10:00'
   form.end_time = '14:00'
+  form.venue_ar = 'المدرج المركزي - كلية الحاسبات'
+  form.capacity = 200
+  isModalOpen.value = true
+}
+
+const openEditEventModal = (ev) => {
+  isEditingEvent.value = true
+  editingEventId.value = ev.id
+  eventSelectedFile.value = null
+  eventImagePreview.value = ev.banner_image || ''
+  form.title_ar = ev.title?.ar || ev.title || ''
+  form.title_en = ev.title?.en || ev.title || ''
+  form.banner_image = ev.banner_image || ''
+  form.description_ar = ev.description?.ar || ev.description || ''
+  form.description_en = ev.description?.en || ev.description || ''
+  form.event_date = ev.event_date || ev.start_time?.slice(0, 10) || new Date().toISOString().slice(0, 10)
+  form.start_time = ev.start_time ? ev.start_time.slice(11, 16) || '10:00' : '10:00'
+  form.end_time = ev.end_time ? ev.end_time.slice(11, 16) || '14:00' : '14:00'
+  form.venue_ar = ev.venue?.ar || ev.location?.ar || ev.venue || 'المدرج المركزي - كلية الحاسبات'
+  form.capacity = ev.capacity || 200
   isModalOpen.value = true
 }
 
@@ -430,11 +465,30 @@ const submitForm = async () => {
   }
 
   try {
-    const created = await api.createEvent({ ...form })
-    eventsList.value.unshift(created)
+    if (isEditingEvent.value) {
+      const updated = await api.updateEvent(editingEventId.value, { ...form })
+      const idx = eventsList.value.findIndex((e) => e.id === editingEventId.value)
+      if (idx !== -1) {
+        eventsList.value[idx] = {
+          ...eventsList.value[idx],
+          title: { ar: form.title_ar, en: form.title_en },
+          description: { ar: form.description_ar, en: form.description_en },
+          venue: { ar: form.venue_ar, en: form.venue_en || form.venue_ar },
+          event_date: form.event_date,
+          start_time: form.start_time,
+          end_time: form.end_time,
+          capacity: form.capacity,
+          banner_image: form.banner_image || eventsList.value[idx].banner_image,
+          ...updated,
+        }
+      }
+    } else {
+      const created = await api.createEvent({ ...form })
+      eventsList.value.unshift(created)
+    }
     isModalOpen.value = false
   } catch (err) {
-    alert('Failed to create event')
+    alert('Failed to save event')
   }
 }
 

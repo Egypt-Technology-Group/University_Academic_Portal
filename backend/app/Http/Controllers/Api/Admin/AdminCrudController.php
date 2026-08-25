@@ -62,6 +62,41 @@ class AdminCrudController extends Controller
         ], 201);
     }
 
+    public function updateNews(Request $request, int $id): JsonResponse
+    {
+        $article = NewsArticle::findOrFail($id);
+
+        $validated = $request->validate([
+            'category_id' => 'sometimes|nullable|integer',
+            'title_ar' => 'sometimes|required|string|max:255',
+            'title_en' => 'sometimes|required|string|max:255',
+            'excerpt_ar' => 'nullable|string',
+            'excerpt_en' => 'nullable|string',
+            'body_ar' => 'sometimes|required|string',
+            'body_en' => 'sometimes|required|string',
+            'featured_image' => 'nullable|string',
+            'is_featured' => 'nullable|boolean',
+        ]);
+
+        if (isset($validated['category_id'])) $article->category_id = $validated['category_id'];
+        if (isset($validated['title_ar'])) $article->setTranslation('title', 'ar', $validated['title_ar']);
+        if (isset($validated['title_en'])) $article->setTranslation('title', 'en', $validated['title_en']);
+        if (isset($validated['excerpt_ar'])) $article->setTranslation('excerpt', 'ar', $validated['excerpt_ar']);
+        if (isset($validated['excerpt_en'])) $article->setTranslation('excerpt', 'en', $validated['excerpt_en']);
+        if (isset($validated['body_ar'])) $article->setTranslation('body', 'ar', $validated['body_ar']);
+        if (isset($validated['body_en'])) $article->setTranslation('body', 'en', $validated['body_en']);
+        if (isset($validated['featured_image'])) $article->featured_image = $validated['featured_image'];
+        if (isset($validated['is_featured'])) $article->is_featured = (bool) $validated['is_featured'];
+
+        $article->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'News article updated successfully.',
+            'data' => new NewsResource($article),
+        ]);
+    }
+
     public function deleteNews(int $id): JsonResponse
     {
         $article = NewsArticle::findOrFail($id);
@@ -100,6 +135,37 @@ class AdminCrudController extends Controller
         ], 201);
     }
 
+    public function updateAnnouncement(Request $request, int $id): JsonResponse
+    {
+        $announcement = Announcement::findOrFail($id);
+
+        $validated = $request->validate([
+            'title_ar' => 'sometimes|required|string|max:255',
+            'title_en' => 'sometimes|required|string|max:255',
+            'content_ar' => 'sometimes|required|string',
+            'content_en' => 'sometimes|required|string',
+            'target_audience' => 'sometimes|required|in:all,students,faculty,public',
+            'priority' => 'sometimes|required|in:normal,urgent,pinned',
+            'is_active' => 'nullable|boolean',
+        ]);
+
+        if (isset($validated['title_ar'])) $announcement->setTranslation('title', 'ar', $validated['title_ar']);
+        if (isset($validated['title_en'])) $announcement->setTranslation('title', 'en', $validated['title_en']);
+        if (isset($validated['content_ar'])) $announcement->setTranslation('content', 'ar', $validated['content_ar']);
+        if (isset($validated['content_en'])) $announcement->setTranslation('content', 'en', $validated['content_en']);
+        if (isset($validated['target_audience'])) $announcement->target_audience = $validated['target_audience'];
+        if (isset($validated['priority'])) $announcement->priority = $validated['priority'];
+        if (isset($validated['is_active'])) $announcement->is_active = (bool) $validated['is_active'];
+
+        $announcement->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Announcement updated successfully.',
+            'data' => new AnnouncementResource($announcement),
+        ]);
+    }
+
     public function deleteAnnouncement(int $id): JsonResponse
     {
         $announcement = Announcement::findOrFail($id);
@@ -125,6 +191,7 @@ class AdminCrudController extends Controller
             'description_en' => 'required|string',
             'start_time' => 'required|date',
             'end_time' => 'nullable|date',
+            'cover_image' => 'nullable|string',
         ]);
 
         $slug = Str::slug($validated['title_en']).'-'.rand(100, 999);
@@ -137,7 +204,7 @@ class AdminCrudController extends Controller
             'description' => ['ar' => $validated['description_ar'], 'en' => $validated['description_en']],
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'] ?? null,
-            'cover_image' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80',
+            'cover_image' => $validated['cover_image'] ?? 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80',
         ]);
 
         return response()->json([
@@ -145,6 +212,45 @@ class AdminCrudController extends Controller
             'message' => 'Event scheduled successfully.',
             'data' => new EventResource($event),
         ], 201);
+    }
+
+    public function updateEvent(Request $request, int $id): JsonResponse
+    {
+        $event = Event::findOrFail($id);
+
+        $validated = $request->validate([
+            'title_ar' => 'sometimes|required|string|max:255',
+            'title_en' => 'sometimes|required|string|max:255',
+            'location_ar' => 'sometimes|required|string',
+            'location_en' => 'sometimes|required|string',
+            'organizer_ar' => 'sometimes|required|string',
+            'organizer_en' => 'sometimes|required|string',
+            'description_ar' => 'sometimes|required|string',
+            'description_en' => 'sometimes|required|string',
+            'start_time' => 'sometimes|required|date',
+            'end_time' => 'nullable|date',
+            'cover_image' => 'nullable|string',
+        ]);
+
+        if (isset($validated['title_ar'])) $event->setTranslation('title', 'ar', $validated['title_ar']);
+        if (isset($validated['title_en'])) $event->setTranslation('title', 'en', $validated['title_en']);
+        if (isset($validated['location_ar'])) $event->setTranslation('location', 'ar', $validated['location_ar']);
+        if (isset($validated['location_en'])) $event->setTranslation('location', 'en', $validated['location_en']);
+        if (isset($validated['organizer_ar'])) $event->setTranslation('organizer', 'ar', $validated['organizer_ar']);
+        if (isset($validated['organizer_en'])) $event->setTranslation('organizer', 'en', $validated['organizer_en']);
+        if (isset($validated['description_ar'])) $event->setTranslation('description', 'ar', $validated['description_ar']);
+        if (isset($validated['description_en'])) $event->setTranslation('description', 'en', $validated['description_en']);
+        if (isset($validated['start_time'])) $event->start_time = $validated['start_time'];
+        if (isset($validated['end_time'])) $event->end_time = $validated['end_time'];
+        if (isset($validated['cover_image'])) $event->cover_image = $validated['cover_image'];
+
+        $event->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Event updated successfully.',
+            'data' => new EventResource($event),
+        ]);
     }
 
     public function deleteEvent(int $id): JsonResponse

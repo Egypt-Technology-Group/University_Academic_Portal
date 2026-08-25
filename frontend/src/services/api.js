@@ -724,6 +724,28 @@ export const api = {
     }
   },
 
+  async updateNews(id, formData) {
+    try {
+      const response = await apiClient.patch(`/admin/news/${id}`, formData)
+      return response.data.data || response.data
+    } catch (e) {
+      console.warn(`API /admin/news/${id} update failed, updating mockNews:`, e.message)
+      const index = mockNews.findIndex((n) => n.id === Number(id))
+      if (index !== -1) {
+        if (formData.title_ar) mockNews[index].title.ar = formData.title_ar
+        if (formData.title_en) mockNews[index].title.en = formData.title_en
+        if (formData.summary_ar) mockNews[index].excerpt.ar = formData.summary_ar
+        if (formData.summary_en) mockNews[index].excerpt.en = formData.summary_en
+        if (formData.content_ar) mockNews[index].body.ar = formData.content_ar
+        if (formData.content_en) mockNews[index].body.en = formData.content_en
+        if (formData.featured_image) mockNews[index].featured_image = formData.featured_image
+        if (formData.category) mockNews[index].category = formData.category
+        return mockNews[index]
+      }
+      return { success: true, id, ...formData }
+    }
+  },
+
   async deleteNews(id) {
     try {
       const response = await apiClient.delete(`/admin/news/${id}`)
@@ -762,6 +784,26 @@ export const api = {
       }
       mockAnnouncements.unshift(newAnnouncement)
       return newAnnouncement
+    }
+  },
+
+  async updateAnnouncement(id, formData) {
+    try {
+      const response = await apiClient.patch(`/admin/announcements/${id}`, formData)
+      return response.data.data || response.data
+    } catch (e) {
+      console.warn(`API /admin/announcements/${id} update failed, updating mockAnnouncements:`, e.message)
+      const index = mockAnnouncements.findIndex((a) => a.id === Number(id))
+      if (index !== -1) {
+        if (formData.title_ar) mockAnnouncements[index].title.ar = formData.title_ar
+        if (formData.title_en) mockAnnouncements[index].title.en = formData.title_en
+        if (formData.content_ar) mockAnnouncements[index].content.ar = formData.content_ar
+        if (formData.content_en) mockAnnouncements[index].content.en = formData.content_en
+        if (formData.target_audience) mockAnnouncements[index].target_audience = formData.target_audience
+        if (formData.is_urgent !== undefined) mockAnnouncements[index].is_urgent = Boolean(formData.is_urgent)
+        return mockAnnouncements[index]
+      }
+      return { success: true, id, ...formData }
     }
   },
 
@@ -810,6 +852,30 @@ export const api = {
       }
       mockEvents.unshift(newEvent)
       return newEvent
+    }
+  },
+
+  async updateEvent(id, formData) {
+    try {
+      const response = await apiClient.patch(`/admin/events/${id}`, formData)
+      return response.data.data || response.data
+    } catch (e) {
+      console.warn(`API /admin/events/${id} update failed, updating mockEvents:`, e.message)
+      const index = mockEvents.findIndex((ev) => ev.id === Number(id))
+      if (index !== -1) {
+        if (formData.title_ar) mockEvents[index].title.ar = formData.title_ar
+        if (formData.title_en) mockEvents[index].title.en = formData.title_en
+        if (formData.description_ar) mockEvents[index].description.ar = formData.description_ar
+        if (formData.description_en) mockEvents[index].description.en = formData.description_en
+        if (formData.event_date) mockEvents[index].event_date = formData.event_date
+        if (formData.start_time) mockEvents[index].start_time = formData.start_time
+        if (formData.end_time) mockEvents[index].end_time = formData.end_time
+        if (formData.venue_ar) mockEvents[index].venue.ar = formData.venue_ar
+        if (formData.banner_image) mockEvents[index].banner_image = formData.banner_image
+        if (formData.capacity) mockEvents[index].capacity = Number(formData.capacity)
+        return mockEvents[index]
+      }
+      return { success: true, id, ...formData }
     }
   },
 
@@ -1194,6 +1260,33 @@ export const api = {
         ...data,
         created_at: new Date().toISOString()
       }
+    }
+  },
+
+  async updateExamSchedule(id, data) {
+    try {
+      const response = await apiClient.patch(`/admin/exam-schedules/${id}`, data)
+      return response.data.data || response.data
+    } catch (e) {
+      return { success: true, id, ...data }
+    }
+  },
+
+  async deleteExamSchedule(id) {
+    try {
+      const response = await apiClient.delete(`/admin/exam-schedules/${id}`)
+      return response.data
+    } catch (e) {
+      return { success: true }
+    }
+  },
+
+  async deleteStudentRequest(id) {
+    try {
+      const response = await apiClient.delete(`/admin/student-requests/${id}`)
+      return response.data
+    } catch (e) {
+      return { success: true }
     }
   },
 
