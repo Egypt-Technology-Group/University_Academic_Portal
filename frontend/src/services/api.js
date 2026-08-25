@@ -802,18 +802,74 @@ export const api = {
           en: formData.title_en || formData.title?.en || 'New Document & Regulation'
         },
         description: {
-          ar: formData.description_ar || formData.description || 'ملف ولائحة أكاديمية معتمدة من المجلس الأعلى للجامعات.',
-          en: formData.description_en || 'Approved academic document.'
+          ar: formData.description_ar || formData.description?.ar || formData.description || 'ملف ولائحة أكاديمية معتمدة من المجلس الأعلى للجامعات.',
+          en: formData.description_en || formData.description?.en || 'Approved academic document.'
         },
         category: formData.category || 'regulations',
+        version: formData.version || '1.0',
+        status: formData.status || 'published',
+        target_audience: formData.target_audience || 'all',
+        is_featured: Boolean(formData.is_featured),
+        is_archived: false,
         file_path: formData.file_path || '/documents/sample_document.pdf',
         file_type: formData.file_type || 'PDF',
         file_size_mb: Number(formData.file_size_mb) || 2.4,
         download_count: 0,
+        effective_date: formData.effective_date || new Date().toISOString(),
         created_at: new Date().toISOString()
       }
       mockDocuments.unshift(newDoc)
       return newDoc
+    }
+  },
+
+  async updateDocument(id, formData) {
+    try {
+      const response = await apiClient.match ? await apiClient.put(`/admin/documents/${id}`, formData) : await apiClient.post(`/admin/documents/${id}`, formData)
+      return response.data.data || response.data
+    } catch (e) {
+      console.warn(`API /admin/documents/${id} update failed, updating local mock:`, e.message)
+      const doc = mockDocuments.find((d) => d.id === Number(id))
+      if (doc) {
+        if (formData.title_ar || formData.title_en) {
+          doc.title = {
+            ar: formData.title_ar || doc.title?.ar || doc.title,
+            en: formData.title_en || doc.title?.en || doc.title
+          }
+        }
+        if (formData.description_ar || formData.description_en) {
+          doc.description = {
+            ar: formData.description_ar || doc.description?.ar || doc.description,
+            en: formData.description_en || doc.description?.en || doc.description
+          }
+        }
+        if (formData.category) doc.category = formData.category
+        if (formData.version) doc.version = formData.version
+        if (formData.status) doc.status = formData.status
+        if (formData.target_audience) doc.target_audience = formData.target_audience
+        if (formData.is_featured !== undefined) doc.is_featured = Boolean(formData.is_featured)
+        if (formData.is_archived !== undefined) doc.is_archived = Boolean(formData.is_archived)
+        if (formData.file_size_mb) doc.file_size_mb = Number(formData.file_size_mb)
+        doc.updated_at = new Date().toISOString()
+        return doc
+      }
+      return { success: true, ...formData }
+    }
+  },
+
+  async toggleArchiveDocument(id) {
+    try {
+      const response = await apiClient.post(`/admin/documents/${id}/toggle-archive`)
+      return response.data.data || response.data
+    } catch (e) {
+      console.warn(`API /admin/documents/${id}/toggle-archive failed, updating local mock:`, e.message)
+      const doc = mockDocuments.find((d) => d.id === Number(id))
+      if (doc) {
+        doc.is_archived = !doc.is_archived
+        doc.status = doc.is_archived ? 'archived' : 'published'
+        return doc
+      }
+      return { success: true }
     }
   },
 

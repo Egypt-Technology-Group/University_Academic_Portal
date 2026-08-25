@@ -42,6 +42,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/events', [AdminCrudController::class, 'storeEvent']);
             Route::delete('/events/{id}', [AdminCrudController::class, 'deleteEvent']);
             Route::post('/documents', [AdminCrudController::class, 'storeDocument']);
+            Route::match(['put', 'patch'], '/documents/{id}', [AdminCrudController::class, 'updateDocument']);
+            Route::post('/documents/{id}/toggle-archive', [AdminCrudController::class, 'toggleArchiveDocument']);
             Route::delete('/documents/{id}', [AdminCrudController::class, 'deleteDocument']);
         });
     });

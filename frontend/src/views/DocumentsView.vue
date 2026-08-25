@@ -71,14 +71,22 @@
       >
         <!-- Icon & Doc Title -->
         <div class="flex items-start sm:items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs shrink-0 border border-red-200">
+          <div class="w-12 h-12 rounded-xl bg-navy-50 text-navy-900 flex items-center justify-center font-black text-xs shrink-0 border border-navy-100 shadow-xs">
             {{ doc.file_type || 'PDF' }}
           </div>
           <div class="space-y-1">
-            <h3 class="text-sm sm:text-base font-bold text-navy-950">
-              {{ getTranslated(doc.title, localeStore.locale) }}
-            </h3>
-            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+            <div class="flex items-center gap-2">
+              <h3 class="text-sm sm:text-base font-bold text-navy-950">
+                {{ getTranslated(doc.title, localeStore.locale) }}
+              </h3>
+              <span class="font-mono text-[10px] font-bold text-navy-800 bg-slate-100 px-1.5 py-0.5 rounded">
+                v{{ doc.version || '1.0' }}
+              </span>
+            </div>
+            <p v-if="doc.description" class="text-xs text-slate-500 line-clamp-1 max-w-xl">
+              {{ getTranslated(doc.description, localeStore.locale) }}
+            </p>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400 pt-0.5">
               <span>📁 {{ getCategoryLabel(doc.category) }}</span>
               <span>•</span>
               <span>💾 {{ doc.file_size }}</span>
@@ -91,7 +99,7 @@
         <!-- Download Action -->
         <button
           type="button"
-          class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-white rounded-xl shadow-sm transition-all shrink-0"
+          class="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold bg-navy-950 hover:bg-gold-500 hover:text-navy-950 text-white rounded-xl shadow-sm transition-all shrink-0 cursor-pointer"
           @click="downloadDocument(doc)"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
