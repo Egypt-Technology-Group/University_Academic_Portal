@@ -1,24 +1,24 @@
 <template>
   <header class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all duration-300">
     <!-- Top Announcement & Utility Bar -->
-    <div v-if="settingsStore.isTopAnnouncementActive" class="bg-navy-950 text-slate-200 text-xs py-1.5 px-4 sm:px-8 border-b border-navy-900 announcement-bar">
-      <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+    <div v-if="settingsStore.isTopAnnouncementActive" class="bg-navy-950 text-slate-200 text-[11px] sm:text-xs py-1 px-3 sm:px-8 border-b border-navy-900 announcement-bar">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
         <!-- Urgent Alert Ticker / Headline -->
-        <div class="flex items-center gap-2 overflow-hidden">
-          <span class="bg-gold-500 text-navy-950 font-bold px-2 py-0.5 rounded text-[11px] uppercase tracking-wider flex items-center gap-1 shrink-0 animate-pulse">
-            <span class="w-1.5 h-1.5 rounded-full bg-navy-950"></span>
+        <div class="flex items-center gap-1.5 sm:gap-2 overflow-hidden flex-1 min-w-0">
+          <span class="bg-gold-500 text-navy-950 font-bold px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[11px] uppercase tracking-wider flex items-center gap-1 shrink-0 animate-pulse">
+            <span class="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-navy-950"></span>
             {{ $t('nav.urgent') }}
           </span>
           <router-link
             :to="settingsStore.topAnnouncementLink"
-            class="text-slate-300 hover:text-gold-400 transition-colors truncate text-xs font-medium"
+            class="text-slate-300 hover:text-gold-400 transition-colors truncate text-[11px] sm:text-xs font-medium"
           >
             {{ settingsStore.topAnnouncementText(localeStore.locale) }}
           </router-link>
         </div>
 
         <!-- Right Quick Links & Language Toggle -->
-        <div class="flex items-center gap-4 ms-auto text-xs shrink-0">
+        <div class="flex items-center gap-2 sm:gap-4 ms-auto text-xs shrink-0">
           <router-link
             to="/student-portal"
             class="hidden md:inline-flex items-center gap-1 text-slate-300 hover:text-white transition-colors"
@@ -59,10 +59,10 @@
           <!-- Language Switcher Button -->
           <button
             type="button"
-            class="flex items-center gap-1.5 text-gold-400 hover:text-gold-300 font-bold px-2 py-0.5 rounded bg-navy-900 border border-navy-800 transition-colors"
+            class="flex items-center gap-1 text-gold-400 hover:text-gold-300 font-bold px-1.5 sm:px-2 py-0.5 rounded bg-navy-900 border border-navy-800 transition-colors text-[10px] sm:text-xs"
             @click="localeStore.toggleLocale"
           >
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
             </svg>
             <span>{{ $t('nav.language') }}</span>
@@ -72,21 +72,21 @@
     </div>
 
     <!-- Main Navigation Bar -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-8 py-3 flex items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-3 sm:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
       <!-- University Crest & Brand Logo -->
-      <router-link to="/" class="flex items-center gap-3 group shrink-0">
+      <router-link to="/" class="flex items-center gap-2 sm:gap-3 group shrink min-w-0">
         <!-- Academic Crest Shield SVG -->
-        <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 flex items-center justify-center text-gold-400 shadow-md border border-gold-500/30 group-hover:scale-105 transition-transform duration-300">
-          <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800 flex items-center justify-center text-gold-400 shadow-md border border-gold-500/30 group-hover:scale-105 transition-transform duration-300 shrink-0">
+          <svg class="w-5 h-5 sm:w-7 sm:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v7m-3-4l3-3 3 3" />
           </svg>
         </div>
-        <div class="text-start">
-          <span class="block font-black text-lg sm:text-xl text-navy-950 tracking-tight leading-none group-hover:text-navy-800 transition-colors">
+        <div class="text-start min-w-0">
+          <span class="block font-black text-sm sm:text-lg lg:text-xl text-navy-950 tracking-tight leading-tight truncate group-hover:text-navy-800 transition-colors">
             {{ settingsStore.siteShortName(localeStore.locale) }}
           </span>
-          <span class="block text-[11px] sm:text-xs text-slate-500 font-medium leading-tight">
+          <span class="block text-[10px] sm:text-xs text-slate-500 font-medium leading-none truncate max-w-[140px] xs:max-w-[200px] sm:max-w-none">
             {{ settingsStore.siteSlogan(localeStore.locale) || (localeStore.isRtl ? 'جامعة التكنولوجيا والعلوم التطبيقية' : 'University of Technology') }}
           </span>
         </div>
@@ -159,12 +159,13 @@
         </router-link>
       </nav>
 
-      <!-- Search Trigger & CTA -->
-      <div class="flex items-center gap-2.5">
+      <!-- Search Trigger & Actions -->
+      <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         <!-- Quick Search Button -->
         <button
           type="button"
-          class="flex items-center gap-2 px-3 py-2 text-sm text-slate-500 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-colors border border-slate-200"
+          class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-slate-500 bg-slate-100 hover:bg-slate-200/80 rounded-xl transition-colors border border-slate-200"
+          :title="$t('nav.quickSearch')"
           @click="showSearchModal = true"
         >
           <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,9 +178,9 @@
         <!-- Primary CTA: Apply Now -->
         <router-link
           to="/admissions"
-          class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 rounded-xl shadow-sm hover:shadow-gold-glow transition-all duration-200"
+          class="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 rounded-xl shadow-sm hover:shadow-gold-glow transition-all duration-200"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
           <span>{{ $t('nav.applyNow') }}</span>
@@ -188,13 +189,14 @@
         <!-- Mobile Menu Toggle Button -->
         <button
           type="button"
-          class="lg:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+          class="lg:hidden p-1.5 sm:p-2 text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0"
+          :aria-label="mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
           @click="mobileMenuOpen = !mobileMenuOpen"
         >
-          <svg v-if="!mobileMenuOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-if="!mobileMenuOpen" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
-          <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-else class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -204,7 +206,7 @@
     <!-- Mobile Drawer Menu -->
     <div
       v-if="mobileMenuOpen"
-      class="lg:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2 max-h-[80vh] overflow-y-auto"
+      class="lg:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2 max-h-[80vh] overflow-y-auto shadow-xl animate-fade-in"
     >
       <router-link
         to="/"
@@ -284,6 +286,14 @@
         @click="mobileMenuOpen = false"
       >
         🎓 {{ $t('nav.studentPortal') }}
+      </router-link>
+
+      <router-link
+        to="/admin"
+        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-gold-700 bg-gold-50 hover:bg-gold-100"
+        @click="mobileMenuOpen = false"
+      >
+        ⚙️ {{ $t('admin.sidebar.brandSubtitle') }}
       </router-link>
 
       <div class="pt-3 border-t border-slate-100 flex flex-col gap-2">

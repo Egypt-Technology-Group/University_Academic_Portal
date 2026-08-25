@@ -8,13 +8,19 @@
   }
   
   body {
-    @apply bg-slate-50 text-slate-800 antialiased font-sans min-h-screen flex flex-col;
+    @apply bg-slate-50 text-slate-800 antialiased font-sans min-h-screen flex flex-col overflow-x-hidden;
+  }
+
+  /* Responsive Table Container */
+  .table-responsive {
+    @apply w-full overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 scrollbar-thin;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
     background: #f1f5f9;

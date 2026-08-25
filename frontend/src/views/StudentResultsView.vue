@@ -165,8 +165,8 @@
           {{ $t('studentPortal.resultsTable') }}
         </h3>
 
-        <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
-          <table class="w-full text-xs sm:text-sm text-start">
+        <div class="border border-slate-200 rounded-2xl overflow-x-auto shadow-xs">
+          <table class="w-full text-xs sm:text-sm text-start min-w-[540px]">
             <thead class="bg-navy-950 text-white font-bold">
               <tr>
                 <th class="py-3.5 px-4 text-start">{{ $t('studentPortal.courseCode') }}</th>

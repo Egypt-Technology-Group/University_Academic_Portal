@@ -15,10 +15,10 @@
         ></div>
 
         <!-- Dialog Container -->
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-6">
+        <div class="flex min-h-full items-end sm:items-center justify-center p-2 sm:p-6 text-center">
           <div
             :class="[
-              'relative transform overflow-hidden rounded-2xl bg-white text-start shadow-2xl transition-all w-full my-8 border border-slate-100 flex flex-col',
+              'relative transform overflow-hidden rounded-2xl sm:rounded-3xl bg-white text-start shadow-2xl transition-all w-full my-2 sm:my-8 border border-slate-100 flex flex-col',
               maxWidthClasses[maxWidth] || maxWidthClasses.lg,
             ]"
             @click.stop
@@ -26,14 +26,14 @@
             <!-- Header -->
             <div
               v-if="title || $slots.title"
-              class="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/50"
+              class="flex items-center justify-between border-b border-slate-100 px-4 sm:px-6 py-3.5 sm:py-4 bg-slate-50/50"
             >
-              <h3 class="text-lg font-bold text-navy-950">
+              <h3 class="text-base sm:text-lg font-bold text-navy-950 truncate pe-2">
                 <slot name="title">{{ title }}</slot>
               </h3>
               <button
                 type="button"
-                class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                class="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors shrink-0"
                 @click="close"
               >
                 <span class="sr-only">Close</span>
@@ -44,14 +44,14 @@
             </div>
 
             <!-- Body -->
-            <div class="px-6 py-5 overflow-y-auto max-h-[calc(85vh-120px)]">
+            <div class="px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto max-h-[calc(85vh-100px)]">
               <slot></slot>
             </div>
 
             <!-- Footer -->
             <div
               v-if="$slots.footer"
-              class="border-t border-slate-100 px-6 py-4 bg-slate-50 flex items-center justify-end gap-3"
+              class="border-t border-slate-100 px-4 sm:px-6 py-3.5 sm:py-4 bg-slate-50 flex flex-wrap items-center justify-end gap-2 sm:gap-3"
             >
               <slot name="footer"></slot>
             </div>
