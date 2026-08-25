@@ -1,0 +1,219 @@
+<template>
+  <div class="max-w-7xl mx-auto px-4 sm:px-8 py-10 space-y-10">
+    <Breadcrumbs :items="[{ label: $t('faculty.title') }]" />
+
+    <!-- Header Banner -->
+    <div class="text-center max-w-3xl mx-auto space-y-3">
+      <Badge variant="primary" size="md" rounded="full">
+        {{ $t('app.shortName') }}
+      </Badge>
+      <h1 class="text-3xl sm:text-4xl font-black text-navy-950">
+        {{ $t('faculty.title') }}
+      </h1>
+      <p class="text-sm sm:text-base text-slate-600">
+        {{ $t('faculty.subtitle') }}
+      </p>
+    </div>
+
+    <!-- Filter & Search Controls -->
+    <div class="bg-white p-6 rounded-2xl shadow-academic border border-slate-200/80 space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+        <!-- Search Input -->
+        <div class="md:col-span-6 relative">
+          <svg class="w-4 h-4 text-slate-400 absolute start-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            :placeholder="$t('faculty.searchPlaceholder')"
+            class="w-full ps-10 pe-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-navy-800 outline-none transition-all"
+          />
+        </div>
+
+        <!-- Academic Rank Filter -->
+        <div class="md:col-span-6">
+          <select
+            v-model="selectedRank"
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-navy-800 outline-none transition-all"
+          >
+            <option value="">{{ $t('faculty.allRanks') }}</option>
+            <option value="prof">{{ $t('faculty.prof') }}</option>
+            <option value="assocProf">{{ $t('faculty.assocProf') }}</option>
+            <option value="assistProf">{{ $t('faculty.assistProf') }}</option>
+            <option value="lecturer">{{ $t('faculty.lecturer') }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="loading" class="text-center py-20">
+      <LoadingSpinner size="lg" :label="$t('common.loading')" />
+    </div>
+
+    <div v-else-if="filteredFaculty.length === 0" class="text-center py-16 bg-white rounded-2xl border border-slate-200 space-y-3">
+      <svg class="w-12 h-12 text-slate-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+      <p class="text-slate-600 font-semibold">{{ $t('faculty.noFacultyFound') }}</p>
+    </div>
+
+    <!-- Faculty Cards Grid -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Card
+        v-for="fac in filteredFaculty"
+        :key="fac.id"
+        padding="lg"
+        class="flex flex-col justify-between hover:border-gold-300 group"
+      >
+        <div class="space-y-4">
+          <div class="flex items-start gap-4">
+            <img
+              :src="fac.avatar"
+              :alt="fac.name"
+              class="w-16 h-16 rounded-2xl object-cover border-2 border-slate-200 shrink-0 group-hover:scale-105 transition-transform"
+            />
+            <div class="space-y-1 flex-1 overflow-hidden">
+              <h3 class="font-bold text-base text-navy-950 truncate">{{ fac.name }}</h3>
+              <p class="text-xs text-gold-600 font-semibold truncate">
+                {{ getTranslated(fac.academic_title, localeStore.locale) }}
+              </p>
+              <p class="text-xs text-slate-400 truncate">
+                {{ getTranslated(fac.department?.name, localeStore.locale) }}
+              </p>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+            {{ getTranslated(fac.bio, localeStore.locale) }}
+          </p>
+
+          <div v-if="fac.research_interests" class="p-2.5 bg-slate-50 rounded-xl text-[11px] text-slate-500 line-clamp-2">
+            <strong class="text-slate-700 font-semibold">{{ $t('faculty.researchInterests') }}:</strong>
+            {{ getTranslated(fac.research_interests, localeStore.locale) }}
+          </div>
+        </div>
+
+        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+          <span class="text-xs text-slate-400 truncate max-w-[160px]">✉ {{ fac.email }}</span>
+          
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            rounded="lg"
+            @click="openModal(fac)"
+          >
+            {{ $t('faculty.viewProfile') }}
+          </Button>
+        </div>
+      </Card>
+    </div>
+
+    <!-- Faculty Profile Modal -->
+    <Modal v-model="showModal" :title="selectedFac?.name" max-width="2xl">
+      <div v-if="selectedFac" class="space-y-6 text-start">
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 border-b border-slate-100 pb-6 text-center sm:text-start">
+          <img
+            :src="selectedFac.avatar"
+            :alt="selectedFac.name"
+            class="w-24 h-24 rounded-3xl object-cover border-4 border-gold-400 shrink-0 shadow-md"
+          />
+          <div class="space-y-1">
+            <h3 class="text-xl font-bold text-navy-950">{{ selectedFac.name }}</h3>
+            <p class="text-sm font-semibold text-gold-600">
+              {{ getTranslated(selectedFac.academic_title, localeStore.locale) }}
+            </p>
+            <p class="text-xs text-slate-500">
+              {{ getTranslated(selectedFac.department?.name, localeStore.locale) }}
+            </p>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 pt-2 justify-center sm:justify-start">
+              <span>✉ {{ selectedFac.email }}</span>
+              <span>•</span>
+              <span>📞 {{ selectedFac.phone }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Biography -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">{{ $t('faculty.bio') }}</h4>
+          <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+            {{ getTranslated(selectedFac.bio, localeStore.locale) }}
+          </p>
+        </div>
+
+        <!-- Research Interests -->
+        <div v-if="selectedFac.research_interests" class="space-y-2">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">{{ $t('faculty.researchInterests') }}</h4>
+          <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+            {{ getTranslated(selectedFac.research_interests, localeStore.locale) }}
+          </p>
+        </div>
+
+        <!-- Location Box -->
+        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 flex items-center justify-between">
+          <span>📍 <strong>{{ $t('faculty.office') }}:</strong> {{ getTranslated(selectedFac.office_location, localeStore.locale) }}</span>
+        </div>
+      </div>
+    </Modal>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useLocaleStore } from '../stores/locale'
+import { api, getTranslated } from '../services/api'
+import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
+import Badge from '../components/ui/Badge.vue'
+import Button from '../components/ui/Button.vue'
+import Card from '../components/ui/Card.vue'
+import Modal from '../components/ui/Modal.vue'
+import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
+
+const localeStore = useLocaleStore()
+
+const facultyList = ref([])
+const loading = ref(true)
+const searchQuery = ref('')
+const selectedRank = ref('')
+
+const showModal = ref(false)
+const selectedFac = ref(null)
+
+const openModal = (fac) => {
+  selectedFac.value = fac
+  showModal.value = true
+}
+
+const filteredFaculty = computed(() => {
+  return facultyList.value.filter((f) => {
+    if (selectedRank.value && f.rank !== selectedRank.value) {
+      return false
+    }
+    if (searchQuery.value.trim()) {
+      const q = searchQuery.value.toLowerCase().trim()
+      const name = f.name.toLowerCase()
+      const email = f.email.toLowerCase()
+      const titleAr = (f.academic_title?.ar || '').toLowerCase()
+      const titleEn = (f.academic_title?.en || '').toLowerCase()
+      const bioAr = (f.bio?.ar || '').toLowerCase()
+      const bioEn = (f.bio?.en || '').toLowerCase()
+      if (!name.includes(q) && !email.includes(q) && !titleAr.includes(q) && !titleEn.includes(q) && !bioAr.includes(q) && !bioEn.includes(q)) {
+        return false
+      }
+    }
+    return true
+  })
+})
+
+onMounted(async () => {
+  try {
+    facultyList.value = await api.getFaculty()
+  } catch (e) {
+    console.error('Failed to load faculty directory:', e)
+  } finally {
+    loading.value = false
+  }
+})
+</script>
