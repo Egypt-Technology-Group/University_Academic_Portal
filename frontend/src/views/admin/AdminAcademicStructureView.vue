@@ -744,7 +744,19 @@ const openEditFacultyModal = (fac) => {
 
 const submitFacultyForm = async () => {
   if (isEditingFaculty.value) {
-    await api.updateFaculty(editingFacultyId.value, { ...facultyForm })
+    const updated = await api.updateFaculty(editingFacultyId.value, { ...facultyForm })
+    const idx = facultyList.value.findIndex((f) => f.id === editingFacultyId.value)
+    if (idx !== -1) {
+      facultyList.value[idx] = {
+        ...facultyList.value[idx],
+        name: facultyForm.name_en || facultyForm.name_ar || facultyList.value[idx].name,
+        academic_title: { ar: facultyForm.academic_title_ar, en: facultyForm.academic_title_en },
+        email: facultyForm.email,
+        avatar: facultyForm.avatar || facultyList.value[idx].avatar,
+        research_interests: { ar: facultyForm.research_interests_ar, en: facultyForm.research_interests_en },
+        ...updated,
+      }
+    }
   } else {
     const created = await api.createFaculty({ ...facultyForm })
     facultyList.value.unshift(created)

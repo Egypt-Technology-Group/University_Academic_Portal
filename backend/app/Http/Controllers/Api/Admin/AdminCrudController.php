@@ -670,11 +670,11 @@ class AdminCrudController extends Controller
         $faculty = FacultyProfile::findOrFail($id);
 
         $validated = $request->validate([
-            'department_id' => 'sometimes|exists:departments,id',
-            'name_ar' => 'sometimes|string|max:255',
-            'name_en' => 'sometimes|string|max:255',
-            'academic_title_ar' => 'sometimes|required|string|max:255',
-            'academic_title_en' => 'sometimes|required|string|max:255',
+            'department_id' => 'sometimes|nullable|integer',
+            'name_ar' => 'sometimes|nullable|string|max:255',
+            'name_en' => 'sometimes|nullable|string|max:255',
+            'academic_title_ar' => 'sometimes|nullable|string|max:255',
+            'academic_title_en' => 'sometimes|nullable|string|max:255',
             'bio_ar' => 'nullable|string',
             'bio_en' => 'nullable|string',
             'research_interests_ar' => 'nullable|string',
@@ -685,14 +685,24 @@ class AdminCrudController extends Controller
             'office_location_en' => 'nullable|string|max:255',
             'avatar' => 'nullable|string',
             'cv_path' => 'nullable|string',
-            'google_scholar_url' => 'nullable|url',
+            'google_scholar_url' => 'nullable|string',
             'orcid_id' => 'nullable|string|max:50',
             'office_hours' => 'nullable|array',
             'publications' => 'nullable|array',
-            'is_featured' => 'boolean',
+            'is_featured' => 'nullable|boolean',
         ]);
 
-        if (isset($validated['department_id'])) $faculty->department_id = $validated['department_id'];
+        if (isset($validated['department_id'])) {
+            if ($validated['department_id'] && Department::where('id', $validated['department_id'])->exists()) {
+                $faculty->department_id = $validated['department_id'];
+            }
+        }
+        if (isset($validated['name_en']) || isset($validated['name_ar'])) {
+            $nameVal = $validated['name_en'] ?? $validated['name_ar'];
+            if ($faculty->user) {
+                $faculty->user->update(['name' => $nameVal]);
+            }
+        }
         if (isset($validated['academic_title_ar'])) $faculty->setTranslation('academic_title', 'ar', $validated['academic_title_ar']);
         if (isset($validated['academic_title_en'])) $faculty->setTranslation('academic_title', 'en', $validated['academic_title_en']);
         if (isset($validated['bio_ar'])) $faculty->setTranslation('bio', 'ar', $validated['bio_ar']);
@@ -701,7 +711,12 @@ class AdminCrudController extends Controller
         if (isset($validated['research_interests_en'])) $faculty->setTranslation('research_interests', 'en', $validated['research_interests_en']);
         if (isset($validated['office_location_ar'])) $faculty->setTranslation('office_location', 'ar', $validated['office_location_ar']);
         if (isset($validated['office_location_en'])) $faculty->setTranslation('office_location', 'en', $validated['office_location_en']);
-        if (isset($validated['email'])) $faculty->email = $validated['email'];
+        if (isset($validated['email'])) {
+            $faculty->email = $validated['email'];
+            if ($faculty->user) {
+                $faculty->user->update(['email' => $validated['email']]);
+            }
+        }
         if (isset($validated['phone'])) $faculty->phone = $validated['phone'];
         if (isset($validated['avatar'])) $faculty->avatar = $validated['avatar'];
         if (isset($validated['cv_path'])) $faculty->cv_path = $validated['cv_path'];
