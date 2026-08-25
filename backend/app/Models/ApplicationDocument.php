@@ -14,8 +14,21 @@ class ApplicationDocument extends Model
         'application_id',
         'document_type',
         'file_path',
-        'verification_status',
+        'verification_status', // pending, verified, rejected, action_required
+        'is_original_verified',
+        'rejection_reason',
+        'reviewer_notes',
+        'verified_at',
+        'verified_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'is_original_verified' => 'boolean',
+            'verified_at' => 'datetime',
+        ];
+    }
 
     public function application(): BelongsTo
     {

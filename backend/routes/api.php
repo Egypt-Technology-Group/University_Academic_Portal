@@ -25,6 +25,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/stats', [AdminDashboardController::class, 'stats']);
             Route::get('/applications', [AdminDashboardController::class, 'applications']);
             Route::match(['patch', 'put'], '/applications/{id}/status', [AdminDashboardController::class, 'updateApplicationStatus']);
+            Route::post('/applications/{id}/documents/{documentId}/verify', [AdminDashboardController::class, 'verifyDocument']);
+            Route::post('/applications/{id}/request-missing-docs', [AdminDashboardController::class, 'requestMissingDocuments']);
 
             // Site Customization & Dynamic Settings
             Route::get('/settings', [SiteSettingsController::class, 'index']);

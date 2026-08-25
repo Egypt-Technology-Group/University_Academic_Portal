@@ -19,7 +19,7 @@
           <div
             :class="[
               'relative transform overflow-hidden rounded-2xl sm:rounded-3xl bg-white text-start shadow-2xl transition-all w-full my-2 sm:my-8 border border-slate-100 flex flex-col',
-              maxWidthClasses[maxWidth] || maxWidthClasses.lg,
+              maxWidthClasses[size || maxWidth] || maxWidthClasses.lg,
             ]"
             @click.stop
           >
@@ -78,6 +78,11 @@ const props = defineProps({
     type: String,
     default: 'lg',
     validator: (m) => ['sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'].includes(m),
+  },
+  size: {
+    type: String,
+    default: '',
+    validator: (s) => !s || ['sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl'].includes(s),
   },
   closeOnBackdrop: {
     type: Boolean,

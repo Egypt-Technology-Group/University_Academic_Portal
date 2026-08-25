@@ -163,4 +163,86 @@ class AdminDashboardController extends Controller
             'data' => new ApplicationResource($application),
         ]);
     }
+
+    /**
+     * Verify or reject an individual application document and record audit notes.
+     */
+    public function verifyDocument(Request $request, int $applicationId, int $documentId): JsonResponse
+    {
+        $validated = $request->validate([
+            'verification_status' => ['required', Rule::in(['pending', 'verified', 'rejected', 'action_required'])],
+            'is_original_verified' => 'nullable|boolean',
+            'rejection_reason' => 'nullable|string|max:300',
+            'reviewer_notes' => 'nullable|string|max:500',
+        ]);
+
+        $application = Application::with('documents')->findOrFail($applicationId);
+        $document = $application->documents()->findOrFail($documentId);
+
+        $currentUser = $request->user()?->name ?? 'Admissions Officer';
+
+        $document->verification_status = $validated['verification_status'];
+        if (array_key_exists('is_original_verified', $validated)) {
+            $document->is_original_verified = (bool) $validated['is_original_verified'];
+        }
+        if (array_key_exists('rejection_reason', $validated)) {
+            $document->rejection_reason = $validated['rejection_reason'];
+        }
+        if (array_key_exists('reviewer_notes', $validated)) {
+            $document->reviewer_notes = $validated['reviewer_notes'];
+        }
+        $document->verified_at = now();
+        $document->verified_by = $currentUser;
+        $document->save();
+
+        // Audit timeline record on application
+        $application->recordTimelineEvent(
+            title: "Document {$document->document_type} marked as: {$document->verification_status}",
+            action: "document_{$document->verification_status}",
+            actor: $currentUser,
+            details: $document->rejection_reason ?? $document->reviewer_notes ?? "Original verified: " . ($document->is_original_verified ? 'Yes' : 'No')
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Document verification status updated successfully.',
+            'data' => new ApplicationResource($application->fresh(['documents'])),
+        ]);
+    }
+
+    /**
+     * Trigger an official request notification to the applicant for missing or re-uploaded documents.
+     */
+    public function requestMissingDocuments(Request $request, int $applicationId): JsonResponse
+    {
+        $validated = $request->validate([
+            'missing_documents' => 'required|array|min:1',
+            'instructions' => 'nullable|string|max:1000',
+        ]);
+
+        $application = Application::with('documents')->findOrFail($applicationId);
+        $currentUser = $request->user()?->name ?? 'Admissions Committee';
+
+        $missingListStr = implode(', ', $validated['missing_documents']);
+        $instructions = $validated['instructions'] ?? 'Please provide the missing original credentials at your earliest convenience.';
+
+        $application->recordTimelineEvent(
+            title: 'Requested Missing Documents',
+            action: 'missing_documents_requested',
+            actor: $currentUser,
+            details: "Missing: {$missingListStr}. Instructions: {$instructions}"
+        );
+
+        $application->logCommunication(
+            channel: 'email',
+            subject: 'Action Required: Submit Missing Application Credentials',
+            message: "Dear {$application->first_name},\n\nPlease submit or re-upload the following documents: {$missingListStr}.\n\nInstructions: {$instructions}"
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Missing document notice sent and logged successfully.',
+            'data' => new ApplicationResource($application->fresh(['documents'])),
+        ]);
+    }
 }

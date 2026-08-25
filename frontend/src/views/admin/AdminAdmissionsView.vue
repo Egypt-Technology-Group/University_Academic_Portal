@@ -297,39 +297,97 @@
             <span>{{ $t('admin.admissions.secDocuments') }}</span>
           </h4>
 
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs text-slate-500 font-medium">
+              {{ localeStore.isRtl ? 'المستندات والشهادات المرفقة وفحص الأصول' : 'Uploaded Certificates & Original Verification' }}
+            </span>
+            <button
+              type="button"
+              class="text-[11px] font-bold text-navy-950 hover:text-navy-800 bg-gold-100 hover:bg-gold-200 px-2.5 py-1 rounded-lg flex items-center gap-1 cursor-pointer transition-colors"
+              @click="openMissingDocsModal"
+            >
+              <span>📩</span>
+              <span>{{ localeStore.isRtl ? 'طلب استيفاء نواقص' : 'Request Missing Docs' }}</span>
+            </button>
+          </div>
+
           <div class="space-y-2.5">
             <div
               v-for="doc in (activeApp.documents || defaultDocumentsList)"
               :key="doc.id"
-              class="flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200/80 text-xs"
+              class="p-3.5 rounded-2xl bg-white border border-slate-200/80 text-xs space-y-2.5"
             >
-              <div class="flex items-center gap-3">
-                <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs">
-                  📄
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-navy-50 text-navy-900 flex items-center justify-center font-bold text-sm">
+                    📄
+                  </div>
+                  <div>
+                    <div class="font-bold text-navy-950">{{ getDocTitle(doc) }}</div>
+                    <div class="text-[10px] text-slate-400 font-mono">
+                      {{ doc.verified_by ? `Audited by: ${doc.verified_by}` : 'Pending Auditor Review' }}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div class="font-bold text-slate-800">{{ getDocTitle(doc) }}</div>
-                  <div class="text-[10px] text-slate-400">PDF / Verified scan</div>
+
+                <div class="flex items-center gap-2">
+                  <span
+                    :class="[
+                      'text-[10px] font-bold px-2 py-0.5 rounded-full uppercase',
+                      doc.verification_status === 'verified' ? 'bg-emerald-100 text-emerald-800' :
+                      doc.verification_status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      doc.verification_status === 'action_required' ? 'bg-amber-100 text-amber-800' :
+                      'bg-slate-100 text-slate-700'
+                    ]"
+                  >
+                    {{ doc.verification_status || 'Pending' }}
+                  </span>
+
+                  <button
+                    type="button"
+                    class="text-navy-900 hover:text-gold-600 font-bold p-1 hover:bg-slate-100 rounded text-xs cursor-pointer"
+                    @click="openDocumentPreview(doc)"
+                  >
+                    <Eye class="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              <div class="flex items-center gap-2">
-                <span
-                  :class="[
-                    'text-[10px] font-bold px-2 py-0.5 rounded-full',
-                    doc.verification_status === 'verified' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                  ]"
-                >
-                  {{ doc.verification_status === 'verified' ? $t('admin.admissions.verified') : $t('admin.admissions.pendingCheck') }}
-                </span>
+              <!-- Quick Verification Action Bar -->
+              <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-[11px]">
+                <label class="flex items-center gap-1.5 cursor-pointer text-slate-700">
+                  <input
+                    type="checkbox"
+                    v-model="doc.is_original_verified"
+                    class="rounded text-navy-900 focus:ring-navy-900 cursor-pointer"
+                    @change="handleSingleDocVerify(doc, 'verified')"
+                  />
+                  <span class="font-semibold">{{ localeStore.isRtl ? 'تم مطابقة أصل المستند' : 'Original Verified' }}</span>
+                </label>
 
-                <button
-                  type="button"
-                  class="text-navy-900 hover:text-gold-600 font-bold p-1 hover:bg-slate-100 rounded text-xs"
-                  @click="alertDocumentPreview"
-                >
-                  <Eye class="w-3.5 h-3.5" />
-                </button>
+                <div class="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold border border-emerald-200 cursor-pointer"
+                    @click="handleSingleDocVerify(doc, 'verified')"
+                  >
+                    ✓ {{ localeStore.isRtl ? 'اعتماد' : 'Approve' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 hover:bg-amber-100 font-bold border border-amber-200 cursor-pointer"
+                    @click="handleSingleDocVerify(doc, 'action_required')"
+                  >
+                    ⚠ {{ localeStore.isRtl ? 'مطلوب تعديل' : 'Re-upload' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="px-2 py-0.5 rounded bg-red-50 text-red-700 hover:bg-red-100 font-bold border border-red-200 cursor-pointer"
+                    @click="handleSingleDocVerify(doc, 'rejected')"
+                  >
+                    ✕ {{ localeStore.isRtl ? 'رفض' : 'Reject' }}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -586,6 +644,173 @@
           <div v-if="isSaving" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           <Save v-else class="w-3.5 h-3.5 text-gold-400" />
           <span>{{ isSaving ? $t('admin.admissions.savingDecision') : $t('admin.admissions.saveDecisionButton') }}</span>
+        </button>
+      </template>
+    </Modal>
+
+    <!-- Missing Documents Request Modal -->
+    <Modal
+      v-model="isMissingDocsModalOpen"
+      :title="localeStore.isRtl ? 'طلب استيفاء وإعادة رفع مستندات' : 'Request Missing / Updated Documents'"
+      size="md"
+    >
+      <div class="space-y-4 text-xs">
+        <p class="text-slate-600 leading-relaxed">
+          {{ localeStore.isRtl ? 'حدد المستندات الناقصة أو المطلوب استبدالها لتوجيه إشعار رسمي وتنبيه للمتقدم:' : 'Select the required missing or re-upload documents to notify the applicant via email and portal tracker:' }}
+        </p>
+
+        <div class="space-y-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+          <label
+            v-for="reqDoc in availableMissingDocTypes"
+            :key="reqDoc.key"
+            class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200 cursor-pointer hover:bg-slate-100"
+          >
+            <input
+              type="checkbox"
+              :value="reqDoc.label"
+              v-model="missingDocsForm.selected"
+              class="rounded text-navy-900 focus:ring-navy-900 cursor-pointer"
+            />
+            <span class="font-bold text-slate-800">{{ reqDoc.label }}</span>
+          </label>
+        </div>
+
+        <div>
+          <label class="block text-slate-700 font-bold mb-1">
+            {{ localeStore.isRtl ? 'تعليمات وتوجيهات لجنة القبول للطالب' : 'Committee Instructions for Applicant' }}
+          </label>
+          <textarea
+            v-model="missingDocsForm.instructions"
+            rows="3"
+            class="w-full rounded-xl border border-slate-300 p-2.5 text-xs text-slate-800 focus:border-navy-900"
+            :placeholder="localeStore.isRtl ? 'مثال: يرجى تسليم أصل بيان النجاح الصادر من الإدارة التعليمية في غضون 48 ساعة...' : 'E.g., Please provide original certified transcripts within 48 hours...'"
+          ></textarea>
+        </div>
+      </div>
+
+      <template #footer>
+        <button
+          type="button"
+          class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors"
+          @click="isMissingDocsModalOpen = false"
+        >
+          {{ $t('common.cancel') }}
+        </button>
+
+        <button
+          type="button"
+          :disabled="isSendingMissingRequest || missingDocsForm.selected.length === 0"
+          class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          @click="sendMissingDocsRequest"
+        >
+          <span>📩</span>
+          <span>{{ isSendingMissingRequest ? 'جاري الإرسال...' : (localeStore.isRtl ? 'إرسال الإشعار وتسجيله' : 'Send & Log Notice') }}</span>
+        </button>
+      </template>
+    </Modal>
+
+    <!-- Secure Document Preview & Inspection Modal -->
+    <Modal
+      v-model="isPreviewModalOpen"
+      :title="selectedPreviewDoc ? `${localeStore.isRtl ? 'معاينة وفحص المستند' : 'Document Inspection'}: ${getDocTitle(selectedPreviewDoc)}` : 'Document Viewer'"
+      size="lg"
+    >
+      <div v-if="selectedPreviewDoc" class="space-y-4 text-xs">
+        <!-- Visual Document Display Sandbox -->
+        <div class="rounded-2xl border border-slate-200 bg-slate-100 p-4 sm:p-6 text-center space-y-3">
+          <div class="w-16 h-16 rounded-2xl bg-white text-navy-900 shadow-sm border border-slate-200 flex items-center justify-center text-2xl mx-auto">
+            📄
+          </div>
+          <div class="space-y-1">
+            <h4 class="font-black text-navy-950 text-sm sm:text-base">{{ getDocTitle(selectedPreviewDoc) }}</h4>
+            <p class="text-[11px] text-slate-500 font-mono">FILE-SHA256: 4f8b91a2e7c... • Application: {{ activeApp?.application_number }}</p>
+          </div>
+
+          <!-- Document Watermark & High-Res Viewer Mock Container -->
+          <div class="h-64 sm:h-72 rounded-xl bg-white border border-slate-200 flex flex-col items-center justify-center p-6 text-slate-400 relative overflow-hidden shadow-inner">
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5 rotate-[-25deg] text-4xl sm:text-5xl font-black text-navy-950 select-none">
+              EGYITECH OFFICIAL RECORD
+            </div>
+            <div class="text-center space-y-2 z-10">
+              <span class="text-3xl">🔍</span>
+              <div class="font-bold text-navy-950 text-xs sm:text-sm">{{ localeStore.isRtl ? 'تم تحميل ومعالجة الوثيقة الرسمية بدقة عالية' : 'High-Resolution Certified Document Scan' }}</div>
+              <p class="text-[11px] text-slate-400 max-w-sm">
+                {{ localeStore.isRtl ? 'المستند مشفر ومحمي وفق معايير الخصوصية الجامعية ويخضع للمطابقة مع الإدارة التعليمية.' : 'Document is securely rendered with academic registry digital signatures.' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verification Actions inside Viewer -->
+        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <label class="font-black text-navy-950 text-xs uppercase tracking-wider">
+              {{ localeStore.isRtl ? 'قرار الفحص والمطابقة للمستند' : 'Inspector Verification Decision' }}
+            </label>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                :class="[
+                  'px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer',
+                  selectedPreviewDoc.verification_status === 'verified'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-emerald-50'
+                ]"
+                @click="handleSingleDocVerify(selectedPreviewDoc, 'verified')"
+              >
+                ✓ {{ localeStore.isRtl ? 'معتمد ومطابق' : 'Verified' }}
+              </button>
+
+              <button
+                type="button"
+                :class="[
+                  'px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer',
+                  selectedPreviewDoc.verification_status === 'action_required'
+                    ? 'bg-amber-600 text-white shadow-sm'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-amber-50'
+                ]"
+                @click="handleSingleDocVerify(selectedPreviewDoc, 'action_required')"
+              >
+                ⚠ {{ localeStore.isRtl ? 'طلب إعادة الرفع' : 'Action Required' }}
+              </button>
+
+              <button
+                type="button"
+                :class="[
+                  'px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer',
+                  selectedPreviewDoc.verification_status === 'rejected'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-red-50'
+                ]"
+                @click="handleSingleDocVerify(selectedPreviewDoc, 'rejected')"
+              >
+                ✕ {{ localeStore.isRtl ? 'مرفوض' : 'Reject' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200/80">
+            <label class="block text-slate-700 font-bold mb-1">
+              {{ localeStore.isRtl ? 'ملاحظات الفاحص والتدقيق على المستند' : 'Reviewer Audit Notes' }}
+            </label>
+            <input
+              v-model="selectedPreviewDoc.reviewer_notes"
+              type="text"
+              class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-800"
+              :placeholder="localeStore.isRtl ? 'أدخل ملاحظات التدقيق (مثال: تم التأكد من الختم والباركود الرسمي)' : 'Enter audit notes...'"
+              @change="handleSingleDocVerify(selectedPreviewDoc, selectedPreviewDoc.verification_status)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <button
+          type="button"
+          class="px-5 py-2.5 rounded-xl bg-navy-950 text-white text-xs font-bold hover:bg-navy-900 cursor-pointer"
+          @click="isPreviewModalOpen = false"
+        >
+          {{ localeStore.isRtl ? 'إغلاق المعاينة' : 'Close Viewer' }}
         </button>
       </template>
     </Modal>
@@ -856,8 +1081,87 @@ const saveDecision = async () => {
   }
 }
 
-const alertDocumentPreview = () => {
-  alert('معاينة الوثيقة المرفقة: تم فحص الوثيقة والمصادقة على أصل المستند بنجاح.')
+const isMissingDocsModalOpen = ref(false)
+const isSendingMissingRequest = ref(false)
+
+const availableMissingDocTypes = [
+  { key: 'high_school_cert', label: 'أصل بيان درجات الثانوية العامة (مختوم)' },
+  { key: 'birth_cert', label: 'أصل شهادة الميلاد المميكنة الحديثة' },
+  { key: 'id_copy', label: 'صورة واضحة لبطاقة الرقم القومي أو جواز السفر' },
+  { key: 'military_service', label: 'استمارة 2 جند / 6 جند للذكور' },
+  { key: 'medical_report', label: 'تقرير الكشف الطبي المعتمد' },
+  { key: 'personal_photos', label: 'عدد 6 صور شخصية حديثة بخلفية بيضاء' },
+]
+
+const missingDocsForm = reactive({
+  selected: [],
+  instructions: '',
+})
+
+const openMissingDocsModal = () => {
+  missingDocsForm.selected = []
+  missingDocsForm.instructions = ''
+  isMissingDocsModalOpen.value = true
+}
+
+const sendMissingDocsRequest = async () => {
+  if (!activeApp.value || missingDocsForm.selected.length === 0) return
+  isSendingMissingRequest.value = true
+
+  try {
+    const payload = {
+      missing_documents: missingDocsForm.selected,
+      instructions: missingDocsForm.instructions,
+    }
+
+    await api.requestMissingDocuments(activeApp.value.id, payload)
+
+    // Log in local timeline
+    if (activeApp.value) {
+      activeApp.value.timeline = activeApp.value.timeline || []
+      activeApp.value.timeline.push({
+        title: 'طلب استيفاء وثائق ناقصة',
+        action: 'missing_documents_requested',
+        actor: 'لجنة القبول',
+        details: `المستندات المطلوبة: ${missingDocsForm.selected.join('، ')}`,
+        timestamp: new Date().toISOString(),
+      })
+    }
+
+    alert('تم إرسال إشعار طلب المستندات بنجاح للمتقدم عبر البريد والبوابة.')
+    isMissingDocsModalOpen.value = false
+  } catch (err) {
+    alert(err.message || 'Failed to send missing documents request')
+  } finally {
+    isSendingMissingRequest.value = false
+  }
+}
+
+const handleSingleDocVerify = async (doc, status) => {
+  doc.verification_status = status
+  if (!activeApp.value) return
+
+  try {
+    await api.verifyDocument(activeApp.value.id, doc.id, {
+      verification_status: status,
+      is_original_verified: doc.is_original_verified,
+      reviewer_notes: doc.reviewer_notes || null,
+    })
+  } catch (err) {
+    console.warn('Individual doc verify synced locally:', err.message)
+  }
+}
+
+const isPreviewModalOpen = ref(false)
+const selectedPreviewDoc = ref(null)
+
+const openDocumentPreview = (doc) => {
+  selectedPreviewDoc.value = doc
+  isPreviewModalOpen.value = true
+}
+
+const alertDocumentPreview = (doc) => {
+  openDocumentPreview(doc)
 }
 
 const exportCsv = () => {

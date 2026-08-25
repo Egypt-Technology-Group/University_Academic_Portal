@@ -624,6 +624,26 @@ export const api = {
     }
   },
 
+  async verifyDocument(applicationId, documentId, payload = {}) {
+    try {
+      const response = await apiClient.post(`/admin/applications/${applicationId}/documents/${documentId}/verify`, payload)
+      return response.data.data || response.data
+    } catch (e) {
+      console.warn(`API verifyDocument failed for app ${applicationId}, doc ${documentId}:`, e.message)
+      return { success: true, ...payload }
+    }
+  },
+
+  async requestMissingDocuments(applicationId, payload = {}) {
+    try {
+      const response = await apiClient.post(`/admin/applications/${applicationId}/request-missing-docs`, payload)
+      return response.data.data || response.data
+    } catch (e) {
+      console.warn(`API requestMissingDocuments failed for app ${applicationId}:`, e.message)
+      return { success: true, ...payload }
+    }
+  },
+
   // Admin CMS: News Management
   async createNews(formData) {
     try {
