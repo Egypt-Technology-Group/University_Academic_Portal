@@ -44,6 +44,20 @@ Route::prefix('v1')->group(function () {
             Route::delete('/events/{id}', [AdminCrudController::class, 'deleteEvent']);
             Route::post('/documents', [AdminCrudController::class, 'storeDocument']);
             Route::match(['put', 'patch'], '/documents/{id}', [AdminCrudController::class, 'updateDocument']);
+
+            // Academic Structure CRUD Management (Colleges, Departments, Programs)
+            Route::post('/colleges', [AdminCrudController::class, 'storeCollege']);
+            Route::match(['put', 'patch'], '/colleges/{id}', [AdminCrudController::class, 'updateCollege']);
+            Route::delete('/colleges/{id}', [AdminCrudController::class, 'deleteCollege']);
+
+            Route::post('/departments', [AdminCrudController::class, 'storeDepartment']);
+            Route::match(['put', 'patch'], '/departments/{id}', [AdminCrudController::class, 'updateDepartment']);
+            Route::delete('/departments/{id}', [AdminCrudController::class, 'deleteDepartment']);
+
+            Route::post('/programs', [AdminCrudController::class, 'storeProgram']);
+            Route::match(['put', 'patch'], '/programs/{id}', [AdminCrudController::class, 'updateProgram']);
+            Route::delete('/programs/{id}', [AdminCrudController::class, 'deleteProgram']);
+
             // Academic & Student Services Management (Admin)
             Route::get('/student-requests', [AcademicServicesController::class, 'indexRequests']);
             Route::patch('/student-requests/{id}/status', [AcademicServicesController::class, 'updateRequestStatus']);

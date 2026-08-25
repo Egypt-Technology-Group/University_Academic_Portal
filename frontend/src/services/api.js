@@ -1162,6 +1162,146 @@ export const api = {
         created_at: new Date().toISOString()
       }
     }
+  },
+
+  // ----------------------------------------------------
+  // Academic Structure Admin CRUD Methods
+  // ----------------------------------------------------
+  async createCollege(data) {
+    try {
+      const response = await apiClient.post('/admin/colleges', data)
+      return response.data.data || response.data
+    } catch (e) {
+      const newCol = {
+        id: Date.now(),
+        name: { ar: data.name_ar, en: data.name_en },
+        slug: (data.name_en || 'college').toLowerCase().replace(/\s+/g, '-') + '-' + Math.floor(Math.random() * 100),
+        dean_name: { ar: data.dean_name_ar || '', en: data.dean_name_en || '' },
+        about: { ar: data.about_ar || '', en: data.about_en || '' },
+        vision: { ar: data.vision_ar || '', en: data.vision_en || '' },
+        mission: { ar: data.mission_ar || '', en: data.mission_en || '' },
+        banner_image: data.banner_image || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+        is_active: data.is_active ?? true,
+        sort_order: data.sort_order || 0,
+        departments_count: 0,
+        programs_count: 0
+      }
+      mockColleges.unshift(newCol)
+      return newCol
+    }
+  },
+
+  async updateCollege(id, data) {
+    try {
+      const response = await apiClient.patch(`/admin/colleges/${id}`, data)
+      return response.data.data || response.data
+    } catch (e) {
+      const idx = mockColleges.findIndex((c) => c.id === id)
+      if (idx !== -1) {
+        if (data.name_ar) mockColleges[idx].name.ar = data.name_ar
+        if (data.name_en) mockColleges[idx].name.en = data.name_en
+        if (data.dean_name_ar) mockColleges[idx].dean_name.ar = data.dean_name_ar
+        if (data.dean_name_en) mockColleges[idx].dean_name.en = data.dean_name_en
+        return mockColleges[idx]
+      }
+      return { success: true, id, ...data }
+    }
+  },
+
+  async deleteCollege(id) {
+    try {
+      const response = await apiClient.delete(`/admin/colleges/${id}`)
+      return response.data
+    } catch (e) {
+      const idx = mockColleges.findIndex((c) => c.id === id)
+      if (idx !== -1) mockColleges.splice(idx, 1)
+      return { success: true }
+    }
+  },
+
+  async createDepartment(data) {
+    try {
+      const response = await apiClient.post('/admin/departments', data)
+      return response.data.data || response.data
+    } catch (e) {
+      return {
+        id: Date.now(),
+        college_id: data.college_id,
+        name: { ar: data.name_ar, en: data.name_en },
+        head_name: { ar: data.head_name_ar || '', en: data.head_name_en || '' },
+        description: { ar: data.description_ar || '', en: data.description_en || '' },
+        sort_order: data.sort_order || 0
+      }
+    }
+  },
+
+  async updateDepartment(id, data) {
+    try {
+      const response = await apiClient.patch(`/admin/departments/${id}`, data)
+      return response.data.data || response.data
+    } catch (e) {
+      return { success: true, id, ...data }
+    }
+  },
+
+  async deleteDepartment(id) {
+    try {
+      const response = await apiClient.delete(`/admin/departments/${id}`)
+      return response.data
+    } catch (e) {
+      return { success: true }
+    }
+  },
+
+  async createProgram(data) {
+    try {
+      const response = await apiClient.post('/admin/programs', data)
+      return response.data.data || response.data
+    } catch (e) {
+      const newProg = {
+        id: Date.now(),
+        department_id: data.department_id,
+        name: { ar: data.name_ar, en: data.name_en },
+        slug: (data.name_en || 'program').toLowerCase().replace(/\s+/g, '-') + '-' + Math.floor(Math.random() * 100),
+        degree_level: data.degree_level || 'bachelor',
+        duration_years: data.duration_years || 4,
+        credit_hours: data.credit_hours || 136,
+        tuition_fees: { ar: data.tuition_fees_ar || '55,000 ج.م', en: data.tuition_fees_en || '55,000 EGP' },
+        admission_requirements: { ar: [data.admission_requirements_ar || 'الثانوية العامة'], en: [data.admission_requirements_en || 'High School'] },
+        is_active: data.is_active ?? true
+      }
+      mockPrograms.unshift(newProg)
+      return newProg
+    }
+  },
+
+  async updateProgram(id, data) {
+    try {
+      const response = await apiClient.patch(`/admin/programs/${id}`, data)
+      return response.data.data || response.data
+    } catch (e) {
+      const idx = mockPrograms.findIndex((p) => p.id === id)
+      if (idx !== -1) {
+        if (data.name_ar) mockPrograms[idx].name.ar = data.name_ar
+        if (data.name_en) mockPrograms[idx].name.en = data.name_en
+        if (data.degree_level) mockPrograms[idx].degree_level = data.degree_level
+        if (data.duration_years) mockPrograms[idx].duration_years = data.duration_years
+        if (data.credit_hours) mockPrograms[idx].credit_hours = data.credit_hours
+        return mockPrograms[idx]
+      }
+      return { success: true, id, ...data }
+    }
+  },
+
+  async deleteProgram(id) {
+    try {
+      const response = await apiClient.delete(`/admin/programs/${id}`)
+      return response.data
+    } catch (e) {
+      const idx = mockPrograms.findIndex((p) => p.id === id)
+      if (idx !== -1) mockPrograms.splice(idx, 1)
+      return { success: true }
+    }
   }
 }
 

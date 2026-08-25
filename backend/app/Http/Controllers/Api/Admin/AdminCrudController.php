@@ -299,4 +299,294 @@ class AdminCrudController extends Controller
             'message' => 'Document permanently deleted.',
         ]);
     }
+
+    // ----------------------------------------------------
+    // Colleges & Institutes CRUD Management
+    // ----------------------------------------------------
+    public function storeCollege(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'dean_name_ar' => 'nullable|string|max:255',
+            'dean_name_en' => 'nullable|string|max:255',
+            'about_ar' => 'nullable|string',
+            'about_en' => 'nullable|string',
+            'vision_ar' => 'nullable|string',
+            'vision_en' => 'nullable|string',
+            'mission_ar' => 'nullable|string',
+            'mission_en' => 'nullable|string',
+            'banner_image' => 'nullable|string',
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
+        ]);
+
+        $slug = Str::slug($validated['name_en']).'-'.rand(10, 99);
+
+        $college = College::create([
+            'name' => ['ar' => $validated['name_ar'], 'en' => $validated['name_en']],
+            'slug' => $slug,
+            'dean_name' => ['ar' => $validated['dean_name_ar'] ?? '', 'en' => $validated['dean_name_en'] ?? ''],
+            'about' => ['ar' => $validated['about_ar'] ?? '', 'en' => $validated['about_en'] ?? ''],
+            'vision' => ['ar' => $validated['vision_ar'] ?? '', 'en' => $validated['vision_en'] ?? ''],
+            'mission' => ['ar' => $validated['mission_ar'] ?? '', 'en' => $validated['mission_en'] ?? ''],
+            'banner_image' => $validated['banner_image'] ?? 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1200&q=80',
+            'is_active' => $validated['is_active'] ?? true,
+            'sort_order' => $validated['sort_order'] ?? 0,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'College/Institute created successfully.',
+            'data' => new CollegeResource($college),
+        ], 201);
+    }
+
+    public function updateCollege(Request $request, int $id): JsonResponse
+    {
+        $college = College::findOrFail($id);
+
+        $validated = $request->validate([
+            'name_ar' => 'sometimes|required|string|max:255',
+            'name_en' => 'sometimes|required|string|max:255',
+            'dean_name_ar' => 'nullable|string|max:255',
+            'dean_name_en' => 'nullable|string|max:255',
+            'about_ar' => 'nullable|string',
+            'about_en' => 'nullable|string',
+            'vision_ar' => 'nullable|string',
+            'vision_en' => 'nullable|string',
+            'mission_ar' => 'nullable|string',
+            'mission_en' => 'nullable|string',
+            'banner_image' => 'nullable|string',
+            'is_active' => 'boolean',
+            'sort_order' => 'integer',
+        ]);
+
+        if (isset($validated['name_ar'])) $college->setTranslation('name', 'ar', $validated['name_ar']);
+        if (isset($validated['name_en'])) $college->setTranslation('name', 'en', $validated['name_en']);
+        if (isset($validated['dean_name_ar'])) $college->setTranslation('dean_name', 'ar', $validated['dean_name_ar']);
+        if (isset($validated['dean_name_en'])) $college->setTranslation('dean_name', 'en', $validated['dean_name_en']);
+        if (isset($validated['about_ar'])) $college->setTranslation('about', 'ar', $validated['about_ar']);
+        if (isset($validated['about_en'])) $college->setTranslation('about', 'en', $validated['about_en']);
+        if (isset($validated['vision_ar'])) $college->setTranslation('vision', 'ar', $validated['vision_ar']);
+        if (isset($validated['vision_en'])) $college->setTranslation('vision', 'en', $validated['vision_en']);
+        if (isset($validated['mission_ar'])) $college->setTranslation('mission', 'ar', $validated['mission_ar']);
+        if (isset($validated['mission_en'])) $college->setTranslation('mission', 'en', $validated['mission_en']);
+        if (isset($validated['banner_image'])) $college->banner_image = $validated['banner_image'];
+        if (isset($validated['is_active'])) $college->is_active = (bool) $validated['is_active'];
+        if (isset($validated['sort_order'])) $college->sort_order = (int) $validated['sort_order'];
+
+        $college->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'College updated successfully.',
+            'data' => new CollegeResource($college),
+        ]);
+    }
+
+    public function deleteCollege(int $id): JsonResponse
+    {
+        $college = College::findOrFail($id);
+        $college->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'College deleted successfully.',
+        ]);
+    }
+
+    // ----------------------------------------------------
+    // Departments CRUD Management
+    // ----------------------------------------------------
+    public function storeDepartment(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'college_id' => 'required|exists:colleges,id',
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'head_name_ar' => 'nullable|string|max:255',
+            'head_name_en' => 'nullable|string|max:255',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
+            'sort_order' => 'integer',
+        ]);
+
+        $slug = Str::slug($validated['name_en']).'-'.rand(10, 99);
+
+        $dept = Department::create([
+            'college_id' => $validated['college_id'],
+            'name' => ['ar' => $validated['name_ar'], 'en' => $validated['name_en']],
+            'slug' => $slug,
+            'head_name' => ['ar' => $validated['head_name_ar'] ?? '', 'en' => $validated['head_name_en'] ?? ''],
+            'description' => ['ar' => $validated['description_ar'] ?? '', 'en' => $validated['description_en'] ?? ''],
+            'sort_order' => $validated['sort_order'] ?? 0,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Department created successfully.',
+            'data' => $dept,
+        ], 201);
+    }
+
+    public function updateDepartment(Request $request, int $id): JsonResponse
+    {
+        $dept = Department::findOrFail($id);
+
+        $validated = $request->validate([
+            'college_id' => 'sometimes|exists:colleges,id',
+            'name_ar' => 'sometimes|required|string|max:255',
+            'name_en' => 'sometimes|required|string|max:255',
+            'head_name_ar' => 'nullable|string|max:255',
+            'head_name_en' => 'nullable|string|max:255',
+            'description_ar' => 'nullable|string',
+            'description_en' => 'nullable|string',
+            'sort_order' => 'integer',
+        ]);
+
+        if (isset($validated['college_id'])) $dept->college_id = $validated['college_id'];
+        if (isset($validated['name_ar'])) $dept->setTranslation('name', 'ar', $validated['name_ar']);
+        if (isset($validated['name_en'])) $dept->setTranslation('name', 'en', $validated['name_en']);
+        if (isset($validated['head_name_ar'])) $dept->setTranslation('head_name', 'ar', $validated['head_name_ar']);
+        if (isset($validated['head_name_en'])) $dept->setTranslation('head_name', 'en', $validated['head_name_en']);
+        if (isset($validated['description_ar'])) $dept->setTranslation('description', 'ar', $validated['description_ar']);
+        if (isset($validated['description_en'])) $dept->setTranslation('description', 'en', $validated['description_en']);
+        if (isset($validated['sort_order'])) $dept->sort_order = (int) $validated['sort_order'];
+
+        $dept->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Department updated successfully.',
+            'data' => $dept,
+        ]);
+    }
+
+    public function deleteDepartment(int $id): JsonResponse
+    {
+        $dept = Department::findOrFail($id);
+        $dept->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Department deleted successfully.',
+        ]);
+    }
+
+    // ----------------------------------------------------
+    // Degree Programs & Curriculum CRUD Management
+    // ----------------------------------------------------
+    public function storeProgram(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'department_id' => 'required|exists:departments,id',
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'degree_level' => 'required|in:bachelor,master,doctorate,diploma',
+            'duration_years' => 'required|integer|min:1|max:8',
+            'credit_hours' => 'required|integer|min:10|max:300',
+            'curriculum_ar' => 'nullable',
+            'curriculum_en' => 'nullable',
+            'career_opportunities_ar' => 'nullable',
+            'career_opportunities_en' => 'nullable',
+            'tuition_fees_ar' => 'nullable',
+            'tuition_fees_en' => 'nullable',
+            'admission_requirements_ar' => 'nullable',
+            'admission_requirements_en' => 'nullable',
+            'is_active' => 'boolean',
+        ]);
+
+        $slug = Str::slug($validated['name_en']).'-'.rand(10, 99);
+
+        $program = Program::create([
+            'department_id' => $validated['department_id'],
+            'name' => ['ar' => $validated['name_ar'], 'en' => $validated['name_en']],
+            'slug' => $slug,
+            'degree_level' => $validated['degree_level'],
+            'duration_years' => $validated['duration_years'],
+            'credit_hours' => $validated['credit_hours'],
+            'curriculum' => [
+                'ar' => $validated['curriculum_ar'] ?? [],
+                'en' => $validated['curriculum_en'] ?? [],
+            ],
+            'career_opportunities' => [
+                'ar' => $validated['career_opportunities_ar'] ?? [],
+                'en' => $validated['career_opportunities_en'] ?? [],
+            ],
+            'tuition_fees' => [
+                'ar' => $validated['tuition_fees_ar'] ?? '55,000 جنيه مصري / العام الدراسي',
+                'en' => $validated['tuition_fees_en'] ?? '55,000 EGP / Academic Year',
+            ],
+            'admission_requirements' => [
+                'ar' => $validated['admission_requirements_ar'] ?? ['شهادة الثانوية العامة أو ما يعادلها'],
+                'en' => $validated['admission_requirements_en'] ?? ['High school certificate or equivalent'],
+            ],
+            'is_active' => $validated['is_active'] ?? true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Academic program created successfully.',
+            'data' => new ProgramResource($program),
+        ], 201);
+    }
+
+    public function updateProgram(Request $request, int $id): JsonResponse
+    {
+        $program = Program::findOrFail($id);
+
+        $validated = $request->validate([
+            'department_id' => 'sometimes|exists:departments,id',
+            'name_ar' => 'sometimes|required|string|max:255',
+            'name_en' => 'sometimes|required|string|max:255',
+            'degree_level' => 'sometimes|in:bachelor,master,doctorate,diploma',
+            'duration_years' => 'sometimes|integer|min:1|max:8',
+            'credit_hours' => 'sometimes|integer|min:10|max:300',
+            'curriculum_ar' => 'nullable',
+            'curriculum_en' => 'nullable',
+            'career_opportunities_ar' => 'nullable',
+            'career_opportunities_en' => 'nullable',
+            'tuition_fees_ar' => 'nullable',
+            'tuition_fees_en' => 'nullable',
+            'admission_requirements_ar' => 'nullable',
+            'admission_requirements_en' => 'nullable',
+            'is_active' => 'boolean',
+        ]);
+
+        if (isset($validated['department_id'])) $program->department_id = $validated['department_id'];
+        if (isset($validated['name_ar'])) $program->setTranslation('name', 'ar', $validated['name_ar']);
+        if (isset($validated['name_en'])) $program->setTranslation('name', 'en', $validated['name_en']);
+        if (isset($validated['degree_level'])) $program->degree_level = $validated['degree_level'];
+        if (isset($validated['duration_years'])) $program->duration_years = (int) $validated['duration_years'];
+        if (isset($validated['credit_hours'])) $program->credit_hours = (int) $validated['credit_hours'];
+        if (isset($validated['curriculum_ar'])) $program->setTranslation('curriculum', 'ar', $validated['curriculum_ar']);
+        if (isset($validated['curriculum_en'])) $program->setTranslation('curriculum', 'en', $validated['curriculum_en']);
+        if (isset($validated['career_opportunities_ar'])) $program->setTranslation('career_opportunities', 'ar', $validated['career_opportunities_ar']);
+        if (isset($validated['career_opportunities_en'])) $program->setTranslation('career_opportunities', 'en', $validated['career_opportunities_en']);
+        if (isset($validated['tuition_fees_ar'])) $program->setTranslation('tuition_fees', 'ar', $validated['tuition_fees_ar']);
+        if (isset($validated['tuition_fees_en'])) $program->setTranslation('tuition_fees', 'en', $validated['tuition_fees_en']);
+        if (isset($validated['admission_requirements_ar'])) $program->setTranslation('admission_requirements', 'ar', $validated['admission_requirements_ar']);
+        if (isset($validated['admission_requirements_en'])) $program->setTranslation('admission_requirements', 'en', $validated['admission_requirements_en']);
+        if (isset($validated['is_active'])) $program->is_active = (bool) $validated['is_active'];
+
+        $program->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Academic program updated successfully.',
+            'data' => new ProgramResource($program),
+        ]);
+    }
+
+    public function deleteProgram(int $id): JsonResponse
+    {
+        $program = Program::findOrFail($id);
+        $program->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Academic program deleted successfully.',
+        ]);
+    }
 }

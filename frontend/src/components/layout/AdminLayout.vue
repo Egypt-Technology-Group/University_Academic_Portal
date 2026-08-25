@@ -283,6 +283,7 @@ import {
   LayoutDashboard,
   UserCheck,
   GraduationCap,
+  School,
   Newspaper,
   Calendar,
   FolderArchive,
@@ -358,6 +359,11 @@ const navigationMenu = computed(() => [
         icon: UserCheck,
         badge: '14',
         badgeVariant: 'warning',
+      },
+      {
+        path: '/admin/academic-structure',
+        label: localeStore.isRtl ? 'الهيكل الأكاديمي والكليات والبرامج' : 'Academic Colleges & Programs',
+        icon: School,
       },
       {
         path: '/admin/academic-services',

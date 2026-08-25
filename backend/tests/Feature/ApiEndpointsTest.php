@@ -825,5 +825,71 @@ class ApiEndpointsTest extends TestCase
                 'data',
             ]);
     }
+
+    public function test_admin_academic_structure_crud(): void
+    {
+        $loginResponse = $this->postJson('/api/v1/auth/login', [
+            'email' => 'admin@university.edu.eg',
+            'password' => 'admin123',
+        ]);
+        $token = $loginResponse->json('token');
+
+        // 1. Create College
+        $colResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/v1/admin/colleges', [
+                'name_ar' => 'كلية الذكاء الاصطناعي التطبيقي',
+                'name_en' => 'Faculty of Applied AI',
+                'dean_name_ar' => 'أ.د. محمد حسن',
+                'dean_name_en' => 'Prof. Dr. Mohamed Hassan',
+                'about_ar' => 'كلية رائدة في تدريس النظم الذكية والروبوتات.',
+                'about_en' => 'Leading faculty in intelligent systems and robotics.',
+                'is_active' => true,
+                'sort_order' => 1,
+            ]);
+        $colResponse->assertStatus(201);
+        $collegeId = $colResponse->json('data.id');
+
+        // 2. Create Department
+        $deptResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/v1/admin/departments', [
+                'college_id' => $collegeId,
+                'name_ar' => 'قسم الروبوتات والأنظمة الذكية',
+                'name_en' => 'Department of Robotics & Intelligent Systems',
+                'head_name_ar' => 'د. حسام عادل',
+                'head_name_en' => 'Dr. Hossam Adel',
+                'sort_order' => 1,
+            ]);
+        $deptResponse->assertStatus(201);
+        $deptId = $deptResponse->json('data.id');
+
+        // 3. Create Program
+        $progResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/v1/admin/programs', [
+                'department_id' => $deptId,
+                'name_ar' => 'بكالوريوس هندسة الروبوتات الذكية',
+                'name_en' => 'B.Sc. in Intelligent Robotics Engineering',
+                'degree_level' => 'bachelor',
+                'duration_years' => 4,
+                'credit_hours' => 140,
+                'tuition_fees_ar' => '65,000 ج.م / العام',
+                'tuition_fees_en' => '65,000 EGP / Year',
+                'is_active' => true,
+            ]);
+        $progResponse->assertStatus(201);
+        $progId = $progResponse->json('data.id');
+
+        // 4. Update Program
+        $updateProg = $this->withHeader('Authorization', "Bearer {$token}")
+            ->patchJson("/api/v1/admin/programs/{$progId}", [
+                'name_ar' => 'بكالوريوس هندسة الروبوتات الذكية المتقدمة',
+                'credit_hours' => 144,
+            ]);
+        $updateProg->assertStatus(200);
+
+        // 5. Delete Program, Dept, College
+        $this->withHeader('Authorization', "Bearer {$token}")->deleteJson("/api/v1/admin/programs/{$progId}")->assertStatus(200);
+        $this->withHeader('Authorization', "Bearer {$token}")->deleteJson("/api/v1/admin/departments/{$deptId}")->assertStatus(200);
+        $this->withHeader('Authorization', "Bearer {$token}")->deleteJson("/api/v1/admin/colleges/{$collegeId}")->assertStatus(200);
+    }
 }
 
