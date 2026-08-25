@@ -403,11 +403,74 @@
           </div>
         </div>
 
+        <!-- Interactive Device File Picker Dropzone -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700">
+            {{ localeStore.isRtl ? 'الملف الرقمي (اختر أو اسحب ملف من جهازك)' : 'Digital File (Upload directly from device)' }} *
+          </label>
+          <div
+            class="border-2 border-dashed rounded-2xl p-4 text-center transition-all cursor-pointer relative"
+            :class="[
+              selectedLocalFile ? 'border-emerald-500 bg-emerald-50/40' : 'border-slate-300 bg-slate-50 hover:bg-slate-100/80 hover:border-navy-900'
+            ]"
+            @dragover.prevent
+            @drop.prevent="handleFileDrop"
+            @click="$refs.deviceFileInput.click()"
+          >
+            <input
+              ref="deviceFileInput"
+              type="file"
+              class="hidden"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.jpg,.jpeg,.png"
+              @change="handleDeviceFileSelect"
+            />
+            <div v-if="selectedLocalFile" class="flex items-center justify-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                📄
+              </div>
+              <div class="text-start">
+                <div class="font-bold text-navy-950 text-xs truncate max-w-xs">{{ selectedLocalFile.name }}</div>
+                <div class="text-[10px] text-emerald-700 font-mono">
+                  {{ (selectedLocalFile.size / (1024 * 1024)).toFixed(2) }} MB • {{ selectedLocalFile.type || 'Document' }}
+                </div>
+              </div>
+              <button
+                type="button"
+                class="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-white"
+                @click.stop="clearSelectedLocalFile"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+            <div v-else class="space-y-1 text-slate-500 py-2">
+              <Upload class="w-7 h-7 mx-auto text-slate-400 mb-1" />
+              <div class="font-bold text-navy-950 text-xs">
+                {{ localeStore.isRtl ? 'انقر لاختيار ملف من جهازك أو اسحبه هنا' : 'Click to browse device or drop file here' }}
+              </div>
+              <p class="text-[10px] text-slate-400">PDF, Word, Excel, PowerPoint, ZIP (Max 50MB)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload Progress Indicator (If uploading) -->
+        <div v-if="isUploadingFile" class="space-y-1.5 p-3 rounded-xl bg-navy-50 border border-navy-100">
+          <div class="flex items-center justify-between text-[11px] font-bold text-navy-950">
+            <span>{{ localeStore.isRtl ? 'جاري رفع الملف إلى الخادم الأكاديمي المشفر...' : 'Uploading secure asset to server...' }}</span>
+            <span class="font-mono">{{ uploadProgress }}%</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+            <div
+              class="h-full bg-gold-500 transition-all duration-200"
+              :style="{ width: uploadProgress + '%' }"
+            ></div>
+          </div>
+        </div>
+
         <!-- File Path & Featured Flag -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
           <div class="flex-1 w-full">
             <label class="block text-[11px] font-bold text-slate-700 mb-1">
-              {{ localeStore.isRtl ? 'مسار أو رابط المستند الرقمي' : 'File Asset URL / Path' }}
+              {{ localeStore.isRtl ? 'مسار أو رابط المستند الرقمي (تلقائي)' : 'File Asset URL / Path (Auto-filled)' }}
             </label>
             <input
               v-model="form.file_path"
@@ -544,8 +607,51 @@ const loadDocs = async () => {
   }
 }
 
+const selectedLocalFile = ref(null)
+const isUploadingFile = ref(false)
+const uploadProgress = ref(0)
+const deviceFileInput = ref(null)
+
+const handleDeviceFileSelect = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    processLocalFile(file)
+  }
+}
+
+const handleFileDrop = (e) => {
+  const file = e.dataTransfer.files[0]
+  if (file) {
+    processLocalFile(file)
+  }
+}
+
+const processLocalFile = (file) => {
+  if (file.size > 50 * 1024 * 1024) {
+    alert('حجم الملف يتجاوز الحد المسموح (50 ميجابايت).')
+    return
+  }
+  selectedLocalFile.value = file
+  form.file_path = `/storage/documents_repo/${file.name}`
+  const bytes = file.size
+  form.file_size = bytes >= 1048576 
+    ? (bytes / 1048576).toFixed(1) + ' MB' 
+    : (bytes / 1024).toFixed(0) + ' KB'
+  
+  // Auto-fill titles if empty
+  const rawName = file.name.replace(/\.[^/.]+$/, "")
+  if (!form.title_ar) form.title_ar = rawName
+  if (!form.title_en) form.title_en = rawName
+}
+
+const clearSelectedLocalFile = () => {
+  selectedLocalFile.value = null
+  if (deviceFileInput.value) deviceFileInput.value.value = ''
+}
+
 const openNewDocModal = () => {
   editingDocId.value = null
+  clearSelectedLocalFile()
   form.title_ar = ''
   form.title_en = ''
   form.description_ar = ''
@@ -558,11 +664,14 @@ const openNewDocModal = () => {
   form.file_path = '/downloads/academic_bylaws.pdf'
   form.is_featured = false
   form.effective_date = new Date().toISOString().substring(0, 10)
+  uploadProgress.value = 0
+  isUploadingFile.value = false
   isModalOpen.value = true
 }
 
 const openEditDocModal = (doc) => {
   editingDocId.value = doc.id
+  clearSelectedLocalFile()
   form.title_ar = typeof doc.title === 'object' ? doc.title.ar : doc.title
   form.title_en = typeof doc.title === 'object' ? doc.title.en : doc.title
   form.description_ar = typeof doc.description === 'object' ? doc.description?.ar : (doc.description || '')
@@ -575,6 +684,8 @@ const openEditDocModal = (doc) => {
   form.file_path = doc.file_path || '/downloads/doc.pdf'
   form.is_featured = Boolean(doc.is_featured)
   form.effective_date = doc.effective_date ? doc.effective_date.substring(0, 10) : new Date().toISOString().substring(0, 10)
+  uploadProgress.value = 0
+  isUploadingFile.value = false
   isModalOpen.value = true
 }
 
@@ -584,20 +695,49 @@ const submitForm = async () => {
     return
   }
 
+  isUploadingFile.value = true
+  uploadProgress.value = 10
+
   try {
+    const formData = new FormData()
+    formData.append('title_ar', form.title_ar)
+    formData.append('title_en', form.title_en)
+    if (form.description_ar) formData.append('description_ar', form.description_ar)
+    if (form.description_en) formData.append('description_en', form.description_en)
+    formData.append('category', form.category)
+    formData.append('version', form.version)
+    formData.append('status', form.status)
+    formData.append('target_audience', form.target_audience)
+    formData.append('is_featured', form.is_featured ? 1 : 0)
+    formData.append('effective_date', form.effective_date)
+    if (form.file_path) formData.append('file_path', form.file_path)
+    if (form.file_size) formData.append('file_size', form.file_size)
+
+    if (selectedLocalFile.value) {
+      formData.append('file', selectedLocalFile.value)
+    }
+
     if (editingDocId.value) {
-      const updated = await api.updateDocument(editingDocId.value, { ...form })
+      const updated = await api.updateDocument(editingDocId.value, formData, (percent) => {
+        uploadProgress.value = percent
+      })
       const idx = documentsList.value.findIndex((d) => d.id === editingDocId.value)
       if (idx !== -1) {
         documentsList.value[idx] = { ...documentsList.value[idx], ...updated }
       }
     } else {
-      const created = await api.createDocument({ ...form })
+      const created = await api.createDocument(formData, (percent) => {
+        uploadProgress.value = percent
+      })
       documentsList.value.unshift(created)
     }
     isModalOpen.value = false
+    clearSelectedLocalFile()
   } catch (err) {
     alert('Failed to save document')
+  } finally {
+    isUploadingFile.value = false
+    uploadProgress.value = 0
   }
 }
 

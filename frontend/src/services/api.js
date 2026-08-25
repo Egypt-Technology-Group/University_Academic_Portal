@@ -789,33 +789,53 @@ export const api = {
   },
 
   // Admin Documents Repository Management
-  async createDocument(formData) {
+  async createDocument(formData, onProgress = null) {
     try {
-      const response = await apiClient.post('/admin/documents', formData)
+      const isMultipart = formData instanceof FormData
+      const headers = isMultipart ? { 'Content-Type': 'multipart/form-data' } : {}
+      const config = {
+        headers,
+        onUploadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            onProgress(percent)
+          }
+        }
+      }
+      const response = await apiClient.post('/admin/documents', formData, config)
       return response.data.data || response.data
     } catch (e) {
       console.warn('API /admin/documents failed, adding to mockDocuments:', e.message)
+      const isFormData = formData instanceof FormData
+      const titleAr = isFormData ? formData.get('title_ar') : formData.title_ar
+      const titleEn = isFormData ? formData.get('title_en') : formData.title_en
+      const category = isFormData ? formData.get('category') : formData.category
+      const version = isFormData ? formData.get('version') : formData.version
+      const descAr = isFormData ? formData.get('description_ar') : formData.description_ar
+      const descEn = isFormData ? formData.get('description_en') : formData.description_en
+      const fileObj = isFormData ? formData.get('file') : null
+      
       const newDoc = {
         id: Date.now(),
         title: {
-          ar: formData.title_ar || formData.title?.ar || formData.title || 'وثيقة ولائحة جديدة',
-          en: formData.title_en || formData.title?.en || 'New Document & Regulation'
+          ar: titleAr || 'وثيقة ولائحة جديدة',
+          en: titleEn || 'New Document & Regulation'
         },
         description: {
-          ar: formData.description_ar || formData.description?.ar || formData.description || 'ملف ولائحة أكاديمية معتمدة من المجلس الأعلى للجامعات.',
-          en: formData.description_en || formData.description?.en || 'Approved academic document.'
+          ar: descAr || 'ملف ولائحة أكاديمية معتمدة من المجلس الأعلى للجامعات.',
+          en: descEn || 'Approved academic document.'
         },
-        category: formData.category || 'regulations',
-        version: formData.version || '1.0',
-        status: formData.status || 'published',
-        target_audience: formData.target_audience || 'all',
-        is_featured: Boolean(formData.is_featured),
+        category: category || 'bylaws',
+        version: version || '1.0',
+        status: 'published',
+        target_audience: 'all',
+        is_featured: false,
         is_archived: false,
-        file_path: formData.file_path || '/documents/sample_document.pdf',
-        file_type: formData.file_type || 'PDF',
-        file_size_mb: Number(formData.file_size_mb) || 2.4,
+        file_path: fileObj?.name ? `/storage/documents_repo/${fileObj.name}` : '/downloads/sample_document.pdf',
+        file_type: fileObj?.name ? fileObj.name.split('.').pop().toUpperCase() : 'PDF',
+        file_size: fileObj?.size ? (fileObj.size / (1024 * 1024)).toFixed(1) + ' MB' : '2.4 MB',
         download_count: 0,
-        effective_date: formData.effective_date || new Date().toISOString(),
+        effective_date: new Date().toISOString(),
         created_at: new Date().toISOString()
       }
       mockDocuments.unshift(newDoc)
@@ -823,9 +843,20 @@ export const api = {
     }
   },
 
-  async updateDocument(id, formData) {
+  async updateDocument(id, formData, onProgress = null) {
     try {
-      const response = await apiClient.match ? await apiClient.put(`/admin/documents/${id}`, formData) : await apiClient.post(`/admin/documents/${id}`, formData)
+      const isMultipart = formData instanceof FormData
+      const headers = isMultipart ? { 'Content-Type': 'multipart/form-data' } : {}
+      const config = {
+        headers,
+        onUploadProgress: (progressEvent) => {
+          if (onProgress && progressEvent.total) {
+            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+            onProgress(percent)
+          }
+        }
+      }
+      const response = await apiClient.post(`/admin/documents/${id}`, formData, config)
       return response.data.data || response.data
     } catch (e) {
       console.warn(`API /admin/documents/${id} update failed, updating local mock:`, e.message)
