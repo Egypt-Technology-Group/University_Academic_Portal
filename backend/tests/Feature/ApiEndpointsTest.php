@@ -886,7 +886,32 @@ class ApiEndpointsTest extends TestCase
             ]);
         $updateProg->assertStatus(200);
 
-        // 5. Delete Program, Dept, College
+        // 5. Create Faculty Profile
+        $facResponse = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/v1/admin/faculty', [
+                'department_id' => $deptId,
+                'name_ar' => 'أ.د. يحيى زكريا',
+                'name_en' => 'Prof. Dr. Yehia Zakaria',
+                'academic_title_ar' => 'أستاذ الذكاء الاصطناعي',
+                'academic_title_en' => 'Professor of Artificial Intelligence',
+                'bio_ar' => 'رائد في أبحاث الروبوتات الطبية.',
+                'bio_en' => 'Pioneer in medical robotics research.',
+                'email' => 'y.zakaria@university.edu.eg',
+                'is_featured' => true,
+            ]);
+        $facResponse->assertStatus(201);
+        $facId = $facResponse->json('data.id');
+
+        // 6. Update Faculty Profile
+        $updateFac = $this->withHeader('Authorization', "Bearer {$token}")
+            ->patchJson("/api/v1/admin/faculty/{$facId}", [
+                'academic_title_ar' => 'أستاذ ورئيس قسم الذكاء الاصطناعي',
+                'phone' => '+201099887766',
+            ]);
+        $updateFac->assertStatus(200);
+
+        // 7. Delete Faculty, Program, Dept, College
+        $this->withHeader('Authorization', "Bearer {$token}")->deleteJson("/api/v1/admin/faculty/{$facId}")->assertStatus(200);
         $this->withHeader('Authorization', "Bearer {$token}")->deleteJson("/api/v1/admin/programs/{$progId}")->assertStatus(200);
         $this->withHeader('Authorization', "Bearer {$token}")->deleteJson("/api/v1/admin/departments/{$deptId}")->assertStatus(200);
         $this->withHeader('Authorization', "Bearer {$token}")->deleteJson("/api/v1/admin/colleges/{$collegeId}")->assertStatus(200);

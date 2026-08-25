@@ -1302,6 +1302,64 @@ export const api = {
       if (idx !== -1) mockPrograms.splice(idx, 1)
       return { success: true }
     }
+  },
+
+  // ----------------------------------------------------
+  // Faculty & Researchers Admin CRUD Methods
+  // ----------------------------------------------------
+  async createFaculty(data) {
+    try {
+      const response = await apiClient.post('/admin/faculty', data)
+      return response.data.data || response.data
+    } catch (e) {
+      const newFac = {
+        id: Date.now(),
+        name: data.name_en || data.name_ar,
+        academic_title: { ar: data.academic_title_ar, en: data.academic_title_en },
+        bio: { ar: data.bio_ar || '', en: data.bio_en || '' },
+        research_interests: { ar: data.research_interests_ar || '', en: data.research_interests_en || '' },
+        email: data.email,
+        phone: data.phone || '',
+        office_location: { ar: data.office_location_ar || '', en: data.office_location_en || '' },
+        avatar: data.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+        cv_path: data.cv_path || null,
+        google_scholar_url: data.google_scholar_url || '',
+        orcid_id: data.orcid_id || '',
+        is_featured: data.is_featured ?? false,
+        rank: data.academic_title_en || 'Professor'
+      }
+      mockFaculty.unshift(newFac)
+      return newFac
+    }
+  },
+
+  async updateFaculty(id, data) {
+    try {
+      const response = await apiClient.patch(`/admin/faculty/${id}`, data)
+      return response.data.data || response.data
+    } catch (e) {
+      const idx = mockFaculty.findIndex((f) => f.id === id)
+      if (idx !== -1) {
+        if (data.name_en) mockFaculty[idx].name = data.name_en
+        if (data.academic_title_ar) mockFaculty[idx].academic_title.ar = data.academic_title_ar
+        if (data.academic_title_en) mockFaculty[idx].academic_title.en = data.academic_title_en
+        if (data.email) mockFaculty[idx].email = data.email
+        if (data.phone) mockFaculty[idx].phone = data.phone
+        return mockFaculty[idx]
+      }
+      return { success: true, id, ...data }
+    }
+  },
+
+  async deleteFaculty(id) {
+    try {
+      const response = await apiClient.delete(`/admin/faculty/${id}`)
+      return response.data
+    } catch (e) {
+      const idx = mockFaculty.findIndex((f) => f.id === id)
+      if (idx !== -1) mockFaculty.splice(idx, 1)
+      return { success: true }
+    }
   }
 }
 

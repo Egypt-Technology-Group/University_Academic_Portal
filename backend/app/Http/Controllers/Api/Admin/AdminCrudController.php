@@ -7,6 +7,7 @@ use App\Http\Resources\AnnouncementResource;
 use App\Http\Resources\CollegeResource;
 use App\Http\Resources\DocumentResource;
 use App\Http\Resources\EventResource;
+use App\Http\Resources\FacultyResource;
 use App\Http\Resources\NewsResource;
 use App\Http\Resources\ProgramResource;
 use App\Models\Announcement;
@@ -14,9 +15,11 @@ use App\Models\College;
 use App\Models\Department;
 use App\Models\DownloadDocument;
 use App\Models\Event;
+use App\Models\FacultyProfile;
 use App\Models\NewsArticle;
 use App\Models\NewsCategory;
 use App\Models\Program;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -587,6 +590,134 @@ class AdminCrudController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Academic program deleted successfully.',
+        ]);
+    }
+
+    // ----------------------------------------------------
+    // Faculty & Researchers CRUD Management
+    // ----------------------------------------------------
+    public function storeFaculty(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'department_id' => 'required|exists:departments,id',
+            'name_ar' => 'required|string|max:255',
+            'name_en' => 'required|string|max:255',
+            'academic_title_ar' => 'required|string|max:255',
+            'academic_title_en' => 'required|string|max:255',
+            'bio_ar' => 'nullable|string',
+            'bio_en' => 'nullable|string',
+            'research_interests_ar' => 'nullable|string',
+            'research_interests_en' => 'nullable|string',
+            'email' => 'required|email|unique:faculty_profiles,email',
+            'phone' => 'nullable|string|max:30',
+            'office_location_ar' => 'nullable|string|max:255',
+            'office_location_en' => 'nullable|string|max:255',
+            'avatar' => 'nullable|string',
+            'cv_path' => 'nullable|string',
+            'google_scholar_url' => 'nullable|url',
+            'orcid_id' => 'nullable|string|max:50',
+            'office_hours' => 'nullable|array',
+            'publications' => 'nullable|array',
+            'is_featured' => 'boolean',
+        ]);
+
+        // Create associated user or profile
+        $user = User::firstOrCreate(
+            ['email' => $validated['email']],
+            [
+                'name' => $validated['name_en'],
+                'password' => bcrypt('password123'),
+            ]
+        );
+
+        $faculty = FacultyProfile::create([
+            'user_id' => $user->id,
+            'department_id' => $validated['department_id'],
+            'academic_title' => ['ar' => $validated['academic_title_ar'], 'en' => $validated['academic_title_en']],
+            'bio' => ['ar' => $validated['bio_ar'] ?? '', 'en' => $validated['bio_en'] ?? ''],
+            'research_interests' => ['ar' => $validated['research_interests_ar'] ?? '', 'en' => $validated['research_interests_en'] ?? ''],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'office_location' => ['ar' => $validated['office_location_ar'] ?? '', 'en' => $validated['office_location_en'] ?? ''],
+            'avatar' => $validated['avatar'] ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+            'cv_path' => $validated['cv_path'] ?? null,
+            'google_scholar_url' => $validated['google_scholar_url'] ?? null,
+            'orcid_id' => $validated['orcid_id'] ?? null,
+            'office_hours' => $validated['office_hours'] ?? null,
+            'publications' => $validated['publications'] ?? null,
+            'is_featured' => $validated['is_featured'] ?? false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Faculty profile created successfully.',
+            'data' => new FacultyResource($faculty->load('department')),
+        ], 201);
+    }
+
+    public function updateFaculty(Request $request, int $id): JsonResponse
+    {
+        $faculty = FacultyProfile::findOrFail($id);
+
+        $validated = $request->validate([
+            'department_id' => 'sometimes|exists:departments,id',
+            'name_ar' => 'sometimes|string|max:255',
+            'name_en' => 'sometimes|string|max:255',
+            'academic_title_ar' => 'sometimes|required|string|max:255',
+            'academic_title_en' => 'sometimes|required|string|max:255',
+            'bio_ar' => 'nullable|string',
+            'bio_en' => 'nullable|string',
+            'research_interests_ar' => 'nullable|string',
+            'research_interests_en' => 'nullable|string',
+            'email' => "sometimes|email|unique:faculty_profiles,email,{$id}",
+            'phone' => 'nullable|string|max:30',
+            'office_location_ar' => 'nullable|string|max:255',
+            'office_location_en' => 'nullable|string|max:255',
+            'avatar' => 'nullable|string',
+            'cv_path' => 'nullable|string',
+            'google_scholar_url' => 'nullable|url',
+            'orcid_id' => 'nullable|string|max:50',
+            'office_hours' => 'nullable|array',
+            'publications' => 'nullable|array',
+            'is_featured' => 'boolean',
+        ]);
+
+        if (isset($validated['department_id'])) $faculty->department_id = $validated['department_id'];
+        if (isset($validated['academic_title_ar'])) $faculty->setTranslation('academic_title', 'ar', $validated['academic_title_ar']);
+        if (isset($validated['academic_title_en'])) $faculty->setTranslation('academic_title', 'en', $validated['academic_title_en']);
+        if (isset($validated['bio_ar'])) $faculty->setTranslation('bio', 'ar', $validated['bio_ar']);
+        if (isset($validated['bio_en'])) $faculty->setTranslation('bio', 'en', $validated['bio_en']);
+        if (isset($validated['research_interests_ar'])) $faculty->setTranslation('research_interests', 'ar', $validated['research_interests_ar']);
+        if (isset($validated['research_interests_en'])) $faculty->setTranslation('research_interests', 'en', $validated['research_interests_en']);
+        if (isset($validated['office_location_ar'])) $faculty->setTranslation('office_location', 'ar', $validated['office_location_ar']);
+        if (isset($validated['office_location_en'])) $faculty->setTranslation('office_location', 'en', $validated['office_location_en']);
+        if (isset($validated['email'])) $faculty->email = $validated['email'];
+        if (isset($validated['phone'])) $faculty->phone = $validated['phone'];
+        if (isset($validated['avatar'])) $faculty->avatar = $validated['avatar'];
+        if (isset($validated['cv_path'])) $faculty->cv_path = $validated['cv_path'];
+        if (isset($validated['google_scholar_url'])) $faculty->google_scholar_url = $validated['google_scholar_url'];
+        if (isset($validated['orcid_id'])) $faculty->orcid_id = $validated['orcid_id'];
+        if (isset($validated['office_hours'])) $faculty->office_hours = $validated['office_hours'];
+        if (isset($validated['publications'])) $faculty->publications = $validated['publications'];
+        if (isset($validated['is_featured'])) $faculty->is_featured = (bool) $validated['is_featured'];
+
+        $faculty->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Faculty profile updated successfully.',
+            'data' => new FacultyResource($faculty->load('department')),
+        ]);
+    }
+
+    public function deleteFaculty(int $id): JsonResponse
+    {
+        $faculty = FacultyProfile::findOrFail($id);
+        $faculty->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Faculty profile deleted successfully.',
         ]);
     }
 }

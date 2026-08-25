@@ -43,6 +43,16 @@
           <Plus class="w-4 h-4 text-gold-400" />
           <span>{{ localeStore.isRtl ? 'إضافة برنامج / درجة دراسية' : 'New Degree Program' }}</span>
         </button>
+
+        <button
+          v-if="activeTab === 'faculty'"
+          type="button"
+          class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+          @click="openNewFacultyModal"
+        >
+          <Plus class="w-4 h-4 text-gold-400" />
+          <span>{{ localeStore.isRtl ? 'إضافة عضو هيئة تدريس' : 'Add Faculty Member' }}</span>
+        </button>
       </div>
     </div>
 
@@ -87,6 +97,21 @@
         <span>{{ localeStore.isRtl ? 'البرامج الأكاديمية والدرجات العلمية' : 'Degree Programs' }}</span>
         <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono" :class="activeTab === 'programs' ? 'bg-gold-500 text-navy-950 font-black' : 'bg-slate-200 text-slate-700'">
           {{ programsList.length }}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        :class="[
+          'flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer',
+          activeTab === 'faculty' ? 'bg-navy-950 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100'
+        ]"
+        @click="activeTab = 'faculty'"
+      >
+        <Users class="w-4 h-4" />
+        <span>{{ localeStore.isRtl ? 'هيئة التدريس والباحثين' : 'Faculty & Researchers' }}</span>
+        <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono" :class="activeTab === 'faculty' ? 'bg-gold-500 text-navy-950 font-black' : 'bg-slate-200 text-slate-700'">
+          {{ facultyList.length }}
         </span>
       </button>
     </div>
@@ -340,60 +365,128 @@
       </template>
     </Modal>
 
-    <!-- MODAL: CREATE PROGRAM -->
+    <!-- TAB 4: FACULTY & RESEARCHERS -->
+    <div v-if="activeTab === 'faculty'" class="space-y-4">
+      <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center gap-3">
+        <div class="relative flex-1 w-full">
+          <Search class="w-4 h-4 text-slate-400 absolute inset-y-0 start-3.5 my-auto" />
+          <input
+            v-model="searchFaculty"
+            type="text"
+            :placeholder="localeStore.isRtl ? 'البحث بالاسم، اللقب الأكاديمي، أو الاهتمامات البحثية...' : 'Search faculty by name, title, research...'"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 ps-10 pe-4 py-2 text-xs sm:text-sm focus:bg-white focus:border-navy-900"
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div
+          v-for="fac in filteredFaculty"
+          :key="fac.id"
+          class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4 flex flex-col justify-between hover:shadow-md transition-all"
+        >
+          <div class="space-y-3">
+            <div class="flex items-start gap-3.5">
+              <img
+                :src="fac.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'"
+                :alt="fac.name"
+                class="w-14 h-14 rounded-2xl object-cover ring-2 ring-gold-500/30 shrink-0"
+              />
+              <div class="flex-1 min-w-0">
+                <h4 class="font-black text-navy-950 text-sm truncate">{{ fac.name }}</h4>
+                <div class="text-[11px] font-bold text-gold-600 truncate mt-0.5">
+                  {{ getTranslated(fac.academic_title, localeStore.locale) }}
+                </div>
+                <div class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">{{ fac.email }}</div>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-600 line-clamp-2">
+              {{ getTranslated(fac.bio, localeStore.locale) || 'أستاذ باحث متخصص في النظم الحديثة وتطبيقات الذكاء الاصطناعي.' }}
+            </p>
+
+            <div v-if="fac.research_interests" class="text-[10px] text-slate-500 bg-slate-50 p-2 rounded-xl border border-slate-100 line-clamp-1">
+              🔬 {{ getTranslated(fac.research_interests, localeStore.locale) }}
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span v-if="fac.is_featured" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gold-100 text-gold-900 border border-gold-200">
+                ★ Featured
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button
+                type="button"
+                class="p-1.5 rounded-lg text-slate-500 hover:text-navy-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                @click="openEditFacultyModal(fac)"
+              >
+                <Edit3 class="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                @click="handleDeleteFaculty(fac.id)"
+              >
+                <Trash2 class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: CREATE/EDIT FACULTY -->
     <Modal
-      v-model="isProgramModalOpen"
-      :title="localeStore.isRtl ? 'إضافة برنامج أكاديمي ولائحة دراسية' : 'Add Degree Program & Curriculum'"
+      v-model="isFacultyModalOpen"
+      :title="isEditingFaculty ? (localeStore.isRtl ? 'تعديل بيانات عضو هيئة التدريس' : 'Edit Faculty Profile') : (localeStore.isRtl ? 'إضافة عضو هيئة تدريس جديد' : 'Add Faculty Member')"
       size="lg"
-      @close="isProgramModalOpen = false"
+      @close="isFacultyModalOpen = false"
     >
-      <form @submit.prevent="submitProgramForm" class="space-y-4 text-start text-xs">
+      <form @submit.prevent="submitFacultyForm" class="space-y-4 text-start text-xs">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم البرنامج بالعربية' : 'Program Name (Ar)' }} *</label>
-            <input v-model="programForm.name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="بكالوريوس علوم البيانات والذكاء الاصطناعي" />
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الاسم بالكامل (عربي)' : 'Full Name (Ar)' }} *</label>
+            <input v-model="facultyForm.name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="أ.د. حسام عادل الشافعي" />
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Program Name (En) *</label>
-            <input v-model="programForm.name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="B.Sc. Data Science & Artificial Intelligence" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الدرجة العلمية' : 'Degree Level' }}</label>
-            <select v-model="programForm.degree_level" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs">
-              <option value="bachelor">Bachelor (بكالوريوس)</option>
-              <option value="master">Master (ماجستير)</option>
-              <option value="doctorate">Doctorate (دكتوراه)</option>
-              <option value="diploma">Diploma (دبلوم)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'سنوات الدراسة' : 'Duration (Years)' }}</label>
-            <input v-model="programForm.duration_years" type="number" min="1" max="8" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الساعات المعتمدة' : 'Credit Hours' }}</label>
-            <input v-model="programForm.credit_hours" type="number" min="10" max="300" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" />
+            <label class="block font-bold text-slate-700 mb-1">Full Name (En) *</label>
+            <input v-model="facultyForm.name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="Prof. Dr. Hossam Adel El-Shafei" />
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المصروفات الدراسية (عربي)' : 'Tuition Fees (Ar)' }}</label>
-            <input v-model="programForm.tuition_fees_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="60,000 جنيه مصري / العام" />
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الدرجة الأكاديمية (عربي)' : 'Academic Rank (Ar)' }} *</label>
+            <input v-model="facultyForm.academic_title_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="أستاذ ورئيس قسم الذكاء الاصطناعي" />
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">Tuition Fees (En)</label>
-            <input v-model="programForm.tuition_fees_en" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="60,000 EGP / Academic Year" />
+            <label class="block font-bold text-slate-700 mb-1">Academic Rank (En) *</label>
+            <input v-model="facultyForm.academic_title_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="Professor & Chair of AI Dept" />
           </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'البريد الإلكتروني الجامعي' : 'University Email' }} *</label>
+            <input v-model="facultyForm.email" type="email" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="h.adel@university.edu.eg" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'رابط الصورة الشخصية' : 'Avatar Photo URL' }}</label>
+            <input v-model="facultyForm.avatar" type="url" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="https://images.unsplash.com/..." />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الاهتمامات البحثية' : 'Research Interests' }}</label>
+          <input v-model="facultyForm.research_interests_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="التعلم العميق، الرؤية الحاسوبية، الروبوتات الطبية..." />
         </div>
       </form>
 
       <template #footer>
-        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isProgramModalOpen = false">{{ $t('common.cancel') }}</button>
-        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitProgramForm">{{ localeStore.isRtl ? 'حفظ البرنامج' : 'Save Program' }}</button>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isFacultyModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitFacultyForm">{{ localeStore.isRtl ? 'حفظ البيانات' : 'Save Faculty' }}</button>
       </template>
     </Modal>
   </div>
@@ -409,6 +502,7 @@ import {
   Building2,
   Layers,
   GraduationCap,
+  Users,
   Plus,
   Search,
   Trash2,
@@ -421,8 +515,85 @@ const activeTab = ref('colleges')
 
 const collegesList = ref([])
 const programsList = ref([])
+const facultyList = ref([])
 const searchProgram = ref('')
+const searchFaculty = ref('')
 const filterDegree = ref('all')
+
+const isFacultyModalOpen = ref(false)
+const isEditingFaculty = ref(false)
+const editingFacultyId = ref(null)
+const facultyForm = reactive({
+  department_id: 1,
+  name_ar: '',
+  name_en: '',
+  academic_title_ar: '',
+  academic_title_en: '',
+  email: '',
+  avatar: '',
+  research_interests_ar: '',
+  research_interests_en: '',
+  bio_ar: '',
+  bio_en: '',
+  is_featured: false,
+})
+
+const filteredFaculty = computed(() => {
+  let list = [...facultyList.value]
+  if (searchFaculty.value.trim()) {
+    const q = searchFaculty.value.trim().toLowerCase()
+    list = list.filter((f) =>
+      f.name?.toLowerCase().includes(q) ||
+      f.email?.toLowerCase().includes(q) ||
+      (f.academic_title?.ar && f.academic_title.ar.toLowerCase().includes(q)) ||
+      (f.academic_title?.en && f.academic_title.en.toLowerCase().includes(q))
+    )
+  }
+  return list
+})
+
+const openNewFacultyModal = () => {
+  isEditingFaculty.value = false
+  editingFacultyId.value = null
+  facultyForm.name_ar = ''
+  facultyForm.name_en = ''
+  facultyForm.academic_title_ar = ''
+  facultyForm.academic_title_en = ''
+  facultyForm.email = ''
+  facultyForm.avatar = ''
+  facultyForm.research_interests_ar = ''
+  isFacultyModalOpen.value = true
+}
+
+const openEditFacultyModal = (fac) => {
+  isEditingFaculty.value = true
+  editingFacultyId.value = fac.id
+  facultyForm.name_ar = fac.name || ''
+  facultyForm.name_en = fac.name || ''
+  facultyForm.academic_title_ar = fac.academic_title?.ar || ''
+  facultyForm.academic_title_en = fac.academic_title?.en || ''
+  facultyForm.email = fac.email || ''
+  facultyForm.avatar = fac.avatar || ''
+  facultyForm.research_interests_ar = fac.research_interests?.ar || ''
+  isFacultyModalOpen.value = true
+}
+
+const submitFacultyForm = async () => {
+  if (isEditingFaculty.value) {
+    await api.updateFaculty(editingFacultyId.value, { ...facultyForm })
+  } else {
+    const created = await api.createFaculty({ ...facultyForm })
+    facultyList.value.unshift(created)
+  }
+  isFacultyModalOpen.value = false
+}
+
+const handleDeleteFaculty = async (id) => {
+  if (window.confirm(localeStore.isRtl ? 'حذف عضو هيئة التدريس؟' : 'Delete faculty profile?')) {
+    await api.deleteFaculty(id)
+    facultyList.value = facultyList.value.filter((f) => f.id !== id)
+  }
+}
 
 const sampleDepartments = ref([
   {
@@ -501,6 +672,8 @@ const loadData = async () => {
     collegesList.value = cols || []
     const progs = await api.getPrograms()
     programsList.value = progs || []
+    const facs = await api.getFaculty()
+    facultyList.value = facs || []
   } catch (err) {
     console.error(err)
   }

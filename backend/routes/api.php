@@ -58,6 +58,11 @@ Route::prefix('v1')->group(function () {
             Route::match(['put', 'patch'], '/programs/{id}', [AdminCrudController::class, 'updateProgram']);
             Route::delete('/programs/{id}', [AdminCrudController::class, 'deleteProgram']);
 
+            // Faculty & Researchers CRUD Management
+            Route::post('/faculty', [AdminCrudController::class, 'storeFaculty']);
+            Route::match(['put', 'patch'], '/faculty/{id}', [AdminCrudController::class, 'updateFaculty']);
+            Route::delete('/faculty/{id}', [AdminCrudController::class, 'deleteFaculty']);
+
             // Academic & Student Services Management (Admin)
             Route::get('/student-requests', [AcademicServicesController::class, 'indexRequests']);
             Route::patch('/student-requests/{id}/status', [AcademicServicesController::class, 'updateRequestStatus']);
