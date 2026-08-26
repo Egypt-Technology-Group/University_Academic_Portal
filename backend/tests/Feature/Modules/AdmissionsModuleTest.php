@@ -141,4 +141,71 @@ class AdmissionsModuleTest extends TestCase
 
         $this->assertFalse($this->moduleManager->isEnabled('admissions'));
     }
+
+    public function test_admin_admission_cycle_crud_and_decision_workflow(): void
+    {
+        // 1. List Cycles
+        $cyclesRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->getJson('/api/v1/admin/admission-cycles');
+        $cyclesRes->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'data' => [
+                    '*' => ['id', 'title', 'academic_year', 'term', 'is_open'],
+                ],
+            ]);
+
+        // 2. Create Cycle
+        $createRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->postJson('/api/v1/admin/admission-cycles', [
+                'title' => [
+                    'en' => 'Spring 2026 Admissions',
+                    'ar' => 'قبول ربيع 2026',
+                ],
+                'academic_year' => '2025-2026',
+                'term' => 'Spring',
+                'start_date' => '2026-02-01',
+                'end_date' => '2026-04-30',
+                'is_open' => true,
+            ]);
+        $createRes->assertStatus(201);
+        $cycleId = $createRes->json('data.id');
+
+        // 3. Update Cycle
+        $updateRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->putJson("/api/v1/admin/admission-cycles/{$cycleId}", [
+                'term' => 'Spring Term Extended',
+                'is_open' => false,
+            ]);
+        $updateRes->assertStatus(200)
+            ->assertJsonPath('data.term', 'Spring Term Extended');
+
+        // 4. Verify Application Document Workflow & Missing Doc Request
+        $app = Application::first();
+        $doc = $app->documents()->create([
+            'document_type' => 'national_id',
+            'file_path' => 'applications/test-id.pdf',
+            'verification_status' => 'pending',
+        ]);
+
+        $verifyDocRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->postJson("/api/v1/admin/applications/{$app->id}/documents/{$doc->id}/verify", [
+                'verification_status' => 'verified',
+                'is_original_verified' => true,
+                'reviewer_notes' => 'Original document matched and approved.',
+            ]);
+        $verifyDocRes->assertStatus(200);
+
+        $missingDocRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->postJson("/api/v1/admin/applications/{$app->id}/request-missing-docs", [
+                'missing_documents' => ['birth_certificate', 'medical_report'],
+                'instructions' => 'Please bring authenticated copies.',
+            ]);
+        $missingDocRes->assertStatus(200);
+
+        // 5. Delete Cycle
+        $deleteRes = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->deleteJson("/api/v1/admin/admission-cycles/{$cycleId}");
+        $deleteRes->assertStatus(200);
+    }
 }

@@ -20,5 +20,11 @@ Route::prefix('v1')->middleware('module.enabled:admissions')->group(function () 
         Route::match(['patch', 'put'], '/applications/{id}/status', [AdminAdmissionsController::class, 'updateApplicationStatus']);
         Route::post('/applications/{id}/documents/{documentId}/verify', [AdminAdmissionsController::class, 'verifyDocument']);
         Route::post('/applications/{id}/request-missing-docs', [AdminAdmissionsController::class, 'requestMissingDocuments']);
+
+        // Admission Cycles Management
+        Route::get('/admission-cycles', [AdminAdmissionsController::class, 'cycles']);
+        Route::post('/admission-cycles', [AdminAdmissionsController::class, 'storeCycle']);
+        Route::match(['put', 'patch'], '/admission-cycles/{cycle}', [AdminAdmissionsController::class, 'updateCycle']);
+        Route::delete('/admission-cycles/{cycle}', [AdminAdmissionsController::class, 'destroyCycle']);
     });
 });
