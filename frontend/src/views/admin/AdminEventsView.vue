@@ -155,141 +155,74 @@
       @close="isModalOpen = false"
     >
       <form @submit.prevent="submitForm" class="space-y-4 text-start">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.events.labelTitleAr') }} *
-            </label>
-            <input
-              v-model="form.title_ar"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="مثال: مؤتمر الروبوتات والذكاء الاصطناعي..."
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.events.labelTitleEn') }} *
-            </label>
-            <input
-              v-model="form.title_en"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="e.g. AI & Robotics Conference..."
-            />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.events.labelDate') }} *
-            </label>
-            <input
-              v-model="form.event_date"
-              type="date"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.events.labelStartTime') }}
-            </label>
-            <input
-              v-model="form.start_time"
-              type="time"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.events.labelEndTime') }}
-            </label>
-            <input
-              v-model="form.end_time"
-              type="time"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-            />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.events.labelVenue') }} *
-            </label>
-            <input
-              v-model="form.venue_ar"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="القاعة الكبرى - الحرم الجامعي"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.events.labelCapacity') }}
-            </label>
-            <input
-              v-model="form.capacity"
-              type="number"
-              min="1"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="250"
-            />
-          </div>
-        </div>
-
-        <!-- Event Cover Banner Image Upload -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">
-            {{ localeStore.isRtl ? 'صورة بوستر أو غلاف الفعالية' : 'Event Cover / Banner Photo' }}
-          </label>
-          <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <img
-              :src="eventImagePreview || form.banner_image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=80'"
-              class="w-16 h-12 rounded-lg object-cover border border-slate-200 shadow-xs shrink-0"
-            />
-            <div class="flex-1 min-w-0">
-              <input
-                ref="eventFileInput"
-                type="file"
-                accept="image/*"
-                class="hidden"
-                @change="handleEventImageSelect"
-              />
-              <button
-                type="button"
-                class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-navy-950 font-bold text-xs cursor-pointer inline-flex items-center gap-1.5 border border-slate-300"
-                @click="$refs.eventFileInput.click()"
-              >
-                <Upload class="w-3.5 h-3.5 text-gold-600" />
-                <span>{{ localeStore.isRtl ? 'اختيار بوستر من جهازك' : 'Choose Poster Image from Device' }}</span>
-              </button>
-              <div v-if="eventSelectedFile" class="text-[10px] text-emerald-700 font-mono mt-1 truncate">
-                ✓ {{ eventSelectedFile.name }} ({{ (eventSelectedFile.size / 1024).toFixed(0) }} KB)
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">
-            {{ $t('admin.events.labelDescriptionAr') }}
-          </label>
-          <textarea
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <EnterpriseFormField
+            v-model="form.title_ar"
+            type="text"
+            :label="$t('admin.events.labelTitleAr')"
+            required
+            col-span="6"
+            placeholder="مثال: مؤتمر الروبوتات والذكاء الاصطناعي..."
+          />
+          <EnterpriseFormField
+            v-model="form.title_en"
+            type="text"
+            :label="$t('admin.events.labelTitleEn')"
+            required
+            col-span="6"
+            placeholder="e.g. AI & Robotics Conference..."
+          />
+          <EnterpriseFormField
+            v-model="form.event_date"
+            type="date"
+            :label="$t('admin.events.labelDate')"
+            required
+            col-span="4"
+          />
+          <EnterpriseFormField
+            v-model="form.start_time"
+            type="time"
+            :label="$t('admin.events.labelStartTime')"
+            col-span="4"
+          />
+          <EnterpriseFormField
+            v-model="form.end_time"
+            type="time"
+            :label="$t('admin.events.labelEndTime')"
+            col-span="4"
+          />
+          <EnterpriseFormField
+            v-model="form.venue_ar"
+            type="text"
+            :label="$t('admin.events.labelVenue')"
+            required
+            col-span="6"
+            placeholder="القاعة الكبرى - الحرم الجامعي"
+          />
+          <EnterpriseFormField
+            v-model="form.capacity"
+            type="number"
+            :label="$t('admin.events.labelCapacity')"
+            :min="1"
+            col-span="6"
+            placeholder="250"
+          />
+          <EnterpriseFormField
+            type="image"
+            :label="localeStore.isRtl ? 'صورة بوستر أو غلاف الفعالية' : 'Event Cover / Banner Photo'"
+            col-span="12"
+            :preview-url="eventImagePreview || form.banner_image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=80'"
+            :button-text="localeStore.isRtl ? 'اختيار بوستر من جهازك' : 'Choose Poster Image from Device'"
+            @file-selected="handleEventImageSelect"
+          />
+          <EnterpriseFormField
             v-model="form.description_ar"
-            rows="3"
-            class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
+            type="textarea"
+            :label="$t('admin.events.labelDescriptionAr')"
+            :rows="3"
+            col-span="12"
             placeholder="وصف الفعالية وأهدافها..."
-          ></textarea>
+          />
         </div>
       </form>
 
@@ -322,6 +255,7 @@ import { api, getTranslated } from '../../services/api'
 import { formatStandardDate, formatTimeRange } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
+import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import {
   Plus,
   Search,

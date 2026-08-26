@@ -269,126 +269,67 @@
       @close="isNewsModalOpen = false"
     >
       <form @submit.prevent="submitNewsForm" class="space-y-4 text-start">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Arabic Title -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.cms.labelTitleAr') }} *
-            </label>
-            <input
-              v-model="newsForm.title_ar"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900 focus:ring-1 focus:ring-navy-900"
-              placeholder="مثال: مؤتمر الذكاء الاصطناعي السنوي..."
-            />
-          </div>
-
-          <!-- English Title -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.cms.labelTitleEn') }} *
-            </label>
-            <input
-              v-model="newsForm.title_en"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900 focus:ring-1 focus:ring-navy-900"
-              placeholder="e.g. Annual AI & Robotics Summit..."
-            />
-          </div>
-        </div>
-
-        <!-- Category & Featured Image URL -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.cms.labelCategory') }}
-            </label>
-            <select
-              v-model="newsForm.category"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-            >
-              <option value="academic">الشؤون الأكاديمية (Academic)</option>
-              <option value="scientific">البحث العلمي والابتكار (Research)</option>
-              <option value="events">الفعاليات والمؤتمرات (Events)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.cms.labelImage') }}
-            </label>
-            <div class="space-y-2">
-              <div class="flex items-center gap-3">
-                <img
-                  :src="newsImagePreview || newsForm.featured_image || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=400&q=80'"
-                  class="w-14 h-14 rounded-xl object-cover border border-slate-200 shadow-xs shrink-0"
-                />
-                <div class="flex-1 min-w-0">
-                  <input
-                    ref="newsFileInput"
-                    type="file"
-                    accept="image/*"
-                    class="hidden"
-                    @change="handleNewsImageSelect"
-                  />
-                  <button
-                    type="button"
-                    class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-navy-950 font-bold text-xs cursor-pointer inline-flex items-center gap-1.5 border border-slate-300"
-                    @click="$refs.newsFileInput.click()"
-                  >
-                    <Upload class="w-3.5 h-3.5 text-gold-600" />
-                    <span>{{ localeStore.isRtl ? 'اختيار صورة من جهازك' : 'Choose Image from Device' }}</span>
-                  </button>
-                  <div v-if="newsSelectedFile" class="text-[10px] text-emerald-700 font-mono mt-1 truncate">
-                    ✓ {{ newsSelectedFile.name }} ({{ (newsSelectedFile.size / 1024).toFixed(0) }} KB)
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Summaries -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.cms.labelSummaryAr') }}
-            </label>
-            <textarea
-              v-model="newsForm.summary_ar"
-              rows="2"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="ملخص موجز باللغة العربية..."
-            ></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.cms.labelSummaryEn') }}
-            </label>
-            <textarea
-              v-model="newsForm.summary_en"
-              rows="2"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="Brief summary in English..."
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- Full Content Body -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">
-            {{ $t('admin.cms.labelBodyAr') }} *
-          </label>
-          <textarea
-            v-model="newsForm.content_ar"
-            rows="4"
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <EnterpriseFormField
+            v-model="newsForm.title_ar"
+            type="text"
+            :label="$t('admin.cms.labelTitleAr')"
             required
-            class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
+            col-span="6"
+            placeholder="مثال: مؤتمر الذكاء الاصطناعي السنوي..."
+          />
+          <EnterpriseFormField
+            v-model="newsForm.title_en"
+            type="text"
+            :label="$t('admin.cms.labelTitleEn')"
+            required
+            col-span="6"
+            placeholder="e.g. Annual AI & Robotics Summit..."
+          />
+          <EnterpriseFormField
+            v-model="newsForm.category"
+            type="select"
+            :label="$t('admin.cms.labelCategory')"
+            col-span="6"
+            :options="[
+              { label: 'الشؤون الأكاديمية (Academic)', value: 'academic' },
+              { label: 'البحث العلمي والابتكار (Research)', value: 'scientific' },
+              { label: 'الفعاليات والمؤتمرات (Events)', value: 'events' }
+            ]"
+          />
+          <EnterpriseFormField
+            type="image"
+            :label="$t('admin.cms.labelImage')"
+            col-span="6"
+            :preview-url="newsImagePreview || newsForm.featured_image || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=400&q=80'"
+            :button-text="localeStore.isRtl ? 'اختيار صورة من جهازك' : 'Choose Image from Device'"
+            @file-selected="handleNewsImageSelect"
+          />
+          <EnterpriseFormField
+            v-model="newsForm.summary_ar"
+            type="textarea"
+            :label="$t('admin.cms.labelSummaryAr')"
+            :rows="2"
+            col-span="6"
+            placeholder="ملخص موجز باللغة العربية..."
+          />
+          <EnterpriseFormField
+            v-model="newsForm.summary_en"
+            type="textarea"
+            :label="$t('admin.cms.labelSummaryEn')"
+            :rows="2"
+            col-span="6"
+            placeholder="Brief summary in English..."
+          />
+          <EnterpriseFormField
+            v-model="newsForm.content_ar"
+            type="textarea"
+            :label="$t('admin.cms.labelBodyAr')"
+            required
+            :rows="4"
+            col-span="12"
             placeholder="التفاصيل الكاملة للخبر باللغة العربية..."
-          ></textarea>
+          />
         </div>
       </form>
 
@@ -419,76 +360,50 @@
       @close="isAnnouncementModalOpen = false"
     >
       <form @submit.prevent="submitAnnouncementForm" class="space-y-4 text-start">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.cms.labelTitleAr') }} *
-            </label>
-            <input
-              v-model="announcementForm.title_ar"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="مثال: بدء تسجيل المقررات..."
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.cms.labelTitleEn') }} *
-            </label>
-            <input
-              v-model="announcementForm.title_en"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="e.g. Course Registration Open..."
-            />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">
-            {{ $t('admin.cms.labelBodyAr') }} *
-          </label>
-          <textarea
-            v-model="announcementForm.content_ar"
-            rows="3"
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <EnterpriseFormField
+            v-model="announcementForm.title_ar"
+            type="text"
+            :label="$t('admin.cms.labelTitleAr')"
             required
-            class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
+            col-span="6"
+            placeholder="مثال: بدء تسجيل المقررات..."
+          />
+          <EnterpriseFormField
+            v-model="announcementForm.title_en"
+            type="text"
+            :label="$t('admin.cms.labelTitleEn')"
+            required
+            col-span="6"
+            placeholder="e.g. Course Registration Open..."
+          />
+          <EnterpriseFormField
+            v-model="announcementForm.content_ar"
+            type="textarea"
+            :label="$t('admin.cms.labelBodyAr')"
+            required
+            :rows="3"
+            col-span="12"
             placeholder="نص الإعلان الرسمي باللغة العربية..."
-          ></textarea>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.cms.labelAudience') }}
-            </label>
-            <select
-              v-model="announcementForm.target_audience"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-            >
-              <option value="all">{{ $t('admin.cms.audAll') }}</option>
-              <option value="students">{{ $t('admin.cms.audStudents') }}</option>
-              <option value="faculty">{{ $t('admin.cms.audFaculty') }}</option>
-              <option value="applicants">{{ $t('admin.cms.audApplicants') }}</option>
-            </select>
-          </div>
-
-          <div class="pt-4">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                v-model="announcementForm.is_urgent"
-                type="checkbox"
-                class="w-4 h-4 rounded text-red-600 focus:ring-red-500 border-slate-300"
-              />
-              <span class="text-xs font-bold text-red-600 flex items-center gap-1">
-                <AlertTriangle class="w-3.5 h-3.5" />
-                {{ $t('admin.cms.labelPriorityUrgent') }}
-              </span>
-            </label>
-          </div>
+          />
+          <EnterpriseFormField
+            v-model="announcementForm.target_audience"
+            type="select"
+            :label="$t('admin.cms.labelAudience')"
+            col-span="6"
+            :options="[
+              { label: $t('admin.cms.audAll'), value: 'all' },
+              { label: $t('admin.cms.audStudents'), value: 'students' },
+              { label: $t('admin.cms.audFaculty'), value: 'faculty' },
+              { label: $t('admin.cms.audApplicants'), value: 'applicants' }
+            ]"
+          />
+          <EnterpriseFormField
+            v-model="announcementForm.is_urgent"
+            type="checkbox"
+            :label="$t('admin.cms.labelPriorityUrgent')"
+            col-span="6"
+          />
         </div>
       </form>
 
@@ -521,6 +436,7 @@ import { api, getTranslated } from '../../services/api'
 import { formatStandardDate } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
+import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import {
   Newspaper,
   Megaphone,

@@ -506,69 +506,103 @@
       @close="isExamModalOpen = false"
     >
       <form @submit.prevent="submitExamForm" class="space-y-4 text-start text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'كود المقرر' : 'Course Code' }} *</label>
-            <input v-model="examForm.course_code" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono font-bold" placeholder="CS301" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم المقرر (عربي)' : 'Course Name (Ar)' }} *</label>
-            <input v-model="examForm.course_name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="الذكاء الاصطناعي وتعلم الآلة" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Course Name (En) *</label>
-            <input v-model="examForm.course_name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="Artificial Intelligence & ML" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'نوع الامتحان' : 'Exam Type' }} *</label>
-            <select v-model="examForm.exam_type" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white">
-              <option value="midterm">Midterm (نصفي)</option>
-              <option value="final">Final (نهائي)</option>
-              <option value="practical">Practical (عملي)</option>
-              <option value="oral">Oral (شفوي)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'تاريخ الامتحان' : 'Exam Date' }} *</label>
-            <input v-model="examForm.exam_date" type="date" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'وقت البدء' : 'Start Time' }} *</label>
-            <input v-model="examForm.start_time" type="time" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'وقت الانتهاء' : 'End Time' }} *</label>
-            <input v-model="examForm.end_time" type="time" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المدرج / القاعة (عربي)' : 'Hall Location (Ar)' }} *</label>
-            <input v-model="examForm.hall_location_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="مدرج الدكتور مجدي يعقوب (مبنى أ)" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Hall Location (En) *</label>
-            <input v-model="examForm.hall_location_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="Magdi Yacoub Auditorium (Hall A)" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'رئيس اللجنة (عربي)' : 'Chief Proctor (Ar)' }}</label>
-            <input v-model="examForm.chief_invigilator_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="أ.د. عصام النجار" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Chief Proctor (En)</label>
-            <input v-model="examForm.chief_invigilator_en" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="Prof. Dr. Essam El-Naggar" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'سعة القاعة' : 'Seating Capacity' }}</label>
-            <input v-model.number="examForm.seating_capacity" type="number" min="10" max="1000" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" />
-          </div>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <EnterpriseFormField
+            v-model="examForm.course_code"
+            type="text"
+            :label="localeStore.isRtl ? 'كود المقرر' : 'Course Code'"
+            required
+            col-span="4"
+            placeholder="CS301"
+          />
+          <EnterpriseFormField
+            v-model="examForm.course_name_ar"
+            type="text"
+            :label="localeStore.isRtl ? 'اسم المقرر (عربي)' : 'Course Name (Ar)'"
+            required
+            col-span="4"
+            placeholder="الذكاء الاصطناعي وتعلم الآلة"
+          />
+          <EnterpriseFormField
+            v-model="examForm.course_name_en"
+            type="text"
+            label="Course Name (En)"
+            required
+            col-span="4"
+            placeholder="Artificial Intelligence & ML"
+          />
+          <EnterpriseFormField
+            v-model="examForm.exam_type"
+            type="select"
+            :label="localeStore.isRtl ? 'نوع الامتحان' : 'Exam Type'"
+            required
+            col-span="3"
+            :options="[
+              { label: 'Midterm (نصفي)', value: 'midterm' },
+              { label: 'Final (نهائي)', value: 'final' },
+              { label: 'Practical (عملي)', value: 'practical' },
+              { label: 'Oral (شفوي)', value: 'oral' }
+            ]"
+          />
+          <EnterpriseFormField
+            v-model="examForm.exam_date"
+            type="date"
+            :label="localeStore.isRtl ? 'تاريخ الامتحان' : 'Exam Date'"
+            required
+            col-span="3"
+          />
+          <EnterpriseFormField
+            v-model="examForm.start_time"
+            type="time"
+            :label="localeStore.isRtl ? 'وقت البدء' : 'Start Time'"
+            required
+            col-span="3"
+          />
+          <EnterpriseFormField
+            v-model="examForm.end_time"
+            type="time"
+            :label="localeStore.isRtl ? 'وقت الانتهاء' : 'End Time'"
+            required
+            col-span="3"
+          />
+          <EnterpriseFormField
+            v-model="examForm.hall_location_ar"
+            type="text"
+            :label="localeStore.isRtl ? 'المدرج / القاعة (عربي)' : 'Hall Location (Ar)'"
+            required
+            col-span="6"
+            placeholder="مدرج الدكتور مجدي يعقوب (مبنى أ)"
+          />
+          <EnterpriseFormField
+            v-model="examForm.hall_location_en"
+            type="text"
+            label="Hall Location (En)"
+            required
+            col-span="6"
+            placeholder="Magdi Yacoub Auditorium (Hall A)"
+          />
+          <EnterpriseFormField
+            v-model="examForm.chief_invigilator_ar"
+            type="text"
+            :label="localeStore.isRtl ? 'رئيس اللجنة (عربي)' : 'Chief Proctor (Ar)'"
+            col-span="4"
+            placeholder="أ.د. عصام النجار"
+          />
+          <EnterpriseFormField
+            v-model="examForm.chief_invigilator_en"
+            type="text"
+            label="Chief Proctor (En)"
+            col-span="4"
+            placeholder="Prof. Dr. Essam El-Naggar"
+          />
+          <EnterpriseFormField
+            v-model="examForm.seating_capacity"
+            type="number"
+            :label="localeStore.isRtl ? 'سعة القاعة' : 'Seating Capacity'"
+            :min="10"
+            :max="1000"
+            col-span="4"
+          />
         </div>
       </form>
 
@@ -586,28 +620,40 @@
       @close="isNewRequestModalOpen = false"
     >
       <form @submit.prevent="submitNewRequestForm" class="space-y-4 text-start text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'كود الطالب الجامعي' : 'Student ID Number' }} *</label>
-          <input v-model="newRequestForm.student_id_number" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="20241001" />
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم الطالب الرباعي' : 'Student Full Name' }} *</label>
-          <input v-model="newRequestForm.student_name" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="محمود سامي علي" />
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'نوع الخدمة المطلوبة' : 'Service Type' }} *</label>
-          <select v-model="newRequestForm.service_type" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white font-bold">
-            <option value="enrollment_cert">{{ localeStore.isRtl ? 'شهادة قيد رسمية' : 'Enrollment Certificate' }}</option>
-            <option value="transcript">{{ localeStore.isRtl ? 'كشف درجات معتمد' : 'Official Transcript' }}</option>
-            <option value="course_exemption">{{ localeStore.isRtl ? 'مقاصة ومعادلة مقررات' : 'Course Exemption' }}</option>
-            <option value="postponement">{{ localeStore.isRtl ? 'تأجيل فصل دراسي' : 'Term Postponement' }}</option>
-            <option value="id_card_replacement">{{ localeStore.isRtl ? 'بدل فاقد كارنيه' : 'ID Card Replacement' }}</option>
-          </select>
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الغرض من الطلب' : 'Purpose' }}</label>
-          <textarea v-model="newRequestForm.purpose_ar" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="استخراج شهادة قيد موجهة إلى..."></textarea>
-        </div>
+        <EnterpriseFormField
+          v-model="newRequestForm.student_id_number"
+          type="text"
+          :label="localeStore.isRtl ? 'كود الطالب الجامعي' : 'Student ID Number'"
+          required
+          placeholder="20241001"
+        />
+        <EnterpriseFormField
+          v-model="newRequestForm.student_name"
+          type="text"
+          :label="localeStore.isRtl ? 'اسم الطالب الرباعي' : 'Student Full Name'"
+          required
+          placeholder="محمود سامي علي"
+        />
+        <EnterpriseFormField
+          v-model="newRequestForm.service_type"
+          type="select"
+          :label="localeStore.isRtl ? 'نوع الخدمة المطلوبة' : 'Service Type'"
+          required
+          :options="[
+            { label: localeStore.isRtl ? 'شهادة قيد رسمية' : 'Enrollment Certificate', value: 'enrollment_cert' },
+            { label: localeStore.isRtl ? 'كشف درجات معتمد' : 'Official Transcript', value: 'transcript' },
+            { label: localeStore.isRtl ? 'مقاصة ومعادلة مقررات' : 'Course Exemption', value: 'course_exemption' },
+            { label: localeStore.isRtl ? 'تأجيل فصل دراسي' : 'Term Postponement', value: 'postponement' },
+            { label: localeStore.isRtl ? 'بدل فاقد كارنيه' : 'ID Card Replacement', value: 'id_card_replacement' }
+          ]"
+        />
+        <EnterpriseFormField
+          v-model="newRequestForm.purpose_ar"
+          type="textarea"
+          :label="localeStore.isRtl ? 'الغرض من الطلب' : 'Purpose'"
+          :rows="2"
+          placeholder="استخراج شهادة قيد موجهة إلى..."
+        />
       </form>
 
       <template #footer>
@@ -624,36 +670,53 @@
       @close="isCourseModalOpen = false"
     >
       <form @submit.prevent="submitCourseForm" class="space-y-4 text-start text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'كود المقرر' : 'Course Code' }} *</label>
-            <input v-model="courseForm.code" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono font-bold" placeholder="CS201" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المستوى الدراسي' : 'Academic Level' }} *</label>
-            <select v-model.number="courseForm.level" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white font-bold">
-              <option :value="1">Level 1 (المستوى الأول)</option>
-              <option :value="2">Level 2 (المستوى الثاني)</option>
-              <option :value="3">Level 3 (المستوى الثالث)</option>
-              <option :value="4">Level 4 (المستوى الرابع)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم المقرر (عربي)' : 'Course Name (Ar)' }} *</label>
-            <input v-model="courseForm.name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="هياكل البيانات والخوارزميات" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Course Name (En) *</label>
-            <input v-model="courseForm.name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="Data Structures & Algorithms" />
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'عدد الساعات المعتمدة' : 'Credit Hours' }} *</label>
-          <input v-model.number="courseForm.credits" type="number" min="1" max="6" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono font-bold" />
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <EnterpriseFormField
+            v-model="courseForm.code"
+            type="text"
+            :label="localeStore.isRtl ? 'كود المقرر' : 'Course Code'"
+            required
+            col-span="6"
+            placeholder="CS201"
+          />
+          <EnterpriseFormField
+            v-model="courseForm.level"
+            type="select"
+            :label="localeStore.isRtl ? 'المستوى الدراسي' : 'Academic Level'"
+            required
+            col-span="6"
+            :options="[
+              { label: 'Level 1 (المستوى الأول)', value: 1 },
+              { label: 'Level 2 (المستوى الثاني)', value: 2 },
+              { label: 'Level 3 (المستوى الثالث)', value: 3 },
+              { label: 'Level 4 (المستوى الرابع)', value: 4 }
+            ]"
+          />
+          <EnterpriseFormField
+            v-model="courseForm.name_ar"
+            type="text"
+            :label="localeStore.isRtl ? 'اسم المقرر (عربي)' : 'Course Name (Ar)'"
+            required
+            col-span="6"
+            placeholder="هياكل البيانات والخوارزميات"
+          />
+          <EnterpriseFormField
+            v-model="courseForm.name_en"
+            type="text"
+            label="Course Name (En)"
+            required
+            col-span="6"
+            placeholder="Data Structures & Algorithms"
+          />
+          <EnterpriseFormField
+            v-model="courseForm.credits"
+            type="number"
+            :label="localeStore.isRtl ? 'عدد الساعات المعتمدة' : 'Credit Hours'"
+            required
+            :min="1"
+            :max="6"
+            col-span="12"
+          />
         </div>
       </form>
 
@@ -672,6 +735,7 @@ import { api, getTranslated } from '../../services/api'
 import { formatStandardDate, formatStandardTime, formatTimeRange } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
+import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import {
   GraduationCap,
   FileText,
