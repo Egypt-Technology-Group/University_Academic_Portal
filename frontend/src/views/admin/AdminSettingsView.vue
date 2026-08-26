@@ -868,7 +868,14 @@
         </div>
 
         <!-- Metrics Cards List -->
-        <div class="space-y-4">
+        <div v-if="!form.site_statistics?.items || form.site_statistics.items.length === 0" class="p-8 text-center bg-slate-50 border border-dashed border-slate-300 rounded-2xl space-y-3">
+          <BarChart3 class="w-8 h-8 text-slate-400 mx-auto" />
+          <div class="text-xs font-bold text-slate-600">
+            {{ localeStore.isRtl ? 'لا توجد مؤشرات حالياً. انقر على زر إضافة مؤشر جديد بالأعلى لإضافة إحصائيات.' : 'No metric counters configured. Click "Add Metric Counter" above to create one.' }}
+          </div>
+        </div>
+
+        <div v-else class="space-y-4">
           <div
             v-for="(item, idx) in form.site_statistics.items"
             :key="item.id || idx"
