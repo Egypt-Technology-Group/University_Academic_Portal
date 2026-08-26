@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+  <div class="space-y-2 max-h-48 overflow-y-auto pe-1">
     <div
       v-for="(event, eIdx) in timeline"
       :key="eIdx"
