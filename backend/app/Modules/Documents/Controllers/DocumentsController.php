@@ -6,25 +6,24 @@ namespace App\Modules\Documents\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Documents\Models\DownloadDocument;
 use App\Modules\Documents\Resources\DocumentResource;
+use App\Modules\Documents\Services\DocumentsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class DocumentsController extends Controller
 {
+    public function __construct(
+        protected readonly DocumentsService $documentsService
+    ) {}
+
     /**
      * Downloadable documents grouped or filtered by category.
      */
     public function documents(Request $request): JsonResponse|AnonymousResourceCollection
     {
-        $query = DownloadDocument::query();
-
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
-        }
-
         if ($request->boolean('grouped')) {
-            $groupedDocs = $query->get()->groupBy('category');
+            $groupedDocs = $this->documentsService->getGroupedDocuments($request->all());
             $data = [];
             foreach ($groupedDocs as $category => $items) {
                 $data[$category] = DocumentResource::collection($items);
@@ -32,7 +31,7 @@ class DocumentsController extends Controller
             return response()->json(['data' => $data]);
         }
 
-        $docs = $query->get();
+        $docs = $this->documentsService->getDocuments($request->all());
 
         return DocumentResource::collection($docs);
     }
@@ -43,7 +42,7 @@ class DocumentsController extends Controller
     public function incrementDocumentDownload(int $id): JsonResponse
     {
         $document = DownloadDocument::findOrFail($id);
-        $document->increment('download_count');
+        $document = $this->documentsService->incrementDownload($document);
 
         return response()->json([
             'success' => true,
@@ -55,4 +54,3 @@ class DocumentsController extends Controller
         ]);
     }
 }
-
