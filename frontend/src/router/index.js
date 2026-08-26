@@ -248,14 +248,8 @@ router.beforeEach(async (to) => {
     const moduleId = targetModuleRecord.meta.module
     const modulesStore = useModulesStore()
 
-    // Lazy load modules status if not already populated
-    if (!modulesStore.initialized) {
-      try {
-        await modulesStore.fetchModules()
-      } catch (err) {
-        console.warn('[RouterModuleGuard] Could not load module statuses:', err)
-      }
-    }
+    // Ensure lightweight manifest state is loaded
+    await modulesStore.ensureLoaded()
 
     // If the module is not enabled, redirect to fallback disabled screen
     if (!modulesStore.isModuleEnabled(moduleId)) {

@@ -11,6 +11,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/settings', [SiteSettingsController::class, 'getPublicSettings']);
 
     // Module Lifecycle & Dependency Introspection Endpoints
+    Route::get('/modules/manifest', [ModuleManagementController::class, 'manifest']);
     Route::get('/modules', [ModuleManagementController::class, 'index']);
     Route::get('/modules/{id}/dependencies', [ModuleManagementController::class, 'dependencies']);
     Route::patch('/modules/{id}/toggle', [ModuleManagementController::class, 'toggle']);

@@ -62,6 +62,33 @@ class ModuleManagementApiTest extends TestCase
         $this->moduleManager->register(new ApiTestStudentPortalModule());
     }
 
+    public function test_manifest_returns_lightweight_enabled_list_for_client_bootstrap(): void
+    {
+        $this->moduleManager->enable('academic-structure');
+
+        $response = $this->getJson('/api/v1/modules/manifest');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'data' => [
+                    'enabled_ids',
+                    'modules' => [
+                        '*' => [
+                            'id',
+                            'name',
+                            'display_name',
+                            'is_enabled',
+                            'is_entitled',
+                        ],
+                    ],
+                    'timestamp',
+                ],
+            ]);
+
+        $this->assertContains('academic-structure', $response->json('data.enabled_ids'));
+    }
+
     public function test_index_lists_all_registered_modules_with_metadata(): void
     {
         $response = $this->getJson('/api/v1/modules');

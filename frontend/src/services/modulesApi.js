@@ -8,6 +8,14 @@ import apiClient from './api'
 
 export const modulesApi = {
   /**
+   * Fetch lightweight module manifest for application startup.
+   */
+  async getManifest() {
+    const response = await apiClient.get('/modules/manifest')
+    return response.data.data || response.data
+  },
+
+  /**
    * Fetch all registered modules with active status and dependency information.
    *
    * @param {Object} [params]

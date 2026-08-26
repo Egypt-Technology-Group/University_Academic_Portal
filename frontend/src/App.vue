@@ -28,6 +28,7 @@ import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLocaleStore } from './stores/locale'
 import { useSettingsStore } from './stores/settings'
+import { useModulesStore } from './stores/modules'
 import Navbar from './components/layout/Navbar.vue'
 import Footer from './components/layout/Footer.vue'
 import DialogModal from './components/ui/DialogModal.vue'
@@ -36,6 +37,7 @@ import ToastContainer from './components/ui/ToastContainer.vue'
 const route = useRoute()
 const localeStore = useLocaleStore()
 const settingsStore = useSettingsStore()
+const modulesStore = useModulesStore()
 
 const isAdminRoute = computed(() => {
   return route.path.startsWith('/admin')
@@ -43,6 +45,9 @@ const isAdminRoute = computed(() => {
 
 onMounted(async () => {
   localeStore.initLocale()
-  await settingsStore.fetchPublicSettings()
+  await Promise.allSettled([
+    settingsStore.fetchPublicSettings(),
+    modulesStore.fetchManifest(),
+  ])
 })
 </script>

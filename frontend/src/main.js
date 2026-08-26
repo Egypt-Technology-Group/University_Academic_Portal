@@ -5,6 +5,7 @@ import router from './router'
 import i18n from './i18n'
 import './style.css'
 import { useSettingsStore } from './stores/settings'
+import { useModulesStore } from './stores/modules'
 
 // Core Micro-Module Registry & Module Definitions
 import { moduleRegistry } from './core/modules/moduleRegistry'
@@ -34,8 +35,11 @@ app.use(pinia)
 app.use(router)
 app.use(i18n)
 
-// Apply cached theme colors before DOM mount
+// Apply cached theme colors & hydrate module manifest before DOM mount
 const settingsStore = useSettingsStore(pinia)
 settingsStore.applyThemeToCssVariables()
+
+const modulesStore = useModulesStore(pinia)
+modulesStore.hydrateFromCache()
 
 app.mount('#app')

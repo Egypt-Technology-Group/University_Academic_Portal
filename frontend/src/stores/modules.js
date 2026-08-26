@@ -2,12 +2,14 @@
  * Modules Pinia Store
  *
  * Synchronizes client-side module definitions and dynamic routing states
- * with backend modular plugin features and database activation flags.
+ * with backend modular plugin features and verified entitlement status.
  */
 
 import { defineStore } from 'pinia'
 import { modulesApi } from '../services/modulesApi'
 import { moduleRegistry } from '../core/modules/moduleRegistry'
+
+const MANIFEST_CACHE_KEY = 'egyitech_modules_manifest_v1'
 
 export const useModulesStore = defineStore('modules', {
   state: () => ({
@@ -46,13 +48,12 @@ export const useModulesStore = defineStore('modules', {
     },
 
     /**
-     * Check if a module is currently enabled.
+     * Check if a module is currently enabled and verified.
      *
      * @returns {(id: string) => boolean}
      */
     isModuleEnabled: (state) => (id) => {
       if (!id) return false
-      // If store is not yet initialized, check if registry has it, otherwise default to enabled or check state
       return state.enabledIds.includes(id)
     },
 
@@ -95,13 +96,79 @@ export const useModulesStore = defineStore('modules', {
 
   actions: {
     /**
-     * Fetch active modules from backend GET /api/v1/modules.
+     * Instantly hydrate state from local storage cache during startup.
+     */
+    hydrateFromCache() {
+      try {
+        const raw = localStorage.getItem(MANIFEST_CACHE_KEY)
+        if (raw) {
+          const cached = JSON.parse(raw)
+          if (Array.isArray(cached?.enabledIds)) {
+            this.enabledIds = cached.enabledIds
+            this.initialized = true
+          }
+        }
+      } catch (err) {
+        console.warn('[useModulesStore] Cache hydration failed:', err)
+      }
+    },
+
+    /**
+     * Fetch lightweight module manifest asynchronously for startup / navbar.
+     *
+     * @param {boolean} [force=false]
+     * @returns {Promise<Array<string>>}
+     */
+    async fetchManifest(force = false) {
+      if (this.initialized && !force && Date.now() - (this.lastFetched || 0) < 60000) {
+        return this.enabledIds
+      }
+
+      this.loading = true
+      this.error = null
+
+      try {
+        const manifest = await modulesApi.getManifest()
+        const enabled = Array.isArray(manifest?.enabled_ids) ? manifest.enabled_ids : []
+
+        this.enabledIds = enabled
+        this.initialized = true
+        this.lastFetched = Date.now()
+
+        // Cache verified manifest state locally
+        try {
+          localStorage.setItem(
+            MANIFEST_CACHE_KEY,
+            JSON.stringify({ enabledIds: enabled, timestamp: Date.now() })
+          )
+        } catch (e) {
+        }
+
+        return enabled
+      } catch (err) {
+        console.warn('[useModulesStore] Failed to fetch manifest:', err)
+        this.error = err?.message || 'Failed to fetch module manifest.'
+
+        // If no cache was hydrated, strictly remain fail-closed ([])
+        if (!this.initialized) {
+          this.enabledIds = []
+          this.initialized = true
+        }
+
+        return this.enabledIds
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * Fetch full module details for the Module Management control plane.
      *
      * @param {boolean} [force=false]
      * @returns {Promise<Array<Object>>}
      */
     async fetchModules(force = false) {
-      if (this.initialized && !force && this.modules.length > 0) {
+      if (this.modules.length > 0 && !force) {
         return this.modules
       }
 
@@ -119,20 +186,33 @@ export const useModulesStore = defineStore('modules', {
 
         this.initialized = true
         this.lastFetched = Date.now()
+
+        try {
+          localStorage.setItem(
+            MANIFEST_CACHE_KEY,
+            JSON.stringify({ enabledIds: this.enabledIds, timestamp: Date.now() })
+          )
+        } catch (e) {
+        }
+
         return items
       } catch (err) {
-        console.error('[useModulesStore] Failed to fetch modules:', err)
+        console.error('[useModulesStore] Failed to fetch modules list:', err)
         this.error = err?.message || 'Failed to fetch module registry status from server.'
-        
-        // Fallback: If network error and not initialized, enable all registered modules by default
-        if (!this.initialized || this.enabledIds.length === 0) {
-          const defaultIds = moduleRegistry.getAll().map((m) => m.id)
-          this.enabledIds = defaultIds
-          this.initialized = true
-        }
         return this.modules
       } finally {
         this.loading = false
+      }
+    },
+
+    /**
+     * Ensure module state is loaded before route execution.
+     */
+    async ensureLoaded() {
+      if (this.initialized) return
+      this.hydrateFromCache()
+      if (!this.initialized) {
+        await this.fetchManifest()
       }
     },
 
@@ -166,19 +246,27 @@ export const useModulesStore = defineStore('modules', {
           this.modules[modIdx].is_enabled = isEnabled
         }
 
+        try {
+          localStorage.setItem(
+            MANIFEST_CACHE_KEY,
+            JSON.stringify({ enabledIds: this.enabledIds, timestamp: Date.now() })
+          )
+        } catch (e) {
+        }
+
         return response
       } catch (err) {
         console.error(`[useModulesStore] Error toggling module ${id}:`, err)
         this.error = err?.message || 'Failed to toggle module.'
 
-        // If backend returned a 409 dependency conflict
         if (err?.status === 409 || err?.response?.status === 409) {
           const conflictData = err.response?.data || err.context || {}
           this.conflictError = {
             id,
             message: conflictData.message || err.message,
             error: conflictData.error || 'dependency_conflict',
-            context: conflictData.context || {},
+            blocking_dependents: conflictData.blocking_dependents || [],
+            missing_dependencies: conflictData.missing_dependencies || [],
           }
         }
 
@@ -189,22 +277,11 @@ export const useModulesStore = defineStore('modules', {
     },
 
     /**
-     * Inspect module dependency graph and blocking dependents from backend.
-     *
-     * @param {string} id
-     * @returns {Promise<Object>}
+     * Clear error state.
      */
-    async checkDependencies(id) {
-      try {
-        return await modulesApi.getModuleDependencies(id)
-      } catch (err) {
-        console.error(`[useModulesStore] Failed to check dependencies for module ${id}:`, err)
-        return {
-          id,
-          is_enabled: this.isModuleEnabled(id),
-          ...moduleRegistry.validateDependencies(id, this.enabledIds),
-        }
-      }
+    clearErrors() {
+      this.error = null
+      this.conflictError = null
     },
   },
 })

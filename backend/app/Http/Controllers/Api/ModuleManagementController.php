@@ -64,6 +64,41 @@ class ModuleManagementController extends Controller
     }
 
     /**
+     * Return a lightweight public manifest of enabled module IDs and metadata for application bootstrap.
+     *
+     * GET /api/v1/modules/manifest
+     */
+    public function manifest(Request $request): JsonResponse
+    {
+        $enabledIds = $this->moduleManager->getEnabledIds();
+        $locale = $request->header('X-App-Locale', $request->get('locale', app()->getLocale() ?: 'ar'));
+
+        $modules = [];
+        foreach ($this->moduleManager->all() as $id => $module) {
+            $isEnabled = in_array($id, $enabledIds, true);
+            $modules[] = [
+                'id' => $id,
+                'name' => [
+                    'ar' => $module->getName('ar'),
+                    'en' => $module->getName('en'),
+                ],
+                'display_name' => $module->getName($locale),
+                'is_enabled' => $isEnabled,
+                'is_entitled' => $this->moduleManager->getEntitlementManager()->isModuleEntitled($id),
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'enabled_ids' => $enabledIds,
+                'modules' => $modules,
+                'timestamp' => now()->timestamp,
+            ],
+        ]);
+    }
+
+    /**
      * Return dependency tree and validation status for a specific module.
      *
      * GET /api/v1/modules/{id}/dependencies
