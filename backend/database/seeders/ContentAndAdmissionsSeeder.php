@@ -2,15 +2,15 @@
 
 namespace Database\Seeders;
 
-use App\Models\AdmissionCycle;
 use App\Models\Announcement;
-use App\Models\Application;
-use App\Models\ApplicationDocument;
 use App\Models\DownloadDocument;
 use App\Models\Event;
 use App\Models\NewsArticle;
 use App\Models\NewsCategory;
 use App\Modules\AcademicStructure\Models\Program;
+use App\Modules\Admissions\Models\AdmissionCycle;
+use App\Modules\Admissions\Models\Application;
+use App\Modules\Admissions\Models\ApplicationDocument;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 

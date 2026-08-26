@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Modules\Admissions\Resources;
 
 use App\Modules\AcademicStructure\Resources\ProgramResource;
 use Illuminate\Http\Request;

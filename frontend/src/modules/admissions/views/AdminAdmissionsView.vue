@@ -786,15 +786,17 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../../stores/locale'
-import { useDialog } from '../../composables/useDialog'
-import { useToast } from '../../composables/useToast'
-import { api, getTranslated } from '../../services/api'
-import { formatStandardDate, formatStandardDateTime } from '../../utils/dateFormat'
-import Modal from '../../components/ui/Modal.vue'
-import StatusFilterTabs from '../../components/ui/StatusFilterTabs.vue'
-import AuditTimeline from '../../components/ui/AuditTimeline.vue'
-import EmptyState from '../../components/ui/EmptyState.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { useDialog } from '../../../composables/useDialog'
+import { useToast } from '../../../composables/useToast'
+import { getTranslated } from '../../../services/api'
+import { admissionsApi } from '../services/admissionsApi'
+import { academicStructureApi } from '../../academic-structure/services/academicStructureApi'
+import { formatStandardDate, formatStandardDateTime } from '../../../utils/dateFormat'
+import Modal from '../../../components/ui/Modal.vue'
+import StatusFilterTabs from '../../../components/ui/StatusFilterTabs.vue'
+import AuditTimeline from '../../../components/ui/AuditTimeline.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
 import {
   Search,
   X,
@@ -952,8 +954,8 @@ const loadApplications = async () => {
   isLoading.value = true
   try {
     const [apps, progs] = await Promise.all([
-      api.getAdminApplications(),
-      api.getPrograms(),
+      admissionsApi.getAdminApplications(),
+      academicStructureApi.getPrograms(),
     ])
     applications.value = apps || []
     programOptions.value = progs || []
@@ -1017,7 +1019,7 @@ const saveDecision = async () => {
       notes: reviewForm.notes,
     }
 
-    const response = await api.updateApplicationStatus(activeApp.value.id, payload)
+    const response = await admissionsApi.updateApplicationStatus(activeApp.value.id, payload)
     const updatedApp = response?.data || response
 
     // Update in local list
@@ -1082,7 +1084,7 @@ const sendMissingDocsRequest = async () => {
       instructions: missingDocsForm.instructions,
     }
 
-    await api.requestMissingDocuments(activeApp.value.id, payload)
+    await admissionsApi.requestMissingDocuments(activeApp.value.id, payload)
 
     // Log in local timeline
     if (activeApp.value) {
@@ -1116,7 +1118,7 @@ const handleSingleDocVerify = async (doc, status) => {
   if (!activeApp.value) return
 
   try {
-    await api.verifyDocument(activeApp.value.id, doc.id, {
+    await admissionsApi.verifyDocument(activeApp.value.id, doc.id, {
       verification_status: status,
       is_original_verified: doc.is_original_verified,
       reviewer_notes: doc.reviewer_notes || null,

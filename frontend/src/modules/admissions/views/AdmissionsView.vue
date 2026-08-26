@@ -448,12 +448,13 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
-import { useToast } from '../composables/useToast'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import { admissionsApi } from '../services/admissionsApi'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
+import { useToast } from '../../../composables/useToast'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -557,7 +558,7 @@ const handleNext = async () => {
         program_id: form.program_id,
         notes: form.notes,
       }
-      const result = await api.submitApplication(payload)
+      const result = await admissionsApi.submitApplication(payload)
       submittedApp.value = result
       toast.success(
         localeStore.isRtl ? `تم تقديم طلب الالتحاق بنجاح برقم قيد: ${result.application_number || ''}` : `Application submitted successfully. Ref: ${result.application_number || ''}`,
@@ -593,7 +594,7 @@ const resetForm = () => {
 
 onMounted(async () => {
   try {
-    const cycleData = await api.getActiveCycle()
+    const cycleData = await admissionsApi.getActiveCycle()
     programs.value = cycleData.programs || []
     if (route.query.program_id) {
       form.program_id = Number(route.query.program_id)

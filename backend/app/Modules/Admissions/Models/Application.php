@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\Admissions\Models;
 
 use App\Modules\AcademicStructure\Models\Program;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -56,7 +56,7 @@ class Application extends Model
     {
         $logs = $this->communication_logs ?? [];
         $logs[] = [
-            'channel' => $channel, // email, sms, portal_notification
+            'channel' => $channel,
             'subject' => $subject,
             'message' => $message,
             'recipient' => $recipient ?? $this->email,

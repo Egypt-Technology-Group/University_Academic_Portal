@@ -274,12 +274,13 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import { formatStandardDate } from '../utils/dateFormat'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import { admissionsApi } from '../services/admissionsApi'
+import { formatStandardDate } from '../../../utils/dateFormat'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -327,7 +328,7 @@ const handleTrack = async () => {
   appData.value = null
 
   try {
-    const result = await api.trackApplication({
+    const result = await admissionsApi.trackApplication({
       application_number: searchCode.value.trim().toUpperCase(),
     })
     appData.value = result

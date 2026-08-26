@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\Admissions\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +14,7 @@ class ApplicationDocument extends Model
         'application_id',
         'document_type',
         'file_path',
-        'verification_status', // pending, verified, rejected, action_required
+        'verification_status',
         'is_original_verified',
         'rejection_reason',
         'reviewer_notes',

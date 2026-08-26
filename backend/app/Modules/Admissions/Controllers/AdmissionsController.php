@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Modules\Admissions\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\SubmitApplicationRequest;
-use App\Http\Resources\AdmissionCycleResource;
-use App\Http\Resources\ApplicationResource;
-use App\Models\AdmissionCycle;
-use App\Models\Application;
 use App\Modules\AcademicStructure\Models\Program;
 use App\Modules\AcademicStructure\Resources\ProgramResource;
+use App\Modules\Admissions\Models\AdmissionCycle;
+use App\Modules\Admissions\Models\Application;
+use App\Modules\Admissions\Requests\SubmitApplicationRequest;
+use App\Modules\Admissions\Resources\AdmissionCycleResource;
+use App\Modules\Admissions\Resources\ApplicationResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-class AdmissionController extends Controller
+class AdmissionsController extends Controller
 {
     /**
      * Returns current open admission cycle with available programs.

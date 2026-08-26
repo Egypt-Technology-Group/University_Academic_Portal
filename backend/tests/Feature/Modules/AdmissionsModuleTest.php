@@ -4,9 +4,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Modules;
 
 use App\Core\ModuleManager;
-use App\Models\AdmissionCycle;
-use App\Models\Application;
 use App\Models\User;
+use App\Modules\Admissions\Models\AdmissionCycle;
+use App\Modules\Admissions\Models\Application;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
