@@ -46,12 +46,11 @@
           />
         </div>
 
-        <!-- Article Body -->
-        <div class="prose prose-slate max-w-none text-slate-700 leading-relaxed text-sm sm:text-base space-y-4">
-          <p class="whitespace-pre-line">
-            {{ getTranslated(article.body, localeStore.locale) }}
-          </p>
-        </div>
+        <!-- Article Body with Rich Text Support -->
+        <div
+          class="prose prose-slate max-w-none text-slate-700 leading-relaxed text-sm sm:text-base space-y-4"
+          v-html="getTranslated(article.body, localeStore.locale)"
+        ></div>
 
         <!-- Social Share & Actions Bar -->
         <div class="pt-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">

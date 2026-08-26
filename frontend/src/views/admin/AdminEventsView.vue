@@ -217,11 +217,11 @@
           />
           <EnterpriseFormField
             v-model="form.description_ar"
-            type="textarea"
+            type="richtext"
             :label="$t('admin.events.labelDescriptionAr')"
-            :rows="3"
+            min-height="160px"
             col-span="12"
-            placeholder="وصف الفعالية وأهدافها..."
+            placeholder="وصف الفعالية وأهدافها والمحاور الرئيسية..."
           />
         </div>
       </form>

@@ -323,12 +323,12 @@
           />
           <EnterpriseFormField
             v-model="newsForm.content_ar"
-            type="textarea"
+            type="richtext"
             :label="$t('admin.cms.labelBodyAr')"
             required
-            :rows="4"
             col-span="12"
-            placeholder="التفاصيل الكاملة للخبر باللغة العربية..."
+            min-height="200px"
+            placeholder="التفاصيل الكاملة للخبر باللغة العربية مع إمكانية التنسيق، العناوين، والقوائم..."
           />
         </div>
       </form>

@@ -110,9 +110,10 @@
           <div><strong class="text-navy-950">{{ $t('events.organizer') }}:</strong> {{ getTranslated(selectedEvent.organizer, localeStore.locale) }}</div>
         </div>
 
-        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-          {{ getTranslated(selectedEvent.description, localeStore.locale) }}
-        </p>
+        <div
+          class="text-xs sm:text-sm text-slate-600 leading-relaxed prose prose-sm max-w-none"
+          v-html="getTranslated(selectedEvent.description, localeStore.locale)"
+        ></div>
 
         <form @submit.prevent="handleRegisterEvent" class="space-y-3 pt-2">
           <div>

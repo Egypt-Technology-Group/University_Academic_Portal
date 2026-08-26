@@ -49,6 +49,20 @@
       ></textarea>
     </div>
 
+    <!-- RICH TEXT EDITOR -->
+    <div v-else-if="['richtext', 'rich-text', 'editor'].includes(type)" class="relative">
+      <RichTextEditor
+        :model-value="modelValue || ''"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :required="required"
+        :error-message="errorMessage"
+        :min-height="minHeight || '160px'"
+        @update:model-value="$emit('update:modelValue', $event)"
+        @change="$emit('change', $event)"
+      />
+    </div>
+
     <!-- SELECT / DROPDOWN -->
     <div v-else-if="type === 'select'" class="relative">
       <select
@@ -140,11 +154,16 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Upload } from 'lucide-vue-next'
+import RichTextEditor from './RichTextEditor.vue'
 
 const props = defineProps({
   modelValue: {
     type: [String, Number, Boolean, Array, Object, null],
     default: ''
+  },
+  minHeight: {
+    type: String,
+    default: '160px'
   },
   type: {
     type: String,
