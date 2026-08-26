@@ -454,41 +454,56 @@
     <!-- MODAL: ISSUE OFFICIAL STATEMENT -->
     <Modal v-model="isStatementModalOpen" :title="localeStore.isRtl ? 'إصدار إفادة قيد رسمية موثقة' : 'Issue Verifiable Statement'" size="lg" @close="isStatementModalOpen = false">
       <form @submit.prevent="submitStatementForm" class="space-y-4 text-start text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'كود الطالب الجامعي' : 'Student ID Number' }} *</label>
-            <input v-model="statementForm.student_id_number" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="20241001" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم الطالب الرباعي' : 'Student Full Name' }} *</label>
-            <input v-model="statementForm.student_name" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="يوسف أحمد حسن" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الرقم القومي / جواز السفر' : 'National ID / Passport' }} *</label>
-            <input v-model="statementForm.national_id" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="30405150102233" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'نوع الإفادة' : 'Statement Type' }}</label>
-            <select v-model="statementForm.statement_type" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs">
-              <option value="official_enrollment">إفادة قيد بكالوريوس رسمية (Enrollment Certificate)</option>
-              <option value="completion_statement">شهادة تخرج مؤقتة (Graduation Certificate)</option>
-              <option value="english_proficiency">شهادة دراسة باللغة الإنجليزية (Medium of Instruction)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الجهة الموجه إليها (عربي)' : 'Addressed Entity (Ar)' }}</label>
-            <input v-model="statementForm.recipient_entity_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="إلى من يهمه الأمر / نقابة المهندسين" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Addressed Entity (En)</label>
-            <input v-model="statementForm.recipient_entity_en" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="To Whom It May Concern / Embassy" />
-          </div>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <EnterpriseFormField
+            v-model="statementForm.student_id_number"
+            type="text"
+            :label="localeStore.isRtl ? 'كود الطالب الجامعي' : 'Student ID Number'"
+            required
+            col-span="6"
+            placeholder="20241001"
+          />
+          <EnterpriseFormField
+            v-model="statementForm.student_name"
+            type="text"
+            :label="localeStore.isRtl ? 'اسم الطالب الرباعي' : 'Student Full Name'"
+            required
+            col-span="6"
+            placeholder="يوسف أحمد حسن"
+          />
+          <EnterpriseFormField
+            v-model="statementForm.national_id"
+            type="text"
+            :label="localeStore.isRtl ? 'الرقم القومي / جواز السفر' : 'National ID / Passport'"
+            required
+            col-span="6"
+            placeholder="30405150102233"
+          />
+          <EnterpriseFormField
+            v-model="statementForm.statement_type"
+            type="select"
+            :label="localeStore.isRtl ? 'نوع الإفادة' : 'Statement Type'"
+            col-span="6"
+            :options="[
+              { label: 'إفادة قيد بكالوريوس رسمية (Enrollment Certificate)', value: 'official_enrollment' },
+              { label: 'شهادة تخرج مؤقتة (Graduation Certificate)', value: 'completion_statement' },
+              { label: 'شهادة دراسة باللغة الإنجليزية (Medium of Instruction)', value: 'english_proficiency' }
+            ]"
+          />
+          <EnterpriseFormField
+            v-model="statementForm.recipient_entity_ar"
+            type="text"
+            :label="localeStore.isRtl ? 'الجهة الموجه إليها (عربي)' : 'Addressed Entity (Ar)'"
+            col-span="6"
+            placeholder="إلى من يهمه الأمر / نقابة المهندسين"
+          />
+          <EnterpriseFormField
+            v-model="statementForm.recipient_entity_en"
+            type="text"
+            label="Addressed Entity (En)"
+            col-span="6"
+            placeholder="To Whom It May Concern / Embassy"
+          />
         </div>
       </form>
 
