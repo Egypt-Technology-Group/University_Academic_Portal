@@ -818,6 +818,151 @@
         </div>
       </div>
     </div>
+
+    <!-- TAB 7: SITE STATISTICS & NUMERICAL COUNTERS -->
+    <div v-if="activeTab === 'statistics'" class="space-y-6">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-black text-navy-950 flex items-center gap-2">
+              <BarChart3 class="w-5 h-5 text-gold-500" />
+              <span>{{ localeStore.isRtl ? 'إدارة الإحصائيات والأرقام والمؤشرات العامة' : 'Site Statistics & Numerical Counters' }}</span>
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+              {{ localeStore.isRtl ? 'التحكم الديناميكي الكامل في أرقام ونسب ومؤشرات النجاح المعروضة في واجهة الموقع للزوار.' : 'Manage public stats, enrolled student counters, faculty numbers, employment rates, and research figures.' }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-xs transition-all cursor-pointer shrink-0"
+            @click="addNewStatItem"
+          >
+            <Plus class="w-4 h-4 text-gold-400" />
+            <span>{{ localeStore.isRtl ? 'إضافة مؤشر / إحصائية جديدة' : 'Add Metric Counter' }}</span>
+          </button>
+        </div>
+
+        <!-- Section Headers Customization -->
+        <div class="p-5 rounded-2xl bg-slate-50/70 border border-slate-200 space-y-4">
+          <div class="text-xs font-black uppercase text-navy-950 tracking-wider">
+            {{ localeStore.isRtl ? 'عناوين قسم الإحصائيات في الصفحة الرئيسية' : 'Section Headings' }}
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">{{ localeStore.isRtl ? 'عنوان القسم (عربي)' : 'Section Title (AR)' }}</label>
+              <input v-model="form.site_statistics.title.ar" type="text" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-navy-900" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">{{ localeStore.isRtl ? 'عنوان القسم (إنجليزي)' : 'Section Title (EN)' }}</label>
+              <input v-model="form.site_statistics.title.en" type="text" dir="ltr" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-navy-900" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">{{ localeStore.isRtl ? 'العنوان الفرعي (عربي)' : 'Section Subtitle (AR)' }}</label>
+              <input v-model="form.site_statistics.subtitle.ar" type="text" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-navy-900" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">{{ localeStore.isRtl ? 'العنوان الفرعي (إنجليزي)' : 'Section Subtitle (EN)' }}</label>
+              <input v-model="form.site_statistics.subtitle.en" type="text" dir="ltr" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium focus:ring-1 focus:ring-navy-900" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics Cards List -->
+        <div class="space-y-4">
+          <div
+            v-for="(item, idx) in form.site_statistics.items"
+            :key="item.id || idx"
+            class="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 transition-all shadow-xs space-y-4 relative group"
+          >
+            <!-- Card Header with Reorder, Active Toggle & Delete -->
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-3">
+                <span class="w-7 h-7 rounded-lg bg-navy-950 text-gold-400 font-bold text-xs flex items-center justify-center font-mono">
+                  #{{ item.order || idx + 1 }}
+                </span>
+                <span class="text-xs font-bold text-navy-950">
+                  {{ item.label?.ar || item.label?.en || `Metric #${idx + 1}` }}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <!-- Reorder Up/Down -->
+                <button
+                  type="button"
+                  title="Move Up"
+                  class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 disabled:opacity-30 cursor-pointer"
+                  :disabled="idx === 0"
+                  @click="moveStatUp(idx)"
+                >
+                  <MoveUp class="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  title="Move Down"
+                  class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 disabled:opacity-30 cursor-pointer"
+                  :disabled="idx === form.site_statistics.items.length - 1"
+                  @click="moveStatDown(idx)"
+                >
+                  <MoveDown class="w-3.5 h-3.5" />
+                </button>
+
+                <!-- Active Toggle -->
+                <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer">
+                  <input
+                    v-model="item.is_active"
+                    type="checkbox"
+                    class="w-4 h-4 rounded text-gold-500 focus:ring-gold-400"
+                  />
+                  <span>{{ item.is_active ? (localeStore.isRtl ? 'مفعل' : 'Active') : (localeStore.isRtl ? 'معطل' : 'Hidden') }}</span>
+                </label>
+
+                <!-- Delete Action -->
+                <button
+                  type="button"
+                  class="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
+                  title="Delete Metric"
+                  @click="removeStatItem(idx)"
+                >
+                  <Trash2 class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Metric Inputs Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <!-- Label AR -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم المؤشر (عربي)' : 'Metric Label (AR)' }} *</label>
+                <input v-model="item.label.ar" type="text" class="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2 text-xs font-medium focus:bg-white focus:border-navy-900" />
+              </div>
+
+              <!-- Label EN -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم المؤشر (إنجليزي)' : 'Metric Label (EN)' }} *</label>
+                <input v-model="item.label.en" type="text" dir="ltr" class="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2 text-xs font-medium focus:bg-white focus:border-navy-900" />
+              </div>
+
+              <!-- Value (e.g. 15,400+ or 96.8%) -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'القيمة المعروضة (Value)' : 'Display Value' }} *</label>
+                <input v-model="item.value" type="text" dir="ltr" placeholder="e.g. 15,400+ or 96.8%" class="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2 text-xs font-mono font-bold text-navy-950 focus:bg-white focus:border-navy-900" />
+              </div>
+
+              <!-- Color Accent -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'لون التمييز (Color Accent)' : 'Color Theme' }}</label>
+                <select v-model="item.color" class="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs font-bold cursor-pointer">
+                  <option value="gold">Gold / ذهبي</option>
+                  <option value="emerald">Emerald / زمردي</option>
+                  <option value="sky">Sky Blue / سماوي</option>
+                  <option value="white">White / أبيض</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -832,6 +977,11 @@ import {
   Sparkles,
   PhoneCall,
   Megaphone,
+  BarChart3,
+  Hash,
+  MoveUp,
+  MoveDown,
+  Trash2,
   Save,
   RotateCcw,
   Plus,
@@ -883,6 +1033,7 @@ const tabs = computed(() => [
   { id: 'hero', label: localeStore.isRtl ? 'بانر الواجهة الرئيسية' : 'Hero Slider', icon: Sparkles },
   { id: 'contact', label: localeStore.isRtl ? 'التواصل والشبكات' : 'Contact & Social', icon: PhoneCall },
   { id: 'broadcast', label: localeStore.isRtl ? 'الشريط العاجل والتذييل' : 'Broadcast & Footer', icon: Megaphone },
+  { id: 'statistics', label: localeStore.isRtl ? 'الإحصائيات والأرقام' : 'Site Statistics & Counters', icon: BarChart3 },
 ])
 
 // Local Form Reactive State cloned from settings store
@@ -895,6 +1046,7 @@ const form = reactive({
   social_links: JSON.parse(JSON.stringify(settingsStore.socialLinks)),
   footer_info: JSON.parse(JSON.stringify(settingsStore.footerInfo)),
   top_announcement_bar: JSON.parse(JSON.stringify(settingsStore.topAnnouncement)),
+  site_statistics: JSON.parse(JSON.stringify(settingsStore.siteStatistics || { title: { ar: '', en: '' }, subtitle: { ar: '', en: '' }, items: [] })),
 })
 
 const applyPreset = (primary, secondary, accent) => {
@@ -920,6 +1072,63 @@ const addNewSlide = () => {
 const removeSlide = (index) => {
   if (form.hero_slider.slides.length > 1) {
     form.hero_slider.slides.splice(index, 1)
+  }
+}
+
+// Statistics Counters Management
+const addNewStatItem = () => {
+  if (!form.site_statistics) {
+    form.site_statistics = {
+      title: { ar: 'جامعة إيجي تك في أرقام', en: 'EgyiTech at a Glance' },
+      subtitle: { ar: 'إنجازات تبرز التميز الأكاديمي والريادة الوطنية والبحثية', en: 'Milestones demonstrating academic prestige, research excellence, and national impact' },
+      items: []
+    }
+  }
+  if (!Array.isArray(form.site_statistics.items)) {
+    form.site_statistics.items = []
+  }
+  const nextOrder = form.site_statistics.items.length + 1
+  form.site_statistics.items.push({
+    id: `metric_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    label: { ar: 'مؤشر أو إحصائية جديدة', en: 'New Metric Fact' },
+    value: '100+',
+    prefix: '',
+    suffix: '+',
+    icon: 'Users',
+    color: 'gold',
+    is_active: true,
+    order: nextOrder,
+  })
+}
+
+const removeStatItem = (index) => {
+  if (form.site_statistics.items && form.site_statistics.items.length > 1) {
+    form.site_statistics.items.splice(index, 1)
+    reindexStatOrders()
+  }
+}
+
+const moveStatUp = (index) => {
+  if (index <= 0) return
+  const temp = form.site_statistics.items[index]
+  form.site_statistics.items[index] = form.site_statistics.items[index - 1]
+  form.site_statistics.items[index - 1] = temp
+  reindexStatOrders()
+}
+
+const moveStatDown = (index) => {
+  if (index >= form.site_statistics.items.length - 1) return
+  const temp = form.site_statistics.items[index]
+  form.site_statistics.items[index] = form.site_statistics.items[index + 1]
+  form.site_statistics.items[index + 1] = temp
+  reindexStatOrders()
+}
+
+const reindexStatOrders = () => {
+  if (form.site_statistics?.items) {
+    form.site_statistics.items.forEach((item, idx) => {
+      item.order = idx + 1
+    })
   }
 }
 
@@ -954,6 +1163,7 @@ const confirmResetDefaults = async () => {
         social_links: JSON.parse(JSON.stringify(settingsStore.socialLinks)),
         footer_info: JSON.parse(JSON.stringify(settingsStore.footerInfo)),
         top_announcement_bar: JSON.parse(JSON.stringify(settingsStore.topAnnouncement)),
+        site_statistics: JSON.parse(JSON.stringify(settingsStore.siteStatistics || { title: { ar: '', en: '' }, subtitle: { ar: '', en: '' }, items: [] })),
       })
       saveSuccess.value = true
     } catch (e) {
@@ -975,6 +1185,7 @@ onMounted(async () => {
     social_links: JSON.parse(JSON.stringify(settingsStore.socialLinks)),
     footer_info: JSON.parse(JSON.stringify(settingsStore.footerInfo)),
     top_announcement_bar: JSON.parse(JSON.stringify(settingsStore.topAnnouncement)),
+    site_statistics: JSON.parse(JSON.stringify(settingsStore.siteStatistics || { title: { ar: '', en: '' }, subtitle: { ar: '', en: '' }, items: [] })),
   })
 })
 </script>

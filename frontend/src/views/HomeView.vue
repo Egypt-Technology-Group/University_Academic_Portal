@@ -95,37 +95,39 @@
     </section>
 
     <!-- KEY METRICS & STATISTICS COUNTER -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-8">
+    <section v-if="settingsStore.activeStatisticsItems && settingsStore.activeStatisticsItems.length > 0" class="max-w-7xl mx-auto px-4 sm:px-8">
       <div class="bg-gradient-to-br from-navy-900 to-navy-950 text-white rounded-3xl p-8 sm:p-12 shadow-xl border border-navy-800">
         <div class="text-center max-w-2xl mx-auto mb-10 space-y-2">
-          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">{{ $t('stats.title') }}</h2>
-          <p class="text-sm text-slate-300">{{ $t('stats.subtitle') }}</p>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            {{ settingsStore.statisticsTitle(localeStore.locale) || $t('stats.title') }}
+          </h2>
+          <p class="text-sm text-slate-300">
+            {{ settingsStore.statisticsSubtitle(localeStore.locale) || $t('stats.subtitle') }}
+          </p>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-8 text-center divide-y md:divide-y-0 divide-slate-800/60">
-          <div class="pt-4 md:pt-0 space-y-1">
-            <div class="text-3xl sm:text-4xl font-black text-gold-400 tracking-tight">{{ $t('stats.students_val') }}</div>
-            <div class="text-xs sm:text-sm font-medium text-slate-300">{{ $t('stats.students') }}</div>
-          </div>
-          <div class="pt-4 md:pt-0 space-y-1">
-            <div class="text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight">{{ $t('stats.faculty_val') }}</div>
-            <div class="text-xs sm:text-sm font-medium text-slate-300">{{ $t('stats.faculty') }}</div>
-          </div>
-          <div class="pt-4 md:pt-0 space-y-1">
-            <div class="text-3xl sm:text-4xl font-black text-gold-400 tracking-tight">{{ $t('stats.programs_val') }}</div>
-            <div class="text-xs sm:text-sm font-medium text-slate-300">{{ $t('stats.programs') }}</div>
-          </div>
-          <div class="pt-4 md:pt-0 space-y-1">
-            <div class="text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight">{{ $t('stats.employment_val') }}</div>
-            <div class="text-xs sm:text-sm font-medium text-slate-300">{{ $t('stats.employment') }}</div>
-          </div>
-          <div class="pt-4 md:pt-0 space-y-1">
-            <div class="text-3xl sm:text-4xl font-black text-gold-400 tracking-tight">{{ $t('stats.research_val') }}</div>
-            <div class="text-xs sm:text-sm font-medium text-slate-300">{{ $t('stats.research') }}</div>
-          </div>
-          <div class="pt-4 md:pt-0 space-y-1">
-            <div class="text-3xl sm:text-4xl font-black text-emerald-400 tracking-tight">{{ $t('stats.partners_val') }}</div>
-            <div class="text-xs sm:text-sm font-medium text-slate-300">{{ $t('stats.partners') }}</div>
+        <div
+          class="grid grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 text-center divide-y md:divide-y-0 divide-slate-800/60"
+          :class="[
+            settingsStore.activeStatisticsItems.length >= 6 ? 'lg:grid-cols-6' : 
+            settingsStore.activeStatisticsItems.length === 5 ? 'lg:grid-cols-5' : 
+            settingsStore.activeStatisticsItems.length === 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'
+          ]"
+        >
+          <div
+            v-for="item in settingsStore.activeStatisticsItems"
+            :key="item.id || item.order"
+            class="pt-4 md:pt-0 space-y-1"
+          >
+            <div
+              class="text-3xl sm:text-4xl font-black tracking-tight"
+              :class="item.color === 'emerald' ? 'text-emerald-400' : item.color === 'sky' ? 'text-sky-400' : item.color === 'white' ? 'text-white' : 'text-gold-400'"
+            >
+              {{ item.prefix || '' }}{{ item.value }}{{ item.suffix && !item.value.includes(item.suffix) ? item.suffix : '' }}
+            </div>
+            <div class="text-xs sm:text-sm font-medium text-slate-300">
+              {{ getTranslated(item.label, localeStore.locale) }}
+            </div>
           </div>
         </div>
       </div>

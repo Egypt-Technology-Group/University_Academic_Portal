@@ -86,6 +86,19 @@ export const useSettingsStore = defineStore('settings', {
     topAnnouncementText: (state) => (locale = 'ar') =>
       getTranslated(state.settings.top_announcement_bar?.text, locale) || '',
     topAnnouncementLink: (state) => state.settings.top_announcement_bar?.link_url || '/admissions',
+
+    // Site Statistics & Counters
+    siteStatistics: (state) => state.settings.site_statistics || defaultSettings.site_statistics,
+    statisticsTitle: (state) => (locale = 'ar') =>
+      getTranslated(state.settings.site_statistics?.title, locale) || '',
+    statisticsSubtitle: (state) => (locale = 'ar') =>
+      getTranslated(state.settings.site_statistics?.subtitle, locale) || '',
+    activeStatisticsItems: (state) => {
+      const stats = state.settings.site_statistics?.items || defaultSettings.site_statistics.items
+      return [...stats]
+        .filter((item) => item.is_active !== false)
+        .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+    },
   },
 
   actions: {
