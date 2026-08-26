@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useModulesStore } from '../stores/modules'
 
 // Public Views
 import HomeView from '../views/HomeView.vue'
@@ -14,6 +15,7 @@ import NewsDetailView from '../views/NewsDetailView.vue'
 import EventsView from '../views/EventsView.vue'
 import DocumentsView from '../views/DocumentsView.vue'
 import StudentResultsView from '../views/StudentResultsView.vue'
+import ModuleDisabledView from '../views/ModuleDisabledView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 
 // Admin Views & Layout
@@ -38,73 +40,81 @@ const routes = [
     path: '/colleges',
     name: 'colleges',
     component: CollegesView,
-    meta: { title: 'Colleges' },
+    meta: { title: 'Colleges', module: 'academic-structure' },
   },
   {
     path: '/colleges/:slug',
     name: 'college-detail',
     component: CollegeDetailView,
-    meta: { title: 'College Details' },
+    meta: { title: 'College Details', module: 'academic-structure' },
   },
   {
     path: '/programs',
     name: 'programs',
     component: ProgramsView,
-    meta: { title: 'Programs' },
+    meta: { title: 'Programs', module: 'academic-structure' },
   },
   {
     path: '/programs/:slug',
     name: 'program-detail',
     component: ProgramDetailView,
-    meta: { title: 'Program Details' },
+    meta: { title: 'Program Details', module: 'academic-structure' },
   },
   {
     path: '/admissions',
     name: 'admissions',
     component: AdmissionsView,
-    meta: { title: 'Admissions' },
+    meta: { title: 'Admissions', module: 'admissions' },
   },
   {
     path: '/admissions/track',
     name: 'admissions-track',
     component: ApplicationTrackView,
-    meta: { title: 'Track Application' },
+    meta: { title: 'Track Application', module: 'admissions' },
   },
   {
     path: '/faculty',
     name: 'faculty',
     component: FacultyDirectoryView,
-    meta: { title: 'Faculty Directory' },
+    meta: { title: 'Faculty Directory', module: 'academic-structure' },
   },
   {
     path: '/news',
     name: 'news',
     component: NewsView,
-    meta: { title: 'News' },
+    meta: { title: 'News', module: 'cms' },
   },
   {
     path: '/news/:slug',
     name: 'news-detail',
     component: NewsDetailView,
-    meta: { title: 'News Details' },
+    meta: { title: 'News Details', module: 'cms' },
   },
   {
     path: '/events',
     name: 'events',
     component: EventsView,
-    meta: { title: 'Events' },
+    meta: { title: 'Events', module: 'events' },
   },
   {
     path: '/documents',
     name: 'documents',
     component: DocumentsView,
-    meta: { title: 'Documents' },
+    meta: { title: 'Documents', module: 'documents' },
   },
   {
     path: '/student-portal',
     name: 'student-portal',
     component: StudentResultsView,
-    meta: { title: 'Student Results Portal' },
+    meta: { title: 'Student Results Portal', module: 'results' },
+  },
+
+  // Fallback for disabled modules
+  {
+    path: '/module-disabled',
+    name: 'module-disabled',
+    component: ModuleDisabledView,
+    meta: { title: 'Module Offline' },
   },
 
   // Admin Authentication Route
@@ -135,37 +145,37 @@ const routes = [
         path: 'admissions',
         name: 'admin-admissions',
         component: AdminAdmissionsView,
-        meta: { title: 'Admissions Management Queue', requiresAuth: true },
+        meta: { title: 'Admissions Management Queue', requiresAuth: true, module: 'admissions' },
       },
       {
         path: 'academic-structure',
         name: 'admin-academic-structure',
         component: () => import('../views/admin/AdminAcademicStructureView.vue'),
-        meta: { title: 'Academic Structure & Programs Management', requiresAuth: true },
+        meta: { title: 'Academic Structure & Programs Management', requiresAuth: true, module: 'academic-structure' },
       },
       {
         path: 'academic-services',
         name: 'admin-academic-services',
         component: () => import('../views/admin/AdminAcademicServicesView.vue'),
-        meta: { title: 'Academic & Student Services', requiresAuth: true },
+        meta: { title: 'Academic & Student Services', requiresAuth: true, module: 'academic-services' },
       },
       {
         path: 'cms',
         name: 'admin-cms',
         component: AdminCmsView,
-        meta: { title: 'News & Announcements CMS', requiresAuth: true },
+        meta: { title: 'News & Announcements CMS', requiresAuth: true, module: 'cms' },
       },
       {
         path: 'events',
         name: 'admin-events',
         component: AdminEventsView,
-        meta: { title: 'Events & Calendar Manager', requiresAuth: true },
+        meta: { title: 'Events & Calendar Manager', requiresAuth: true, module: 'events' },
       },
       {
         path: 'documents',
         name: 'admin-documents',
         component: AdminDocumentsView,
-        meta: { title: 'Documents Repository Manager', requiresAuth: true },
+        meta: { title: 'Documents Repository Manager', requiresAuth: true, module: 'documents' },
       },
       {
         path: 'settings',
@@ -200,7 +210,7 @@ const router = createRouter({
 })
 
 // Route Guards (Modern Vue Router returns value instead of calling next())
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const token = localStorage.getItem('egyitech_auth_token')
   const isAuthenticated = Boolean(token)
 
@@ -223,6 +233,33 @@ router.beforeEach((to) => {
   if (to.matched.some((record) => record.meta.guestOnly)) {
     if (isAuthenticated) {
       return { name: 'admin-dashboard' }
+    }
+  }
+
+  // Micro-Module Dynamic Routing Guard: Verify if targeted route belongs to a disabled module
+  const targetModuleRecord = to.matched.find((record) => record.meta?.module)
+  if (targetModuleRecord?.meta?.module) {
+    const moduleId = targetModuleRecord.meta.module
+    const modulesStore = useModulesStore()
+
+    // Lazy load modules status if not already populated
+    if (!modulesStore.initialized) {
+      try {
+        await modulesStore.fetchModules()
+      } catch (err) {
+        console.warn('[RouterModuleGuard] Could not load module statuses:', err)
+      }
+    }
+
+    // If the module is not enabled, redirect to fallback disabled screen
+    if (!modulesStore.isModuleEnabled(moduleId)) {
+      return {
+        name: 'module-disabled',
+        query: {
+          module: moduleId,
+          redirect: to.fullPath,
+        },
+      }
     }
   }
 
