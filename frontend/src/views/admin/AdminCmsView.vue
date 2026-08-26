@@ -327,8 +327,16 @@
             :label="$t('admin.cms.labelBodyAr')"
             required
             col-span="12"
-            min-height="200px"
+            min-height="180px"
             placeholder="التفاصيل الكاملة للخبر باللغة العربية مع إمكانية التنسيق، العناوين، والقوائم..."
+          />
+          <EnterpriseFormField
+            v-model="newsForm.content_en"
+            type="richtext"
+            :label="localeStore.isRtl ? 'نص الخبر والتفاصيل (إنجليزي)' : 'Full Article Body (English)'"
+            col-span="12"
+            min-height="180px"
+            placeholder="Full article content in English with rich text formatting, headings, and lists..."
           />
         </div>
       </form>

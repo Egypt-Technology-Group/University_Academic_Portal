@@ -49,7 +49,7 @@
         <!-- Article Body with Rich Text Support -->
         <div
           class="prose prose-slate max-w-none text-slate-700 leading-relaxed text-sm sm:text-base space-y-4"
-          v-html="getTranslated(article.body, localeStore.locale)"
+          v-html="sanitizeHtml(getTranslated(article.body, localeStore.locale))"
         ></div>
 
         <!-- Social Share & Actions Bar -->
@@ -136,6 +136,7 @@ import { useRoute } from 'vue-router'
 import { useLocaleStore } from '../stores/locale'
 import { api, getTranslated } from '../services/api'
 import { formatStandardDate } from '../utils/dateFormat'
+import { sanitizeHtml } from '../utils/sanitizeHtml'
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
 import Badge from '../components/ui/Badge.vue'
 import Button from '../components/ui/Button.vue'

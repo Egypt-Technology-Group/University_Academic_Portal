@@ -112,7 +112,7 @@
 
         <div
           class="text-xs sm:text-sm text-slate-600 leading-relaxed prose prose-sm max-w-none"
-          v-html="getTranslated(selectedEvent.description, localeStore.locale)"
+          v-html="sanitizeHtml(getTranslated(selectedEvent.description, localeStore.locale))"
         ></div>
 
         <form @submit.prevent="handleRegisterEvent" class="space-y-3 pt-2">
@@ -156,6 +156,7 @@ import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../stores/locale'
 import { api, getTranslated } from '../services/api'
 import { getLocalizedMonth, getLocalizedDay, formatStandardDate, formatStandardTime } from '../utils/dateFormat'
+import { sanitizeHtml } from '../utils/sanitizeHtml'
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
 import Badge from '../components/ui/Badge.vue'
 import Button from '../components/ui/Button.vue'
