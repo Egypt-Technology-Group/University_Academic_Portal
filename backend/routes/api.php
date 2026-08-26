@@ -15,6 +15,13 @@ Route::prefix('v1')->group(function () {
     Route::get('/modules/{id}/dependencies', [ModuleManagementController::class, 'dependencies']);
     Route::patch('/modules/{id}/toggle', [ModuleManagementController::class, 'toggle']);
 
+    // Dedicated Vendor-Only Control Plane (Protected by Rate Limiting & Cryptographic Verification)
+    Route::prefix('vendor')->middleware('throttle:30,1')->group(function () {
+        Route::get('/entitlement/status', [\App\Http\Controllers\Api\Vendor\VendorEntitlementController::class, 'status']);
+        Route::post('/entitlement/verify', [\App\Http\Controllers\Api\Vendor\VendorEntitlementController::class, 'verify']);
+        Route::post('/entitlement/apply', [\App\Http\Controllers\Api\Vendor\VendorEntitlementController::class, 'apply']);
+    });
+
     // Auth endpoints
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::middleware('auth:sanctum')->group(function () {
@@ -24,6 +31,10 @@ Route::prefix('v1')->group(function () {
         // Admin Management Endpoints
         Route::prefix('admin')->group(function () {
             Route::get('/stats', [\App\Http\Controllers\Api\Admin\AdminDashboardController::class, 'stats']);
+
+            // Module Control for Admins
+            Route::post('/modules/{id}/toggle', [ModuleManagementController::class, 'toggle']);
+            Route::patch('/modules/{id}/toggle', [ModuleManagementController::class, 'toggle']);
 
             // Site Customization & Dynamic Settings
             Route::get('/settings', [SiteSettingsController::class, 'index']);

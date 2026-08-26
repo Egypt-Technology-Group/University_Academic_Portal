@@ -5,6 +5,7 @@ namespace App\Core;
 use App\Core\Contracts\ModuleInterface;
 use App\Core\Exceptions\ModuleDependencyException;
 use App\Models\SiteSetting;
+use App\Core\Security\EntitlementManager;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -33,10 +34,14 @@ class ModuleManager
      */
     protected array $bootedModules = [];
 
+    protected EntitlementManager $entitlementManager;
+
     public function __construct(
         protected DependencyValidator $validator,
-        protected ?Application $app = null
+        protected ?Application $app = null,
+        ?EntitlementManager $entitlementManager = null
     ) {
+        $this->entitlementManager = $entitlementManager ?? new EntitlementManager();
     }
 
     /**
@@ -75,11 +80,11 @@ class ModuleManager
     }
 
     /**
-     * Check if a module is currently enabled by ID.
+     * Check if a module is currently enabled by ID and cryptographically entitled.
      */
     public function isEnabled(string $id): bool
     {
-        return in_array($id, $this->getEnabledIds(), true);
+        return in_array($id, $this->getEnabledIds(), true) && $this->entitlementManager->isModuleEntitled($id);
     }
 
     /**
@@ -103,7 +108,7 @@ class ModuleManager
         $enabledModules = [];
 
         foreach ($enabledIds as $id) {
-            if (isset($this->modules[$id])) {
+            if (isset($this->modules[$id]) && $this->entitlementManager->isModuleEntitled($id)) {
                 $enabledModules[$id] = $this->modules[$id];
             }
         }
@@ -123,17 +128,25 @@ class ModuleManager
     }
 
     /**
-     * Get list of enabled module IDs.
+     * Get list of enabled module IDs that are also cryptographically entitled.
      *
      * @return string[]
      */
     public function getEnabledIds(): array
     {
         if ($this->enabledModuleIds !== null) {
-            return $this->enabledModuleIds;
+            return array_values(array_filter(
+                $this->enabledModuleIds,
+                fn(string $id) => $this->entitlementManager->isModuleEntitled($id)
+            ));
         }
 
-        $this->enabledModuleIds = $this->loadEnabledState();
+        $rawIds = $this->loadEnabledState();
+        $this->enabledModuleIds = array_values(array_filter(
+            $rawIds,
+            fn(string $id) => $this->entitlementManager->isModuleEntitled($id)
+        ));
+
         return $this->enabledModuleIds;
     }
 
@@ -144,6 +157,15 @@ class ModuleManager
      */
     public function canEnable(string $id): array
     {
+        if (!$this->entitlementManager->isModuleEntitled($id)) {
+            return [
+                'can_enable' => false,
+                'missing_dependencies' => [],
+                'reason' => "Module '{$id}' is not licensed or entitled under the active vendor subscription package.",
+                'error_code' => 'UNENTITLED_MODULE',
+            ];
+        }
+
         return $this->validator->canEnable($id, $this->modules, $this->getEnabledIds());
     }
 
@@ -322,13 +344,13 @@ class ModuleManager
     }
 
     /**
-     * Reset in-memory state, cache, and DB persistence (useful in tests).
+     * Reset enabled state, cache, and DB persistence without removing registered modules.
      */
-    public function reset(): void
+    public function resetEnabledState(): void
     {
-        $this->modules = [];
         $this->enabledModuleIds = null;
         $this->bootedModules = [];
+        $this->entitlementManager->resetCache();
         try {
             Cache::forget(config('modules.cache_key', 'app_modules_enabled'));
         } catch (\Throwable $e) {
@@ -339,6 +361,17 @@ class ModuleManager
             }
         } catch (\Throwable $e) {
         }
+    }
+
+    /**
+     * Reset in-memory state, cache, and DB persistence (useful in tests).
+     */
+    public function reset(bool $clearModules = true): void
+    {
+        if ($clearModules) {
+            $this->modules = [];
+        }
+        $this->resetEnabledState();
     }
 
     /**

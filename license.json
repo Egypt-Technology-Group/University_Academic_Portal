@@ -1,0 +1,22 @@
+{
+    "payload": {
+        "client_id": "egyitech_portal_demo",
+        "client_name": "university_demo",
+        "tier": "enterprise",
+        "licensed_modules": [
+            "academic-structure",
+            "admissions",
+            "academic-services",
+            "cms",
+            "events",
+            "documents",
+            "results"
+        ],
+        "issued_at": "2026-08-26T22:50:18Z",
+        "valid_until": "2027-08-26T22:50:18Z",
+        "nonce": "0018032ab99d9e60b73cce19fdf25e0d"
+    },
+    "signature": "72ab07f838972821057bc3be7c2ebce22b5ba82017403a88478486566a2687a8",
+    "algorithm": "HMAC-SHA256",
+    "signed_at": "2026-08-26T22:50:18.329239Z"
+}

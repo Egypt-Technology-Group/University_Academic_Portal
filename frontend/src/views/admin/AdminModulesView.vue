@@ -60,6 +60,42 @@
       </div>
     </div>
 
+    <!-- Enterprise Cryptographic License & Subscription Entitlement Control Ribbon -->
+    <div class="bg-navy-950 text-white rounded-3xl p-5 sm:p-6 shadow-md border border-navy-900 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-start sm:items-center gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-gold-500/20 text-gold-400 border border-gold-500/30 flex items-center justify-center shrink-0">
+          <ShieldCheck class="w-6 h-6 text-gold-400" />
+        </div>
+        <div class="space-y-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs uppercase tracking-wider font-mono font-bold text-gold-400">
+              {{ localeStore.isRtl ? 'الترخيص المؤسسي وحالة الاشتراك' : 'Enterprise Subscription & Licensing' }}
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              {{ entitlementState?.entitlement ? (entitlementState.entitlement.tier.toUpperCase()) : 'DEVELOPMENT EVALUATION' }}
+            </span>
+          </div>
+          <p class="text-xs text-slate-300">
+            {{ localeStore.isRtl
+              ? 'تفعيل الموديولات يخضع لشهادة الترخيص الرقمية الموقعة من المزود وفق باقة الاشتراك.'
+              : 'Module activation is strictly verified against cryptographically signed vendor subscription entitlements.'
+            }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <button
+          type="button"
+          class="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-black text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer active:scale-95"
+          @click="openLicenseModal"
+        >
+          <KeyRound class="w-3.5 h-3.5" />
+          <span>{{ localeStore.isRtl ? 'تطبيق ترخيص جديد (Vendor License)' : 'Apply Vendor License Certificate' }}</span>
+        </button>
+      </div>
+    </div>
+
     <!-- KPI Summary Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Total Modules -->
@@ -239,9 +275,19 @@
               </div>
             </div>
 
-            <!-- Activation Toggle Switch -->
+            <!-- Activation Toggle Switch / Entitlement Indicator -->
             <div class="flex flex-col items-end gap-1.5 shrink-0">
+              <div v-if="!isModuleEntitled(mod.id)" class="flex flex-col items-end gap-1">
+                <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase font-mono px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+                  <Lock class="w-3 h-3" />
+                  <span>{{ localeStore.isRtl ? 'غير مرخص' : 'Unlicensed' }}</span>
+                </span>
+                <span class="text-[10px] text-slate-400 font-medium">
+                  {{ localeStore.isRtl ? 'يتطلب ترقية الاشتراك' : 'Requires Upgrade' }}
+                </span>
+              </div>
               <button
+                v-else
                 type="button"
                 role="switch"
                 :aria-checked="mod.is_enabled"
@@ -265,7 +311,7 @@
               </button>
 
               <!-- Loading spinner or text indicator -->
-              <div class="text-[11px] font-bold flex items-center gap-1">
+              <div v-if="isModuleEntitled(mod.id)" class="text-[11px] font-bold flex items-center gap-1">
                 <RefreshCw v-if="togglingId === mod.id" class="w-3 h-3 animate-spin text-navy-900" />
                 <span
                   v-else
@@ -570,6 +616,102 @@
         </div>
       </div>
     </div>
+
+    <!-- MODAL: APPLY VENDOR LICENSE CERTIFICATE -->
+    <div
+      v-if="isLicenseModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-950/60 backdrop-blur-xs animate-in fade-in duration-200"
+      @click.self="isLicenseModalOpen = false"
+    >
+      <div
+        class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] text-start"
+        :dir="localeStore.dir"
+      >
+        <!-- Modal Header -->
+        <div class="px-6 py-5 bg-navy-950 text-white flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gold-500/20 text-gold-400 border border-gold-500/30 flex items-center justify-center font-bold">
+              <KeyRound class="w-5 h-5 text-gold-400" />
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-black tracking-tight">
+                {{ localeStore.isRtl ? 'تطبيق شهادة ترخيص الموديولات (Vendor License Certificate)' : 'Apply Vendor License Certificate' }}
+              </h3>
+              <p class="text-xs text-slate-300 font-medium">
+                {{ localeStore.isRtl ? 'إدخال حزمة الترخيص الموقعة رقمياً من المزود لتفعيل الموديولات المستحقة' : 'Paste cryptographically signed license payload issued by Egypt Technology Group' }}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            @click="isLicenseModalOpen = false"
+          >
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-4 overflow-y-auto">
+          <div class="p-3.5 bg-blue-50 border border-blue-200 text-blue-900 rounded-2xl text-xs space-y-1">
+            <div class="font-bold flex items-center gap-1.5">
+              <ShieldCheck class="w-4 h-4 text-blue-700" />
+              <span>{{ localeStore.isRtl ? 'حماية التراخيص المشفرة (Defense-in-Depth)' : 'Cryptographic Signature Enforcement' }}</span>
+            </div>
+            <p>
+              {{ localeStore.isRtl
+                ? 'يتم التحقق من سلامة التوقيع الرقمي للمزود على الخادم. أي تعديل أو تلاعب في الحقول سيفشل التحقق فوراً.'
+                : 'Server-side asymmetric verification validates the HMAC/RSA vendor signature against the root public key.'
+              }}
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">
+              {{ localeStore.isRtl ? 'حزمة الترخيص الموقعة (Signed JSON License Package)' : 'Signed License JSON Package' }}
+            </label>
+            <textarea
+              v-model="licensePackageInput"
+              rows="6"
+              class="w-full font-mono text-xs p-3 rounded-2xl border border-slate-300 focus:ring-2 focus:ring-navy-950 focus:border-navy-950"
+              placeholder='{ "payload": { "client_id": "...", "tier": "enterprise", "licensed_modules": [...] }, "signature": "...", "algorithm": "HMAC-SHA256" }'
+            ></textarea>
+          </div>
+
+          <!-- Live Verification Preview if provided -->
+          <div v-if="licenseVerificationResult" class="p-3.5 rounded-2xl border text-xs" :class="licenseVerificationResult.valid ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'">
+            <div class="font-bold mb-1">{{ licenseVerificationResult.valid ? 'Valid Vendor Signature' : 'Invalid License' }}</div>
+            <div v-if="licenseVerificationResult.valid" class="space-y-0.5 font-mono text-[11px]">
+              <div>Tier: <span class="font-bold">{{ licenseVerificationResult.data.tier }}</span></div>
+              <div>Licensed: <span class="font-bold">{{ (licenseVerificationResult.data.licensed_modules || []).join(', ') }}</span></div>
+              <div>Valid Until: <span class="font-bold">{{ licenseVerificationResult.data.valid_until || 'Indefinite' }}</span></div>
+            </div>
+            <div v-else class="text-[11px]">{{ licenseVerificationResult.message }}</div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 shrink-0">
+          <button
+            type="button"
+            class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200"
+            @click="isLicenseModalOpen = false"
+          >
+            {{ $t('common.cancel') }}
+          </button>
+          <button
+            type="button"
+            class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white text-xs font-bold transition-all shadow-md inline-flex items-center gap-2 cursor-pointer"
+            :disabled="isApplyingLicense || !licensePackageInput.trim()"
+            @click="handleApplyLicense"
+          >
+            <RefreshCw v-if="isApplyingLicense" class="w-3.5 h-3.5 animate-spin" />
+            <KeyRound v-else class="w-3.5 h-3.5" />
+            <span>{{ localeStore.isRtl ? 'اعتماد وتطبيق الترخيص' : 'Verify & Apply License' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -582,6 +724,7 @@ import { useToast } from '../../composables/useToast'
 import { useDialog } from '../../composables/useDialog'
 import { modulesApi } from '../../services/modulesApi'
 import { moduleRegistry } from '../../core/modules/moduleRegistry'
+import { vendorEntitlementApi } from '../../services/vendorEntitlementApi'
 import {
   Blocks,
   Boxes,
@@ -605,6 +748,8 @@ import {
   Calendar,
   FolderArchive,
   Award,
+  KeyRound,
+  Lock,
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -621,6 +766,64 @@ const togglingId = ref(null)
 const selectedModuleForInspection = ref(null)
 const inspectLoading = ref(false)
 const inspectData = ref(null)
+
+// Vendor Entitlement State
+const entitlementState = ref(null)
+const isLicenseModalOpen = ref(false)
+const licensePackageInput = ref('')
+const isApplyingLicense = ref(false)
+const licenseVerificationResult = ref(null)
+
+const isModuleEntitled = (modId) => {
+  if (!entitlementState.value?.entitlement) {
+    return true // Evaluation mode
+  }
+  const licensed = (entitlementState.value.entitlement.licensed_modules || []).map((m) =>
+    m.replace(/_/g, '-').toLowerCase()
+  )
+  return licensed.includes(modId.replace(/_/g, '-').toLowerCase())
+}
+
+const fetchEntitlementStatus = async () => {
+  try {
+    const data = await vendorEntitlementApi.getStatus()
+    entitlementState.value = data
+  } catch (err) {
+    console.warn('[AdminModulesView] Could not fetch vendor entitlement status:', err)
+  }
+}
+
+const openLicenseModal = () => {
+  licensePackageInput.value = ''
+  licenseVerificationResult.value = null
+  isLicenseModalOpen.value = true
+}
+
+const handleApplyLicense = async () => {
+  try {
+    let parsed
+    try {
+      parsed = JSON.parse(licensePackageInput.value)
+    } catch (e) {
+      toast.error(localeStore.isRtl ? 'صيغة JSON غير صالحة' : 'Invalid JSON format in license package')
+      return
+    }
+
+    isApplyingLicense.value = true
+    const result = await vendorEntitlementApi.applyLicense(parsed)
+    toast.success(
+      localeStore.isRtl ? 'تم تطبيق واعتماد ترخيص المزود بنجاح' : 'Vendor license applied and verified successfully'
+    )
+    isLicenseModalOpen.value = false
+    await fetchEntitlementStatus()
+    await modulesStore.fetchModules(true)
+  } catch (err) {
+    console.error('[AdminModulesView] Apply license failed:', err)
+    toast.error(err?.message || (localeStore.isRtl ? 'فشل تطبيق الترخيص' : 'Failed to apply license'))
+  } finally {
+    isApplyingLicense.value = false
+  }
+}
 
 // Icon Map per module ID
 const moduleIconMap = {
@@ -871,6 +1074,7 @@ const openInspectModal = async (mod) => {
 }
 
 onMounted(async () => {
+  await fetchEntitlementStatus()
   if (!modulesStore.initialized) {
     await modulesStore.fetchModules()
   }
