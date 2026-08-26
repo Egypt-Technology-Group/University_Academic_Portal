@@ -1,15 +1,16 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Http\Controllers\Api;
+namespace App\Modules\Results\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CourseResultResource;
-use App\Models\AcademicTerm;
 use App\Modules\AcademicServices\Models\StudentRecord;
+use App\Modules\Results\Models\AcademicTerm;
+use App\Modules\Results\Resources\CourseResultResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class StudentPortalController extends Controller
+class ResultsController extends Controller
 {
     /**
      * Inquire student results by student_id_number and optional term_id.
@@ -137,3 +138,4 @@ class StudentPortalController extends Controller
         ]);
     }
 }
+

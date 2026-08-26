@@ -1,6 +1,7 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Modules\Results\Models;
 
 use App\Modules\AcademicServices\Models\StudentRecord;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -46,3 +47,4 @@ class CourseResult extends Model
         return $this->belongsTo(AcademicTerm::class);
     }
 }
+

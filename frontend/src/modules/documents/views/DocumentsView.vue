@@ -119,14 +119,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
-import EmptyState from '../components/ui/EmptyState.vue'
-import ErrorState from '../components/ui/ErrorState.vue'
-import { useToast } from '../composables/useToast'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import documentsApi from '../services/documentsApi'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
+import ErrorState from '../../../components/ui/ErrorState.vue'
+import { useToast } from '../../../composables/useToast'
+
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
@@ -168,7 +170,7 @@ const filteredDocs = computed(() => {
 
 const downloadDocument = async (doc) => {
   try {
-    await api.incrementDocumentDownload(doc.id)
+    await documentsApi.incrementDocumentDownload(doc.id)
     doc.download_count++
     
     toast.info(
@@ -207,7 +209,7 @@ const loadDocumentsData = async () => {
   loading.value = true
   error.value = ''
   try {
-    documents.value = await api.getDocuments()
+    documents.value = await documentsApi.getDocuments()
   } catch (e) {
     error.value = e.message || (localeStore.isRtl ? 'تعذر جلب الوثائق واللوائح من الخادم.' : 'Failed to load documents.')
   } finally {

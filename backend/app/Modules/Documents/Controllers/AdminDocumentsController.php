@@ -1,17 +1,20 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api\Admin;
+namespace App\Modules\Documents\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\DocumentResource;
-use App\Models\DownloadDocument;
+use App\Models\AuditLog;
+use App\Modules\Documents\Models\DownloadDocument;
+use App\Modules\Documents\Resources\DocumentResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class AdminCrudController extends Controller
+class AdminDocumentsController extends Controller
 {
-    // Documents & Regulations Repository
+    /**
+     * Store and upload a new document into repository.
+     */
     public function storeDocument(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -66,6 +69,18 @@ class AdminCrudController extends Controller
             'effective_date' => $validated['effective_date'] ?? now(),
         ]);
 
+        AuditLog::record(
+            action: 'create',
+            auditable: $doc,
+            oldValues: null,
+            newValues: ['category' => $doc->category, 'title_ar' => $validated['title_ar'], 'title_en' => $validated['title_en']],
+            module: 'documents',
+            descriptionAr: "رفع ونشر وثيقة جديدة في المستودع: {$validated['title_ar']}",
+            descriptionEn: "Uploaded and published new document: {$validated['title_en']}",
+            severity: 'info',
+            status: 'success'
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Document uploaded and published to document & regulations repository.',
@@ -73,9 +88,13 @@ class AdminCrudController extends Controller
         ], 201);
     }
 
+    /**
+     * Update an existing document.
+     */
     public function updateDocument(Request $request, int $id): JsonResponse
     {
         $doc = DownloadDocument::findOrFail($id);
+        $oldValues = $doc->only(['category', 'title', 'version', 'status', 'is_archived']);
 
         $validated = $request->validate([
             'category' => 'nullable|string',
@@ -124,6 +143,18 @@ class AdminCrudController extends Controller
 
         $doc->save();
 
+        AuditLog::record(
+            action: 'update',
+            auditable: $doc,
+            oldValues: $oldValues,
+            newValues: $doc->only(['category', 'title', 'version', 'status', 'is_archived']),
+            module: 'documents',
+            descriptionAr: "تحديث وتعديل وثيقة: {$doc->title}",
+            descriptionEn: "Updated document: {$doc->title}",
+            severity: 'info',
+            status: 'success'
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'Document & regulations updated successfully.',
@@ -131,12 +162,28 @@ class AdminCrudController extends Controller
         ]);
     }
 
+    /**
+     * Toggle archive status of document.
+     */
     public function toggleArchiveDocument(int $id): JsonResponse
     {
         $doc = DownloadDocument::findOrFail($id);
+        $oldArchived = $doc->is_archived;
         $doc->is_archived = !$doc->is_archived;
         $doc->status = $doc->is_archived ? 'archived' : 'published';
         $doc->save();
+
+        AuditLog::record(
+            action: 'toggle_archive',
+            auditable: $doc,
+            oldValues: ['is_archived' => $oldArchived],
+            newValues: ['is_archived' => $doc->is_archived],
+            module: 'documents',
+            descriptionAr: $doc->is_archived ? "أرشفة وثيقة: {$doc->title}" : "إلغاء أرشفة وثيقة: {$doc->title}",
+            descriptionEn: $doc->is_archived ? "Archived document: {$doc->title}" : "Unarchived document: {$doc->title}",
+            severity: 'info',
+            status: 'success'
+        );
 
         return response()->json([
             'success' => true,
@@ -145,10 +192,26 @@ class AdminCrudController extends Controller
         ]);
     }
 
+    /**
+     * Delete document from repository.
+     */
     public function deleteDocument(int $id): JsonResponse
     {
         $doc = DownloadDocument::findOrFail($id);
+        $title = $doc->title;
         $doc->delete();
+
+        AuditLog::record(
+            action: 'delete',
+            auditable: 'App\Modules\Documents\Models\DownloadDocument',
+            oldValues: ['id' => $id, 'title' => $title],
+            newValues: null,
+            module: 'documents',
+            descriptionAr: "حذف الوثيقة نهائياً: {$title}",
+            descriptionEn: "Deleted document: {$title}",
+            severity: 'warning',
+            status: 'success'
+        );
 
         return response()->json([
             'success' => true,
@@ -156,3 +219,4 @@ class AdminCrudController extends Controller
         ]);
     }
 }
+

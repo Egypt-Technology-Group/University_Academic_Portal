@@ -2,7 +2,7 @@
 
 namespace App\Modules\AcademicServices\Models;
 
-use App\Models\CourseResult;
+use App\Modules\Results\Models\CourseResult;
 use App\Models\User;
 use App\Modules\AcademicStructure\Models\Program;
 use Illuminate\Database\Eloquent\Factories\HasFactory;

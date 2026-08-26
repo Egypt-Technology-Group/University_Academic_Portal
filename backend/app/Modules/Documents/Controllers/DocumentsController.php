@@ -1,16 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api;
+namespace App\Modules\Documents\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\DocumentResource;
-use App\Models\DownloadDocument;
+use App\Modules\Documents\Models\DownloadDocument;
+use App\Modules\Documents\Resources\DocumentResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class ContentController extends Controller
+class DocumentsController extends Controller
 {
     /**
      * Downloadable documents grouped or filtered by category.
@@ -55,3 +55,4 @@ class ContentController extends Controller
         ]);
     }
 }
+

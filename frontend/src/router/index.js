@@ -13,8 +13,8 @@ import FacultyDirectoryView from '../modules/academic-structure/views/FacultyDir
 import NewsView from '../modules/cms/views/NewsView.vue'
 import NewsDetailView from '../modules/cms/views/NewsDetailView.vue'
 import EventsView from '../modules/events/views/EventsView.vue'
-import DocumentsView from '../views/DocumentsView.vue'
-import StudentResultsView from '../views/StudentResultsView.vue'
+import DocumentsView from '../modules/documents/views/DocumentsView.vue'
+import StudentResultsView from '../modules/results/views/StudentResultsView.vue'
 import ModuleDisabledView from '../views/ModuleDisabledView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 
@@ -25,7 +25,7 @@ import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
 import AdminAdmissionsView from '../modules/admissions/views/AdminAdmissionsView.vue'
 import AdminCmsView from '../modules/cms/views/AdminCmsView.vue'
 import AdminEventsView from '../modules/events/views/AdminEventsView.vue'
-import AdminDocumentsView from '../views/admin/AdminDocumentsView.vue'
+import AdminDocumentsView from '../modules/documents/views/AdminDocumentsView.vue'
 import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
 
 const routes = [

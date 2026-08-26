@@ -359,13 +359,15 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import { formatStandardDate } from '../utils/dateFormat'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
-import EmptyState from '../components/ui/EmptyState.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { api, getTranslated } from '../../../services/api'
+import resultsApi from '../services/resultsApi'
+import { formatStandardDate } from '../../../utils/dateFormat'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
+
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
@@ -433,7 +435,7 @@ const handleInquire = async () => {
   resultData.value = null
 
   try {
-    const res = await api.inquireStudentResults({
+    const res = await resultsApi.inquireStudentResults({
       student_id_number: studentId.value.trim(),
     })
     resultData.value = res

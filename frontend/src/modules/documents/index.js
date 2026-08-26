@@ -5,6 +5,8 @@
  */
 
 import { KNOWN_MODULE_IDS } from '../../core/modules/types.js'
+import documentsRoutes from './routes.js'
+import documentsApi from './services/documentsApi.js'
 
 export const DocumentsModule = {
   id: KNOWN_MODULE_IDS.DOCUMENTS,
@@ -19,6 +21,8 @@ export const DocumentsModule = {
   version: '1.0.0',
   dependencies: [],
   ownedTables: ['documents', 'document_categories'],
+  routes: documentsRoutes,
+  api: documentsApi,
   publicRoutes: [
     { path: '/documents', name: 'documents' },
   ],
@@ -45,4 +49,6 @@ export const DocumentsModule = {
   },
 }
 
+export { documentsRoutes, documentsApi }
 export default DocumentsModule
+

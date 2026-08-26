@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\DownloadDocument;
+use App\Modules\Documents\Models\DownloadDocument;
 use App\Modules\Cms\Models\NewsArticle;
 use App\Modules\Events\Models\Event;
 use App\Modules\AcademicServices\Models\StudentRecord;

@@ -5,6 +5,8 @@
  */
 
 import { KNOWN_MODULE_IDS } from '../../core/modules/types.js'
+import resultsRoutes from './routes.js'
+import resultsApi from './services/resultsApi.js'
 
 export const ResultsModule = {
   id: KNOWN_MODULE_IDS.RESULTS,
@@ -17,8 +19,10 @@ export const ResultsModule = {
     en: 'Student inquiry for semester/cumulative grades, GPA calculation, and registration simulation.',
   },
   version: '1.0.0',
-  dependencies: [KNOWN_MODULE_IDS.ACADEMIC_STRUCTURE],
+  dependencies: [KNOWN_MODULE_IDS.ACADEMIC_STRUCTURE, KNOWN_MODULE_IDS.ACADEMIC_SERVICES],
   ownedTables: ['student_results', 'student_terms', 'course_enrollments'],
+  routes: resultsRoutes,
+  api: resultsApi,
   publicRoutes: [
     { path: '/student-portal', name: 'student-portal' },
   ],
@@ -31,4 +35,6 @@ export const ResultsModule = {
   },
 }
 
+export { resultsRoutes, resultsApi }
 export default ResultsModule
+

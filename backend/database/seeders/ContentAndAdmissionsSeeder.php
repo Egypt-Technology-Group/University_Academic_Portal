@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\DownloadDocument;
+use App\Modules\Documents\Models\DownloadDocument;
 use App\Modules\Cms\Models\Announcement;
 use App\Modules\Cms\Models\NewsArticle;
 use App\Modules\Cms\Models\NewsCategory;

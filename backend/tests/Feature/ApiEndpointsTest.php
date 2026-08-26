@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\AcademicTerm;
-use App\Models\DownloadDocument;
+use App\Modules\Results\Models\AcademicTerm;
+use App\Modules\Documents\Models\DownloadDocument;
 use App\Modules\AcademicServices\Models\StudentRecord;
 use App\Modules\AcademicStructure\Models\College;
 use App\Modules\AcademicStructure\Models\Department;

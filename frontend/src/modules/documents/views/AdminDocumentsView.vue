@@ -466,13 +466,15 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../../stores/locale'
-import { api, getTranslated } from '../../services/api'
-import Modal from '../../components/ui/Modal.vue'
-import EmptyState from '../../components/ui/EmptyState.vue'
-import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
-import { useDialog } from '../../composables/useDialog'
-import { useToast } from '../../composables/useToast'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import documentsApi from '../services/documentsApi'
+import Modal from '../../../components/ui/Modal.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
+import EnterpriseFormField from '../../../components/ui/EnterpriseFormField.vue'
+import { useDialog } from '../../../composables/useDialog'
+import { useToast } from '../../../composables/useToast'
+
 import {
   Upload,
   Search,
@@ -564,7 +566,7 @@ const getCategoryLabel = (cat) => {
 const loadDocs = async () => {
   isLoading.value = true
   try {
-    const data = await api.getDocuments()
+    const data = await documentsApi.getDocuments()
     documentsList.value = data || []
   } catch (e) {
     console.error('Failed to load documents', e)
@@ -577,6 +579,12 @@ const selectedLocalFile = ref(null)
 const isUploadingFile = ref(false)
 const uploadProgress = ref(0)
 const deviceFileInput = ref(null)
+
+const triggerDeviceFileInput = () => {
+  if (deviceFileInput.value) {
+    deviceFileInput.value.click()
+  }
+}
 
 const handleDeviceFileSelect = (e) => {
   const file = e.target.files[0]
@@ -691,7 +699,7 @@ const submitForm = async () => {
     }
 
     if (editingDocId.value) {
-      const updated = await api.updateDocument(editingDocId.value, formData, (percent) => {
+      const updated = await documentsApi.updateDocument(editingDocId.value, formData, (percent) => {
         uploadProgress.value = percent
       })
       const idx = documentsList.value.findIndex((d) => d.id === editingDocId.value)
@@ -703,7 +711,7 @@ const submitForm = async () => {
         localeStore.isRtl ? 'تم التحديث' : 'Document Updated'
       )
     } else {
-      const created = await api.createDocument(formData, (percent) => {
+      const created = await documentsApi.createDocument(formData, (percent) => {
         uploadProgress.value = percent
       })
       documentsList.value.unshift(created)
@@ -727,7 +735,7 @@ const submitForm = async () => {
 
 const handleToggleArchive = async (doc) => {
   try {
-    const updated = await api.toggleArchiveDocument(doc.id)
+    const updated = await documentsApi.toggleArchiveDocument(doc.id)
     doc.is_archived = !doc.is_archived
     doc.status = doc.is_archived ? 'archived' : 'published'
     toast.info(
@@ -740,7 +748,7 @@ const handleToggleArchive = async (doc) => {
 }
 
 const handleDownload = async (doc) => {
-  api.incrementDocumentDownload(doc.id)
+  documentsApi.incrementDocumentDownload(doc.id)
   doc.download_count = (doc.download_count || 0) + 1
   toast.info(
     localeStore.isRtl ? `جاري تحميل ملف: ${getTranslated(doc.title, localeStore.locale)}` : `Downloading file: ${getTranslated(doc.title, localeStore.locale)}`,
@@ -758,7 +766,7 @@ const handleDeleteDoc = async (id) => {
   })
 
   if (confirmed) {
-    await api.deleteDocument(id)
+    await documentsApi.deleteDocument(id)
     documentsList.value = documentsList.value.filter((d) => d.id !== id)
     toast.info(
       localeStore.isRtl ? 'تم حذف الوثيقة بنجاح.' : 'Document deleted.',
