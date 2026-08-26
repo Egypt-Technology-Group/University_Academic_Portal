@@ -983,6 +983,7 @@ import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import HybridDocumentWorkflow from '../../components/ui/HybridDocumentWorkflow.vue'
+import { useDialog } from '../../composables/useDialog'
 import {
   GraduationCap,
   FileText,
@@ -1001,6 +1002,7 @@ import {
 } from 'lucide-vue-next'
 
 const localeStore = useLocaleStore()
+const dialog = useDialog()
 const activeTab = ref('requests')
 
 const statementWorkflowModel = reactive({
@@ -1085,7 +1087,7 @@ const removeMasterStudyPlanFile = () => {
   masterStudyPlanFileName.value = ''
 }
 
-const submitCurriculumBlueprintUpload = () => {
+const submitCurriculumBlueprintUpload = async () => {
   if (curriculumWorkflowModel.file) {
     masterStudyPlanFileUrl.value = URL.createObjectURL(curriculumWorkflowModel.file)
     masterStudyPlanFileName.value = curriculumWorkflowModel.file.name
@@ -1094,7 +1096,11 @@ const submitCurriculumBlueprintUpload = () => {
     masterStudyPlanFileName.value = curriculumWorkflowModel.fileName
   }
   isCurriculumUploadModalOpen.value = false
-  alert(localeStore.isRtl ? 'تم تحديث واعتماد وثيقة اللائحة والخطة الدراسية بنجاح.' : 'Curriculum Blueprint saved successfully.')
+  await dialog.alert({
+    title: localeStore.isRtl ? 'تم بنجاح' : 'Success',
+    message: localeStore.isRtl ? 'تم تحديث واعتماد وثيقة اللائحة والخطة الدراسية بنجاح.' : 'Curriculum Blueprint saved successfully.',
+    variant: 'success',
+  })
 }
 
 const requestsList = ref([])
@@ -1109,6 +1115,14 @@ const reviewForm = reactive({
   admin_notes: ''
 })
 
+const isNewRequestModalOpen = ref(false)
+const newRequestForm = reactive({
+  student_id_number: '',
+  student_name: '',
+  service_type: 'enrollment_cert',
+  purpose_ar: ''
+})
+
 const isExamModalOpen = ref(false)
 const isEditingExam = ref(false)
 const editingExamId = ref(null)
@@ -1117,7 +1131,7 @@ const examForm = reactive({
   course_name_ar: '',
   course_name_en: '',
   exam_type: 'final',
-  exam_date: new Date().toISOString().slice(0, 10),
+  exam_date: '',
   start_time: '09:00',
   end_time: '12:00',
   hall_location_ar: '',
@@ -1125,14 +1139,6 @@ const examForm = reactive({
   chief_invigilator_ar: '',
   chief_invigilator_en: '',
   seating_capacity: 100
-})
-
-const isNewRequestModalOpen = ref(false)
-const newRequestForm = reactive({
-  student_id_number: '',
-  student_name: '',
-  service_type: 'enrollment_cert',
-  purpose_ar: ''
 })
 
 const isCourseModalOpen = ref(false)
@@ -1146,20 +1152,14 @@ const courseForm = reactive({
   level: 1
 })
 
-const studyPlansCourses = ref([])
-
-const getLevelCourses = (lvl) => {
-  return studyPlansCourses.value.filter((c) => c.level === lvl)
-}
-
 const isStatementModalOpen = ref(false)
 const statementForm = reactive({
-  student_id_number: '',
   student_name: '',
+  student_id_number: '',
   national_id: '',
   statement_type: 'official_enrollment',
-  title_ar: '',
-  title_en: '',
+  title_ar: 'إفادة قيد رسمية موجهة إلى نقابة المهندسين',
+  title_en: 'Official Enrollment Verification Statement',
   recipient_entity_ar: '',
   recipient_entity_en: ''
 })
@@ -1213,14 +1213,14 @@ const loadData = async () => {
   }
 }
 
-const openReviewRequestModal = (req) => {
+const openReviewModal = (req) => {
   activeRequest.value = req
   reviewForm.status = req.status || 'approved'
   reviewForm.admin_notes = req.admin_notes || ''
   isReviewModalOpen.value = true
 }
 
-const saveRequestReview = async () => {
+const submitReviewForm = async () => {
   if (!activeRequest.value) return
   await api.updateStudentRequestStatus(activeRequest.value.id, {
     status: reviewForm.status,
@@ -1242,7 +1242,11 @@ const openNewRequestModal = () => {
 
 const submitNewRequestForm = async () => {
   if (!newRequestForm.student_id_number || !newRequestForm.student_name) {
-    alert('يرجى ملء الحقول الإلزامية')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
+      message: localeStore.isRtl ? 'يرجى ملء جميع الحقول الإلزامية للمتابعة.' : 'Please fill in all required fields.',
+      variant: 'warning',
+    })
     return
   }
   const created = await api.submitStudentRequest({ ...newRequestForm })
@@ -1251,7 +1255,15 @@ const submitNewRequestForm = async () => {
 }
 
 const handleDeleteRequest = async (id) => {
-  if (window.confirm(localeStore.isRtl ? 'هل تريد حذف هذا الطلب نهائياً؟' : 'Delete this student request?')) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف الطلب الطلابي' : 'Delete Student Request',
+    message: localeStore.isRtl ? 'هل تريد حذف هذا الطلب نهائياً من سجلات البوابة؟' : 'Are you sure you want to delete this student request?',
+    confirmText: localeStore.isRtl ? 'حذف' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteStudentRequest(id)
     requestsList.value = requestsList.value.filter((r) => r.id !== id)
   }
@@ -1339,7 +1351,11 @@ const submitExamForm = async () => {
     }
     isExamModalOpen.value = false
   } catch (err) {
-    alert('Failed to save exam schedule')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
+      message: localeStore.isRtl ? 'تعذر حفظ جدول الامتحان، يرجى التحقق من البيانات والمحاولة مجدداً.' : 'Failed to save exam schedule.',
+      variant: 'danger',
+    })
   }
 }
 
@@ -1365,9 +1381,13 @@ const openEditCourseModal = (course) => {
   isCourseModalOpen.value = true
 }
 
-const submitCourseForm = () => {
+const submitCourseForm = async () => {
   if (!courseForm.code || !courseForm.name_ar) {
-    alert('يرجى ملء الحقول الإلزامية')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
+      message: localeStore.isRtl ? 'يرجى إدخال كود واسم المقرر.' : 'Please enter course code and name.',
+      variant: 'warning',
+    })
     return
   }
 
@@ -1394,14 +1414,30 @@ const submitCourseForm = () => {
   isCourseModalOpen.value = false
 }
 
-const handleDeleteCourse = (id) => {
-  if (window.confirm(localeStore.isRtl ? 'حذف هذا المقرر من الخطة الدراسية؟' : 'Delete this course from study plan?')) {
+const handleDeleteCourse = async (id) => {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف المقرر' : 'Delete Course',
+    message: localeStore.isRtl ? 'هل أنت متأكد من حذف هذا المقرر من الخطة الدراسية؟' : 'Are you sure you want to delete this course from the study plan?',
+    confirmText: localeStore.isRtl ? 'حذف' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     studyPlansCourses.value = studyPlansCourses.value.filter((c) => c.id !== id)
   }
 }
 
 const handleDeleteExam = async (id) => {
-  if (window.confirm(localeStore.isRtl ? 'حذف هذا الموعد من جدول الامتحانات؟' : 'Delete exam schedule entry?')) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف موعد الامتحان' : 'Delete Exam Schedule',
+    message: localeStore.isRtl ? 'هل أنت متأكد من حذف هذا الموعد من جدول الامتحانات؟' : 'Are you sure you want to delete this exam schedule entry?',
+    confirmText: localeStore.isRtl ? 'حذف' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteExamSchedule(id)
     examSchedulesList.value = examSchedulesList.value.filter((e) => e.id !== id)
   }
@@ -1425,9 +1461,17 @@ const submitStatementForm = async () => {
     const statement = await api.issueOfficialStatement(payload)
     sampleStatements.value.unshift(statement)
     isStatementModalOpen.value = false
-    alert(localeStore.isRtl ? 'تم إصدار الوثيقة واعتمادها بنجاح برمز التحقق المشفر.' : 'Official Statement issued and signed.')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'تم الإصدار بنجاح' : 'Statement Issued',
+      message: localeStore.isRtl ? 'تم إصدار الوثيقة واعتمادها بنجاح برمز التحقق المشفر والختم الرقمي.' : 'Official Statement issued and digitally signed.',
+      variant: 'success',
+    })
   } catch (err) {
-    alert('Failed to issue statement')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'فشل الإصدار' : 'Issue Failed',
+      message: localeStore.isRtl ? 'تعذر إصدار الإفادة الرسمية، يرجى مراجعة البيانات والمحاولة مجدداً.' : 'Failed to issue official statement.',
+      variant: 'danger',
+    })
   }
 }
 

@@ -471,6 +471,7 @@ import { api, getTranslated } from '../../services/api'
 import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
+import { useDialog } from '../../composables/useDialog'
 import {
   Upload,
   Search,
@@ -485,6 +486,7 @@ import {
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
+const dialog = useDialog()
 
 const documentsList = ref([])
 const isLoading = ref(true)
@@ -579,9 +581,13 @@ const handleFileDrop = (e) => {
   }
 }
 
-const processLocalFile = (file) => {
+const processLocalFile = async (file) => {
   if (file.size > 50 * 1024 * 1024) {
-    alert('حجم الملف يتجاوز الحد المسموح (50 ميجابايت).')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'حجم الملف كبير' : 'File Size Limit',
+      message: localeStore.isRtl ? 'حجم الملف يتجاوز الحد الأقصى المسموح به (50 ميجابايت).' : 'File size exceeds maximum allowed limit (50 MB).',
+      variant: 'warning',
+    })
     return
   }
   selectedLocalFile.value = file
@@ -644,7 +650,11 @@ const openEditDocModal = (doc) => {
 
 const submitForm = async () => {
   if (!form.title_ar || !form.title_en) {
-    alert('يرجى إدخال عنوان الوثيقة باللغتين العربية والإنجليزية')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
+      message: localeStore.isRtl ? 'يرجى إدخال عنوان الوثيقة باللغتين العربية والإنجليزية.' : 'Please enter document title in both Arabic and English.',
+      variant: 'warning',
+    })
     return
   }
 
@@ -687,7 +697,11 @@ const submitForm = async () => {
     isModalOpen.value = false
     clearSelectedLocalFile()
   } catch (err) {
-    alert('Failed to save document')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
+      message: localeStore.isRtl ? 'تعذر حفظ المستند أو رفعه، يرجى المحاولة لاحقاً.' : 'Failed to save document.',
+      variant: 'danger',
+    })
   } finally {
     isUploadingFile.value = false
     uploadProgress.value = 0
@@ -704,14 +718,26 @@ const handleToggleArchive = async (doc) => {
   }
 }
 
-const handleDownload = (doc) => {
+const handleDownload = async (doc) => {
   api.incrementDocumentDownload(doc.id)
   doc.download_count = (doc.download_count || 0) + 1
-  alert(`جاري تحميل ملف: ${getTranslated(doc.title, localeStore.locale)}`)
+  await dialog.alert({
+    title: localeStore.isRtl ? 'تحميل الوثيقة' : 'Download Document',
+    message: localeStore.isRtl ? `جاري تحميل ملف: ${getTranslated(doc.title, localeStore.locale)}` : `Downloading file: ${getTranslated(doc.title, localeStore.locale)}`,
+    variant: 'info',
+  })
 }
 
 const handleDeleteDoc = async (id) => {
-  if (window.confirm(t('admin.documents.confirmDeleteDoc'))) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف الوثيقة' : 'Delete Document',
+    message: t('admin.documents.confirmDeleteDoc') || (localeStore.isRtl ? 'هل أنت متأكد من حذف هذه الوثيقة نهائياً؟' : 'Are you sure you want to delete this document?'),
+    confirmText: localeStore.isRtl ? 'حذف' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteDocument(id)
     documentsList.value = documentsList.value.filter((d) => d.id !== id)
   }

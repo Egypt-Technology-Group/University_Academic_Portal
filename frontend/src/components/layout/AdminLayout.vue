@@ -298,12 +298,14 @@ import {
   Globe,
   LogOut,
 } from 'lucide-vue-next'
+import { useDialog } from '../../composables/useDialog'
 
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
 const authStore = useAuthStore()
 const localeStore = useLocaleStore()
+const dialog = useDialog()
 
 const isCollapsed = ref(false)
 const isMobileMenuOpen = ref(false)
@@ -410,7 +412,15 @@ const navigationMenu = computed(() => [
 ])
 
 const handleLogout = async () => {
-  if (window.confirm(t('admin.header.confirmLogoutPrompt'))) {
+  const confirmed = await dialog.confirm({
+    title: t('admin.header.confirmLogout') || (localeStore.isRtl ? 'تسجيل الخروج' : 'Sign Out'),
+    message: t('admin.header.confirmLogoutPrompt') || (localeStore.isRtl ? 'هل أنت متأكد من رغبتك في تسجيل الخروج من لوحة الإدارة؟' : 'Are you sure you want to log out?'),
+    confirmText: localeStore.isRtl ? 'تسجيل الخروج' : 'Log Out',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await authStore.logout()
     router.push({ name: 'admin-login' })
   }

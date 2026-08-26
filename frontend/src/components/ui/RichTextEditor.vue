@@ -373,13 +373,25 @@ const onCustomColorChange = (e) => {
   }
 }
 
-const setLink = () => {
+import { useDialog } from '../../composables/useDialog'
+
+const dialog = useDialog()
+
+const setLink = async () => {
   if (!editor.value) return
   const previousUrl = editor.value.getAttributes('link').href || ''
-  const url = window.prompt(localeStore.isRtl ? 'أدخل رابط الموقع (URL):' : 'Enter URL:', previousUrl || 'https://')
+  const url = await dialog.prompt({
+    title: localeStore.isRtl ? 'إدراج رابط تشعبي' : 'Insert Hyperlink',
+    message: localeStore.isRtl ? 'أدخل رابط الموقع الإلكتروني الذي تريد ربطه بالنص المختار:' : 'Enter the target URL to link to the selected text:',
+    inputLabel: localeStore.isRtl ? 'الرابط (URL)' : 'URL',
+    defaultValue: previousUrl || 'https://',
+    placeholder: 'https://example.edu.eg',
+    confirmText: localeStore.isRtl ? 'تطبيق الرابط' : 'Apply Link',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+  })
   
   if (url === null) return
-  if (url === '') {
+  if (url === '' || url === 'https://') {
     editor.value.chain().focus().extendMarkRange('link').unsetLink().run()
     return
   }

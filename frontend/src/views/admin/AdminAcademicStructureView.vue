@@ -795,6 +795,7 @@ import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import HybridDocumentWorkflow from '../../components/ui/HybridDocumentWorkflow.vue'
+import { useDialog } from '../../composables/useDialog'
 import {
   School,
   Building2,
@@ -813,6 +814,7 @@ import {
 } from 'lucide-vue-next'
 
 const localeStore = useLocaleStore()
+const dialog = useDialog()
 const activeTab = ref('colleges')
 
 const programWorkflowModel = reactive({
@@ -1014,12 +1016,24 @@ const submitFacultyForm = async () => {
     }
     isFacultyModalOpen.value = false
   } catch (err) {
-    alert('Failed to save faculty profile')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
+      message: localeStore.isRtl ? 'تعذر حفظ بيانات عضو هيئة التدريس، يرجى المحاولة لاحقاً.' : 'Failed to save faculty profile, please try again.',
+      variant: 'danger',
+    })
   }
 }
 
 const handleDeleteFaculty = async (id) => {
-  if (window.confirm(localeStore.isRtl ? 'حذف عضو هيئة التدريس؟' : 'Delete faculty profile?')) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف عضو هيئة التدريس' : 'Delete Faculty Profile',
+    message: localeStore.isRtl ? 'هل أنت متأكد من رغبتك في حذف عضو هيئة التدريس؟' : 'Are you sure you want to delete this faculty profile?',
+    confirmText: localeStore.isRtl ? 'حذف نهائي' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteFaculty(id)
     facultyList.value = facultyList.value.filter((f) => f.id !== id)
   }
@@ -1134,7 +1148,15 @@ const submitCollegeForm = async () => {
 }
 
 const handleDeleteCollege = async (id) => {
-  if (window.confirm(localeStore.isRtl ? 'هل أنت متأكد من حذف هذه الكلية نهائياً؟' : 'Are you sure you want to delete this college?')) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف الكلية' : 'Delete College',
+    message: localeStore.isRtl ? 'هل أنت متأكد من حذف هذه الكلية نهائياً؟ سيتم حذف كافة الأقسام التابعة لها.' : 'Are you sure you want to delete this college? All associated departments will be removed.',
+    confirmText: localeStore.isRtl ? 'حذف نهائي' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteCollege(id)
     collegesList.value = collegesList.value.filter((c) => c.id !== id)
   }
@@ -1197,7 +1219,15 @@ const submitDepartmentForm = async () => {
 }
 
 const handleDeleteDepartment = async (id) => {
-  if (window.confirm(localeStore.isRtl ? 'حذف القسم العلمي؟' : 'Delete department?')) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف القسم العلمي' : 'Delete Department',
+    message: localeStore.isRtl ? 'هل أنت متأكد من رغبتك في حذف هذا القسم العلمي؟' : 'Are you sure you want to delete this department?',
+    confirmText: localeStore.isRtl ? 'حذف' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteDepartment(id)
     sampleDepartments.value = sampleDepartments.value.filter((d) => d.id !== id)
   }
@@ -1281,12 +1311,24 @@ const submitProgramForm = async () => {
     }
     isProgramModalOpen.value = false
   } catch (err) {
-    alert('Failed to save program')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
+      message: localeStore.isRtl ? 'تعذر حفظ البرنامج الأكاديمي، يرجى المحاولة لاحقاً.' : 'Failed to save academic program, please try again.',
+      variant: 'danger',
+    })
   }
 }
 
 const handleDeleteProgram = async (id) => {
-  if (window.confirm(localeStore.isRtl ? 'هل تريد حذف هذا البرنامج الأكاديمي؟' : 'Delete this program?')) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف البرنامج الأكاديمي' : 'Delete Program',
+    message: localeStore.isRtl ? 'هل أنت متأكد من رغبتك في حذف هذا البرنامج الأكاديمي؟' : 'Are you sure you want to delete this degree program?',
+    confirmText: localeStore.isRtl ? 'حذف نهائي' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteProgram(id)
     programsList.value = programsList.value.filter((p) => p.id !== id)
   }

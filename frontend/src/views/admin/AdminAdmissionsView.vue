@@ -787,6 +787,7 @@ import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../../stores/locale'
+import { useDialog } from '../../composables/useDialog'
 import { api, getTranslated } from '../../services/api'
 import { formatStandardDate, formatStandardDateTime } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
@@ -812,6 +813,7 @@ import {
 const route = useRoute()
 const { t } = useI18n()
 const localeStore = useLocaleStore()
+const dialog = useDialog()
 
 const applications = ref([])
 const programOptions = ref([])
@@ -1032,7 +1034,11 @@ const saveDecision = async () => {
       updateSuccessMessage.value = ''
     }, 3000)
   } catch (err) {
-    alert(err.message || 'Failed to update application decision')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'خطأ في حفظ القرار' : 'Decision Save Error',
+      message: err.message || (localeStore.isRtl ? 'فشل حفظ قرار القبول، يرجى المحاولة لاحقاً.' : 'Failed to update application decision.'),
+      variant: 'danger',
+    })
   } finally {
     isSaving.value = false
   }
@@ -1085,10 +1091,18 @@ const sendMissingDocsRequest = async () => {
       })
     }
 
-    alert('تم إرسال إشعار طلب المستندات بنجاح للمتقدم عبر البريد والبوابة.')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'تم الإرسال بنجاح' : 'Request Sent',
+      message: localeStore.isRtl ? 'تم إرسال إشعار طلب المستندات بنجاح للمتقدم عبر البريد والبوابة الإلكترونية.' : 'Missing documents notification sent successfully to applicant.',
+      variant: 'success',
+    })
     isMissingDocsModalOpen.value = false
   } catch (err) {
-    alert(err.message || 'Failed to send missing documents request')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'خطأ في الإرسال' : 'Send Error',
+      message: err.message || (localeStore.isRtl ? 'فشل إرسال طلب استيفاء المستندات.' : 'Failed to send missing documents request.'),
+      variant: 'danger',
+    })
   } finally {
     isSendingMissingRequest.value = false
   }

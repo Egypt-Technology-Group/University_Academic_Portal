@@ -256,6 +256,7 @@ import { formatStandardDate, formatTimeRange } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
+import { useDialog } from '../../composables/useDialog'
 import {
   Plus,
   Search,
@@ -269,6 +270,7 @@ import {
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
+const dialog = useDialog()
 
 const eventsList = ref([])
 const isLoading = ref(true)
@@ -396,7 +398,11 @@ const openEditEventModal = (ev) => {
 
 const submitForm = async () => {
   if (!form.title_ar || !form.event_date || !form.venue_ar) {
-    alert('يرجى ملء الحقول الإلزامية')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
+      message: localeStore.isRtl ? 'يرجى إدخال عنوان وتاريخ ومكان الفعالية للمتابعة.' : 'Please fill in the title, date, and venue.',
+      variant: 'warning',
+    })
     return
   }
 
@@ -424,12 +430,24 @@ const submitForm = async () => {
     }
     isModalOpen.value = false
   } catch (err) {
-    alert('Failed to save event')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
+      message: localeStore.isRtl ? 'تعذر حفظ الفعالية، يرجى المحاولة لاحقاً.' : 'Failed to save event.',
+      variant: 'danger',
+    })
   }
 }
 
 const handleDeleteEvent = async (id) => {
-  if (window.confirm(t('admin.events.confirmDeleteEvent'))) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف الفعالية' : 'Delete Event',
+    message: t('admin.events.confirmDeleteEvent') || (localeStore.isRtl ? 'هل أنت متأكد من حذف هذه الفعالية؟' : 'Are you sure you want to delete this event?'),
+    confirmText: localeStore.isRtl ? 'حذف' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteEvent(id)
     eventsList.value = eventsList.value.filter((e) => e.id !== id)
   }

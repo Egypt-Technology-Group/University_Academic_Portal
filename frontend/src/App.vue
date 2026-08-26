@@ -14,6 +14,9 @@
 
     <!-- Footer (Public routes only) -->
     <Footer v-if="!isAdminRoute" />
+
+    <!-- Global Professional Dialog & Notification Modal -->
+    <DialogModal />
   </div>
 </template>
 
@@ -24,6 +27,7 @@ import { useLocaleStore } from './stores/locale'
 import { useSettingsStore } from './stores/settings'
 import Navbar from './components/layout/Navbar.vue'
 import Footer from './components/layout/Footer.vue'
+import DialogModal from './components/ui/DialogModal.vue'
 
 const route = useRoute()
 const localeStore = useLocaleStore()

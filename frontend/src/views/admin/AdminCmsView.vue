@@ -445,6 +445,7 @@ import { formatStandardDate } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
+import { useDialog } from '../../composables/useDialog'
 import {
   Newspaper,
   Megaphone,
@@ -461,6 +462,7 @@ import {
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
+const dialog = useDialog()
 
 const activeTab = ref('news')
 const newsList = ref([])
@@ -639,7 +641,11 @@ const openEditAnnouncementModal = (item) => {
 
 const submitNewsForm = async () => {
   if (!newsForm.title_ar || !newsForm.content_ar) {
-    alert('يرجى ملء الحقول الإلزامية')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
+      message: localeStore.isRtl ? 'يرجى إدخال عنوان ومحتوى الخبر باللغة العربية على الأقل.' : 'Please enter news title and content.',
+      variant: 'warning',
+    })
     return
   }
 
@@ -665,13 +671,21 @@ const submitNewsForm = async () => {
     }
     isNewsModalOpen.value = false
   } catch (err) {
-    alert('Failed to save news article')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
+      message: localeStore.isRtl ? 'تعذر حفظ المقال الخبري، يرجى المحاولة لاحقاً.' : 'Failed to save news article.',
+      variant: 'danger',
+    })
   }
 }
 
 const submitAnnouncementForm = async () => {
   if (!announcementForm.title_ar || !announcementForm.content_ar) {
-    alert('يرجى ملء الحقول الإلزامية')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
+      message: localeStore.isRtl ? 'يرجى إدخال عنوان ونص الإعلان للمتابعة.' : 'Please enter announcement title and content.',
+      variant: 'warning',
+    })
     return
   }
 
@@ -695,19 +709,39 @@ const submitAnnouncementForm = async () => {
     }
     isAnnouncementModalOpen.value = false
   } catch (err) {
-    alert('Failed to save announcement')
+    await dialog.alert({
+      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
+      message: localeStore.isRtl ? 'تعذر حفظ الإعلان، يرجى المحاولة لاحقاً.' : 'Failed to save announcement.',
+      variant: 'danger',
+    })
   }
 }
 
 const handleDeleteNews = async (id) => {
-  if (window.confirm(t('admin.cms.confirmDeleteNews'))) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف الخبر' : 'Delete News Article',
+    message: t('admin.cms.confirmDeleteNews') || (localeStore.isRtl ? 'هل أنت متأكد من حذف هذا الخبر؟' : 'Are you sure you want to delete this news article?'),
+    confirmText: localeStore.isRtl ? 'حذف' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteNews(id)
     newsList.value = newsList.value.filter((n) => n.id !== id)
   }
 }
 
 const handleDeleteAnnouncement = async (id) => {
-  if (window.confirm(t('admin.cms.confirmDeleteAnnouncement'))) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'حذف الإعلان' : 'Delete Announcement',
+    message: t('admin.cms.confirmDeleteAnnouncement') || (localeStore.isRtl ? 'هل أنت متأكد من حذف هذا الإعلان؟' : 'Are you sure you want to delete this announcement?'),
+    confirmText: localeStore.isRtl ? 'حذف' : 'Delete',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     await api.deleteAnnouncement(id)
     announcementsList.value = announcementsList.value.filter((a) => a.id !== id)
   }

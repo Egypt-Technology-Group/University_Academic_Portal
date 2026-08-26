@@ -977,6 +977,7 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useSettingsStore } from '../../stores/settings'
 import { useLocaleStore } from '../../stores/locale'
+import { useDialog } from '../../composables/useDialog'
 import {
   Palette,
   Building2,
@@ -998,6 +999,7 @@ import {
 
 const settingsStore = useSettingsStore()
 const localeStore = useLocaleStore()
+const dialog = useDialog()
 
 const activeTab = ref('branding')
 const isSaving = ref(false)
@@ -1224,7 +1226,15 @@ const saveAllSettings = async () => {
 }
 
 const confirmResetDefaults = async () => {
-  if (confirm(localeStore.isRtl ? 'هل أنت متأكد من رغبتك في استعادة الإعدادات الافتراضية للنظام؟' : 'Are you sure you want to reset site settings to factory defaults?')) {
+  const confirmed = await dialog.confirm({
+    title: localeStore.isRtl ? 'استعادة الإعدادات الافتراضية' : 'Reset System Defaults',
+    message: localeStore.isRtl ? 'هل أنت متأكد من رغبتك في استعادة الإعدادات الافتراضية للنظام من قاعدة البيانات؟ سيتم فقدان التعديلات غير المحفوظة.' : 'Are you sure you want to reset site settings to factory defaults? Any unsaved changes will be lost.',
+    confirmText: localeStore.isRtl ? 'استعادة الافتراضي' : 'Reset to Defaults',
+    cancelText: localeStore.isRtl ? 'إلغاء' : 'Cancel',
+    variant: 'danger',
+  })
+
+  if (confirmed) {
     isResetting.value = true
     try {
       await settingsStore.resetSettings()
@@ -1238,11 +1248,20 @@ const confirmResetDefaults = async () => {
         social_links: JSON.parse(JSON.stringify(settingsStore.socialLinks)),
         footer_info: JSON.parse(JSON.stringify(settingsStore.footerInfo)),
         top_announcement_bar: JSON.parse(JSON.stringify(settingsStore.topAnnouncement)),
-        site_statistics: JSON.parse(JSON.stringify(settingsStore.siteStatistics || { title: { ar: '', en: '' }, subtitle: { ar: '', en: '' }, items: [] })),
+        site_statistics: JSON.parse(JSON.stringify(settingsStore.siteStatistics)),
       })
-      saveSuccess.value = true
+      await dialog.alert({
+        title: localeStore.isRtl ? 'تمت الاستعادة' : 'Reset Complete',
+        message: localeStore.isRtl ? 'تمت استعادة الإعدادات الافتراضية بنجاح.' : 'Site settings have been reset to factory defaults successfully.',
+        variant: 'success',
+      })
     } catch (e) {
-      console.error(e)
+      console.error('Failed to reset settings:', e)
+      await dialog.alert({
+        title: localeStore.isRtl ? 'خطأ' : 'Error',
+        message: localeStore.isRtl ? 'حدث خطأ أثناء استعادة الإعدادات الافتراضية.' : 'Failed to reset settings to defaults.',
+        variant: 'danger',
+      })
     } finally {
       isResetting.value = false
     }
