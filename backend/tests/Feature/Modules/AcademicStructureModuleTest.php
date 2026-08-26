@@ -70,7 +70,13 @@ class AcademicStructureModuleTest extends TestCase
 
     public function test_public_academic_structure_routes_return_404_when_module_is_disabled(): void
     {
-        // First disable dependents if any (e.g. admissions)
+        // First disable dependents if any (e.g. results, academic-services, admissions)
+        if ($this->moduleManager->isEnabled('results')) {
+            $this->moduleManager->disable('results');
+        }
+        if ($this->moduleManager->isEnabled('academic-services')) {
+            $this->moduleManager->disable('academic-services');
+        }
         if ($this->moduleManager->isEnabled('admissions')) {
             $this->moduleManager->disable('admissions');
         }
@@ -136,6 +142,12 @@ class AcademicStructureModuleTest extends TestCase
 
     public function test_admin_academic_structure_routes_return_404_when_disabled(): void
     {
+        if ($this->moduleManager->isEnabled('results')) {
+            $this->moduleManager->disable('results');
+        }
+        if ($this->moduleManager->isEnabled('academic-services')) {
+            $this->moduleManager->disable('academic-services');
+        }
         if ($this->moduleManager->isEnabled('admissions')) {
             $this->moduleManager->disable('admissions');
         }
@@ -183,7 +195,13 @@ class AcademicStructureModuleTest extends TestCase
         $this->moduleManager->enable('academic-structure');
         $this->moduleManager->enable('admissions');
 
-        // First disable admissions
+        // First disable dependents (results, academic-services, admissions)
+        if ($this->moduleManager->isEnabled('results')) {
+            $this->moduleManager->disable('results');
+        }
+        if ($this->moduleManager->isEnabled('academic-services')) {
+            $this->moduleManager->disable('academic-services');
+        }
         $this->moduleManager->disable('admissions');
         $this->assertFalse($this->moduleManager->isEnabled('admissions'));
 

@@ -115,6 +115,12 @@ class AdmissionsModuleTest extends TestCase
 
     public function test_cannot_enable_admissions_when_academic_structure_is_disabled(): void
     {
+        if ($this->moduleManager->isEnabled('results')) {
+            $this->moduleManager->disable('results');
+        }
+        if ($this->moduleManager->isEnabled('academic-services')) {
+            $this->moduleManager->disable('academic-services');
+        }
         $this->moduleManager->disable('admissions');
         $this->moduleManager->disable('academic-structure');
 

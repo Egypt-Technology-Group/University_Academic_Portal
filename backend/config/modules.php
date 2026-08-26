@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 return [
     /*
@@ -12,6 +12,11 @@ return [
     'modules' => [
         \App\Modules\AcademicStructure\AcademicStructureModule::class,
         \App\Modules\Admissions\AdmissionsModule::class,
+        \App\Modules\AcademicServices\AcademicServicesModule::class,
+        \App\Modules\Cms\CmsModule::class,
+        \App\Modules\Events\EventsModule::class,
+        \App\Modules\Documents\DocumentsModule::class,
+        \App\Modules\Results\ResultsModule::class,
     ],
 
     /*
@@ -25,10 +30,11 @@ return [
     'default_enabled' => [
         'academic-structure',
         'admissions',
-        'student-portal',
-        'cms',
-        'site-settings',
         'academic-services',
+        'cms',
+        'events',
+        'documents',
+        'results',
     ],
 
     /*
