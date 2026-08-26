@@ -291,6 +291,8 @@ import {
   FolderArchive,
   Palette,
   ShieldCheck,
+  Blocks,
+  Boxes,
   ExternalLink,
   ChevronRight,
   ChevronLeft,
@@ -323,6 +325,8 @@ const iconMap = {
   FolderArchive,
   Palette,
   ShieldCheck,
+  Blocks,
+  Boxes,
 }
 
 const resolveIconComponent = (icon) => {
@@ -361,6 +365,7 @@ const currentRouteTitle = computed(() => {
   if (route.path.includes('/admin/cms')) return t('admin.nav.cms')
   if (route.path.includes('/admin/events')) return t('admin.nav.events')
   if (route.path.includes('/admin/documents')) return t('admin.nav.documents')
+  if (route.path.includes('/admin/modules')) return localeStore.isRtl ? 'مركز إدارة الموديولات والأنظمة' : 'Micro-Modules & Plugins Manager'
   if (route.path.includes('/admin/settings')) return t('admin.nav.settings')
   if (route.path.includes('/admin/audit-trail')) return localeStore.isRtl ? 'سجل التدقيق والأمان والرقابة' : 'Audit Trail & Compliance'
   return t('admin.nav.dashboard')
@@ -444,6 +449,11 @@ const navigationMenu = computed(() => {
         path: '/admin/settings',
         label: t('admin.nav.settings'),
         icon: Palette,
+      },
+      {
+        path: '/admin/modules',
+        label: t('admin.nav.modules'),
+        icon: Blocks,
       },
       {
         path: '/admin/audit-trail',

@@ -184,6 +184,12 @@ const routes = [
         meta: { title: 'Site Customization & Settings', requiresAuth: true },
       },
       {
+        path: 'modules',
+        name: 'admin-modules',
+        component: () => import('../views/admin/AdminModulesView.vue'),
+        meta: { title: 'Micro-Modules Management Center', requiresAuth: true },
+      },
+      {
         path: 'audit-trail',
         name: 'admin-audit-trail',
         component: () => import('../views/admin/AdminAuditTrailView.vue'),
