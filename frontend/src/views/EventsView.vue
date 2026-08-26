@@ -156,6 +156,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../stores/locale'
 import { api, getTranslated } from '../services/api'
+import { getLocalizedMonth, getLocalizedDay, formatStandardDate, formatStandardTime } from '../utils/dateFormat'
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
 import Badge from '../components/ui/Badge.vue'
 import Button from '../components/ui/Button.vue'
@@ -211,17 +212,8 @@ const handleRegisterEvent = async () => {
   }
 }
 
-const getMonth = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString(localeStore.isRtl ? 'ar-EG' : 'en-US', { month: 'short' })
-}
-
-const getDay = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.getDate()
-}
+const getMonth = (dateStr) => getLocalizedMonth(dateStr, localeStore.locale)
+const getDay = (dateStr) => getLocalizedDay(dateStr)
 
 onMounted(async () => {
   try {

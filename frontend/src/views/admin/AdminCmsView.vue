@@ -508,6 +508,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
+import { formatStandardDate } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
 import {
   Newspaper,
@@ -618,19 +619,7 @@ const filteredNews = computed(() => {
   return list
 })
 
-const formatDate = (isoStr) => {
-  if (!isoStr) return ''
-  try {
-    const d = new Date(isoStr)
-    return d.toLocaleDateString(localeStore.locale === 'ar' ? 'ar-EG' : 'en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  } catch {
-    return isoStr
-  }
-}
+const formatDate = (isoStr) => formatStandardDate(isoStr, localeStore.locale)
 
 const getAudienceLabel = (aud) => {
   if (aud === 'students') return t('admin.cms.audStudents')

@@ -389,6 +389,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../stores/locale'
 import { api, getTranslated } from '../services/api'
+import { formatStandardDate } from '../utils/dateFormat'
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
 import Badge from '../components/ui/Badge.vue'
 import Button from '../components/ui/Button.vue'
@@ -435,7 +436,7 @@ const toggleCourse = (course) => {
 }
 
 const currentDate = computed(() => {
-  return new Date().toLocaleDateString(localeStore.isRtl ? 'ar-EG' : 'en-US', {
+  return formatStandardDate(new Date(), localeStore.locale, {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -501,12 +502,5 @@ const getStatusBadgeClass = (status) => {
   return 'bg-amber-100 text-amber-800'
 }
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString(localeStore.isRtl ? 'ar-EG' : 'en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
+const formatDate = (dateStr) => formatStandardDate(dateStr, localeStore.locale)
 </script>

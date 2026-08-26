@@ -65,6 +65,16 @@ export function getTranslated(field, locale = 'ar') {
   return String(field)
 }
 
+export {
+  formatStandardDate,
+  formatStandardDateTime,
+  formatStandardTime,
+  formatTimeRange,
+  getLocalizedMonth,
+  getLocalizedDay,
+  formatRelativeTime
+} from '../utils/dateFormat'
+
 // API Service Methods
 export const api = {
   // Colleges

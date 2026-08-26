@@ -279,6 +279,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useLocaleStore } from '../../stores/locale'
+import { formatStandardDate } from '../../utils/dateFormat'
 import {
   LayoutDashboard,
   UserCheck,
@@ -329,14 +330,12 @@ const userRoleLabel = computed(() => {
 })
 
 const formattedCurrentDate = computed(() => {
-  const now = new Date()
-  const options = {
+  return formatStandardDate(new Date(), locale.value, {
     weekday: 'long',
     year: 'numeric',
     month: 'short',
     day: 'numeric'
-  }
-  return now.toLocaleDateString(locale.value === 'ar' ? 'ar-EG' : 'en-US', options)
+  })
 })
 
 const navigationMenu = computed(() => [

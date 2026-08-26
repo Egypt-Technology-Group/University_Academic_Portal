@@ -618,7 +618,7 @@
                   <div v-if="event.details" class="text-[11px] text-slate-600 mt-0.5">{{ event.details }}</div>
                 </div>
                 <div class="text-[10px] text-slate-400 whitespace-nowrap font-mono">
-                  {{ new Date(event.timestamp).toLocaleDateString() }}
+                  {{ formatStandardDateTime(event.timestamp, localeStore.locale) }}
                 </div>
               </div>
             </div>
@@ -823,6 +823,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
+import { formatStandardDate, formatStandardDateTime } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
 import {
   Search,
@@ -973,19 +974,7 @@ const getDocTitle = (doc) => {
   return 'وثيقة ومستند رسمي'
 }
 
-const formatDate = (isoStr) => {
-  if (!isoStr) return ''
-  try {
-    const d = new Date(isoStr)
-    return d.toLocaleDateString(localeStore.locale === 'ar' ? 'ar-EG' : 'en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  } catch {
-    return isoStr
-  }
-}
+const formatDate = (isoStr) => formatStandardDate(isoStr, localeStore.locale)
 
 const loadApplications = async () => {
   isLoading.value = true

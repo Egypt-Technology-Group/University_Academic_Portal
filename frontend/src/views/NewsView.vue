@@ -131,6 +131,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../stores/locale'
 import { api, getTranslated } from '../services/api'
+import { formatStandardDate } from '../utils/dateFormat'
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
 import Badge from '../components/ui/Badge.vue'
 import Card from '../components/ui/Card.vue'
@@ -182,15 +183,7 @@ const paginatedNews = computed(() => {
   return filteredNews.value.slice(start, start + perPage)
 })
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString(localeStore.isRtl ? 'ar-EG' : 'en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
+const formatDate = (dateStr) => formatStandardDate(dateStr, localeStore.locale)
 
 onMounted(async () => {
   try {

@@ -301,11 +301,11 @@
             <div class="pt-3 border-t border-slate-100 space-y-2 text-xs">
               <div class="flex items-center justify-between text-slate-600">
                 <span>{{ $t('admin.dashboard.cycleStart') }}</span>
-                <span class="font-mono font-bold text-slate-800">2025-05-01</span>
+                <span class="font-mono font-bold text-slate-800">{{ formatStandardDate('2025-05-01', localeStore.locale) }}</span>
               </div>
               <div class="flex items-center justify-between text-slate-600">
                 <span>{{ $t('admin.dashboard.cycleEnd') }}</span>
-                <span class="font-mono font-bold text-slate-800">2025-09-30</span>
+                <span class="font-mono font-bold text-slate-800">{{ formatStandardDate('2025-09-30', localeStore.locale) }}</span>
               </div>
               <div class="flex items-center justify-between text-slate-600">
                 <span>{{ $t('admin.dashboard.cycleDaysRemaining') }}</span>
@@ -385,6 +385,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
+import { formatStandardDate } from '../../utils/dateFormat'
 import {
   Sparkles,
   UserCheck,

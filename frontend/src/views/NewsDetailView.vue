@@ -136,6 +136,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLocaleStore } from '../stores/locale'
 import { api, getTranslated } from '../services/api'
+import { formatStandardDate } from '../utils/dateFormat'
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
 import Badge from '../components/ui/Badge.vue'
 import Button from '../components/ui/Button.vue'
@@ -163,15 +164,7 @@ const loadArticle = async () => {
   }
 }
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString(localeStore.isRtl ? 'ar-EG' : 'en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
+const formatDate = (dateStr) => formatStandardDate(dateStr, localeStore.locale)
 
 const copyUrl = () => {
   navigator.clipboard.writeText(window.location.href)

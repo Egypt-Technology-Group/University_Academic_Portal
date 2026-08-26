@@ -164,7 +164,8 @@
               <tr v-for="req in filteredRequests" :key="req.id" class="hover:bg-slate-50/80 transition-colors">
                 <td class="py-3.5 px-4">
                   <div class="font-mono font-bold text-navy-950 text-xs">{{ req.request_number }}</div>
-                  <div class="inline-block text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded mt-0.5 border border-blue-100">
+                  <div class="text-[10px] text-slate-400 font-mono mt-0.5">{{ formatStandardDate(req.created_at, localeStore.locale) }}</div>
+                  <div class="inline-block text-[10px] font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded mt-1 border border-blue-100">
                     {{ getServiceLabel(req.service_type) }}
                   </div>
                 </td>
@@ -270,7 +271,7 @@
 
           <div class="flex items-center justify-between pt-2 border-t border-slate-100">
             <div class="text-[10px] text-slate-400 font-mono">
-              Issuer: {{ st.signatory_name }}
+              {{ formatStandardDate(st.issue_date, localeStore.locale) }} • {{ st.signatory_name }}
             </div>
             <button
               type="button"
@@ -315,8 +316,8 @@
                 </td>
 
                 <td class="py-3.5 px-4 text-center font-mono">
-                  <div class="font-bold text-navy-950">{{ exam.exam_date }}</div>
-                  <div class="text-[10px] text-slate-400">{{ exam.start_time }} - {{ exam.end_time }}</div>
+                  <div class="font-bold text-navy-950">{{ formatStandardDate(exam.exam_date, localeStore.locale) }}</div>
+                  <div class="text-[10px] text-slate-500 font-semibold">{{ formatTimeRange(exam.start_time, exam.end_time, localeStore.locale) }}</div>
                 </td>
 
                 <td class="py-3.5 px-4">
@@ -658,6 +659,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
+import { formatStandardDate, formatStandardTime, formatTimeRange } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
 import {
   GraduationCap,

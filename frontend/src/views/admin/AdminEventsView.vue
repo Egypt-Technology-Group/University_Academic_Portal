@@ -108,8 +108,8 @@
 
               <!-- Date & Time -->
               <td class="py-3.5 px-4 font-mono text-slate-600">
-                <div class="font-bold text-navy-950">{{ ev.event_date }}</div>
-                <div class="text-[10px] text-slate-400">{{ ev.start_time }} - {{ ev.end_time }}</div>
+                <div class="font-bold text-navy-950">{{ formatStandardDate(ev.event_date || ev.start_time, localeStore.locale) }}</div>
+                <div class="text-[10px] text-slate-500 font-semibold">{{ formatTimeRange(ev.start_time, ev.end_time, localeStore.locale) }}</div>
               </td>
 
               <!-- Capacity -->
@@ -319,6 +319,7 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
+import { formatStandardDate, formatTimeRange } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
 import {
   Plus,

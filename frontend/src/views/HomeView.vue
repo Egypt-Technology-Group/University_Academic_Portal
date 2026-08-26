@@ -506,6 +506,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocaleStore } from '../stores/locale'
 import { useSettingsStore } from '../stores/settings'
 import { api, getTranslated } from '../services/api'
+import { formatStandardDate, getLocalizedMonth, getLocalizedDay } from '../utils/dateFormat'
 import Button from '../components/ui/Button.vue'
 import Badge from '../components/ui/Badge.vue'
 import Card from '../components/ui/Card.vue'
@@ -556,27 +557,9 @@ const slides = computed(() => {
 
 const activeSlide = computed(() => slides.value[currentSlideIndex.value] || slides.value[0])
 
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString(localeStore.isRtl ? 'ar-EG' : 'en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
-const getEventMonth = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.toLocaleDateString(localeStore.isRtl ? 'ar-EG' : 'en-US', { month: 'short' })
-}
-
-const getEventDay = (dateStr) => {
-  if (!dateStr) return ''
-  const date = new Date(dateStr)
-  return date.getDate()
-}
+const formatDate = (dateStr) => formatStandardDate(dateStr, localeStore.locale)
+const getEventMonth = (dateStr) => getLocalizedMonth(dateStr, localeStore.locale)
+const getEventDay = (dateStr) => getLocalizedDay(dateStr)
 
 onMounted(async () => {
   // Load data
