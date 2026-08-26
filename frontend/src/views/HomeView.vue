@@ -134,7 +134,7 @@
     </section>
 
     <!-- FEATURED COLLEGES SECTION -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
+    <section v-if="modulesStore.isModuleEnabled('academic-structure') && colleges.length > 0" class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div class="text-xs font-bold uppercase tracking-wider text-gold-600 mb-1">
@@ -212,7 +212,7 @@
     </section>
 
     <!-- FEATURED DEGREE PROGRAMS -->
-    <section class="bg-slate-100/70 py-16 border-y border-slate-200">
+    <section v-if="modulesStore.isModuleEnabled('academic-structure') && programs.length > 0" class="bg-slate-100/70 py-16 border-y border-slate-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
@@ -248,32 +248,34 @@
               <Badge variant="subtle" size="sm">
                 {{ $t(`programs.${program.degree_level}`) || program.degree_level }}
               </Badge>
-              <span class="text-xs text-slate-500 font-semibold">
+              <span class="text-xs font-semibold text-slate-500 font-mono">
                 {{ program.credit_hours }} {{ $t('programs.creditHours') }}
               </span>
             </div>
 
             <h3 class="text-lg font-bold text-navy-950 mb-2 leading-snug">
-              {{ getTranslated(program.name, localeStore.locale) }}
+              <router-link :to="`/programs/${program.slug}`" class="hover:text-gold-600 transition-colors">
+                {{ getTranslated(program.name, localeStore.locale) }}
+              </router-link>
             </h3>
 
-            <p class="text-xs text-slate-500 mb-4">
-              {{ getTranslated(program.college_name, localeStore.locale) }}
-            </p>
-
-            <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-6">
+            <p class="text-xs text-slate-600 line-clamp-2 mb-4 leading-relaxed">
               {{ getTranslated(program.overview, localeStore.locale) }}
             </p>
 
-            <div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
               <router-link
                 :to="`/programs/${program.slug}`"
-                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors"
+                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1"
               >
-                {{ $t('programs.overview') }} →
+                {{ $t('programs.curriculum') }}
+                <svg class="w-3 h-3 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
               </router-link>
 
               <router-link
+                v-if="modulesStore.isModuleEnabled('admissions')"
                 :to="`/admissions?program_id=${program.id}`"
                 class="px-3 py-1.5 text-xs font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 rounded-lg transition-colors"
               >
@@ -318,6 +320,7 @@
             </p>
             <div class="pt-4 flex items-center gap-4">
               <router-link
+                v-if="modulesStore.isModuleEnabled('academic-structure')"
                 to="/colleges"
                 class="text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1.5"
               >
@@ -330,7 +333,7 @@
     </section>
 
     <!-- LATEST NEWS & EVENTS SECTION (TABS / GRID) -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
+    <section v-if="modulesStore.isModuleEnabled('cms') && news.length > 0" class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div class="text-xs font-bold uppercase tracking-wider text-navy-600 mb-1">
@@ -406,7 +409,7 @@
     </section>
 
     <!-- UPCOMING EVENTS CARDS -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
+    <section v-if="modulesStore.isModuleEnabled('events') && events.length > 0" class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div class="text-xs font-bold uppercase tracking-wider text-gold-600 mb-1">
@@ -507,6 +510,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useLocaleStore } from '../stores/locale'
 import { useSettingsStore } from '../stores/settings'
+import { useModulesStore } from '../stores/modules'
 import { api, getTranslated } from '../services/api'
 import { formatStandardDate, getLocalizedMonth, getLocalizedDay } from '../utils/dateFormat'
 import Button from '../components/ui/Button.vue'
@@ -515,6 +519,7 @@ import Card from '../components/ui/Card.vue'
 
 const localeStore = useLocaleStore()
 const settingsStore = useSettingsStore()
+const modulesStore = useModulesStore()
 
 const colleges = ref([])
 const programs = ref([])
@@ -564,21 +569,23 @@ const getEventMonth = (dateStr) => getLocalizedMonth(dateStr, localeStore.locale
 const getEventDay = (dateStr) => getLocalizedDay(dateStr)
 
 onMounted(async () => {
-  // Load data
-  try {
-    const [cData, pData, nData, eData] = await Promise.all([
-      api.getColleges(),
-      api.getPrograms(),
-      api.getNews({ per_page: 3 }),
-      api.getEvents(),
-    ])
-    colleges.value = cData
-    programs.value = pData
-    news.value = nData
-    events.value = eData
-  } catch (e) {
-    console.error('HomeView load error:', e)
+  // Non-blocking parallel data fetching strictly for enabled modules
+  const tasks = []
+
+  if (modulesStore.isModuleEnabled('academic-structure')) {
+    tasks.push(api.getColleges().then((res) => { colleges.value = res || [] }).catch(() => {}))
+    tasks.push(api.getPrograms().then((res) => { programs.value = res || [] }).catch(() => {}))
   }
+
+  if (modulesStore.isModuleEnabled('cms')) {
+    tasks.push(api.getNews({ per_page: 3 }).then((res) => { news.value = res || [] }).catch(() => {}))
+  }
+
+  if (modulesStore.isModuleEnabled('events')) {
+    tasks.push(api.getEvents().then((res) => { events.value = res || [] }).catch(() => {}))
+  }
+
+  Promise.allSettled(tasks)
 
   // Auto rotate slides every 6s
   sliderTimer = setInterval(() => {

@@ -102,6 +102,8 @@ class EntitlementManager
         // Update high-speed cache
         try {
             Cache::forever(self::CACHE_KEY, $verification['data']);
+            Cache::forget('app_modules_public_manifest_ar');
+            Cache::forget('app_modules_public_manifest_en');
         } catch (\Throwable $e) {
         }
 
@@ -204,6 +206,8 @@ class EntitlementManager
         $this->cachedVerification = null;
         try {
             Cache::forget(self::CACHE_KEY);
+            Cache::forget('app_modules_public_manifest_ar');
+            Cache::forget('app_modules_public_manifest_en');
         } catch (\Throwable $e) {
         }
     }

@@ -65,37 +65,43 @@ class ModuleManagementController extends Controller
 
     /**
      * Return a lightweight public manifest of enabled module IDs and metadata for application bootstrap.
+     * High performance: cached in-memory/Redis and returns HTTP Cache-Control headers for client caching.
      *
      * GET /api/v1/modules/manifest
      */
     public function manifest(Request $request): JsonResponse
     {
-        $enabledIds = $this->moduleManager->getEnabledIds();
         $locale = $request->header('X-App-Locale', $request->get('locale', app()->getLocale() ?: 'ar'));
+        $cacheKey = 'app_modules_public_manifest_' . $locale;
 
-        $modules = [];
-        foreach ($this->moduleManager->all() as $id => $module) {
-            $isEnabled = in_array($id, $enabledIds, true);
-            $modules[] = [
-                'id' => $id,
-                'name' => [
-                    'ar' => $module->getName('ar'),
-                    'en' => $module->getName('en'),
-                ],
-                'display_name' => $module->getName($locale),
-                'is_enabled' => $isEnabled,
-                'is_entitled' => $this->moduleManager->getEntitlementManager()->isModuleEntitled($id),
-            ];
-        }
+        $payload = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($locale) {
+            $enabledIds = $this->moduleManager->getEnabledIds();
+            $modules = [];
+            foreach ($this->moduleManager->all() as $id => $module) {
+                $isEnabled = in_array($id, $enabledIds, true);
+                $modules[] = [
+                    'id' => $id,
+                    'name' => [
+                        'ar' => $module->getName('ar'),
+                        'en' => $module->getName('en'),
+                    ],
+                    'display_name' => $module->getName($locale),
+                    'is_enabled' => $isEnabled,
+                    'is_entitled' => $this->moduleManager->getEntitlementManager()->isModuleEntitled($id),
+                ];
+            }
 
-        return response()->json([
-            'success' => true,
-            'data' => [
+            return [
                 'enabled_ids' => $enabledIds,
                 'modules' => $modules,
                 'timestamp' => now()->timestamp,
-            ],
-        ]);
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $payload,
+        ])->header('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
     }
 
     /**

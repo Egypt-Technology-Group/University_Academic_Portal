@@ -11,18 +11,38 @@ import { moduleRegistry } from '../core/modules/moduleRegistry'
 
 const MANIFEST_CACHE_KEY = 'egyitech_modules_manifest_v1'
 
+let manifestInFlightPromise = null
+
 export const useModulesStore = defineStore('modules', {
-  state: () => ({
-    /** @type {Array<Object>} */
-    modules: [],
-    /** @type {Array<string>} */
-    enabledIds: [],
-    loading: false,
-    error: null,
-    conflictError: null,
-    initialized: false,
-    lastFetched: null,
-  }),
+  state: () => {
+    let cachedEnabled = null
+    let hasValidCache = false
+
+    try {
+      const raw = localStorage.getItem(MANIFEST_CACHE_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed?.enabledIds)) {
+          cachedEnabled = parsed.enabledIds
+          hasValidCache = true
+        }
+      }
+    } catch (e) {
+      console.warn('[useModulesStore] Initial synchronous cache hydration failed:', e)
+    }
+
+    return {
+      /** @type {Array<Object>} */
+      modules: [],
+      /** @type {Array<string>} */
+      enabledIds: cachedEnabled || [],
+      loading: false,
+      error: null,
+      conflictError: null,
+      initialized: hasValidCache,
+      lastFetched: null,
+    }
+  },
 
   getters: {
     /**
@@ -99,6 +119,10 @@ export const useModulesStore = defineStore('modules', {
      * Instantly hydrate state from local storage cache during startup.
      */
     hydrateFromCache() {
+      if (this.initialized && this.enabledIds.length > 0) {
+        return
+      }
+
       try {
         const raw = localStorage.getItem(MANIFEST_CACHE_KEY)
         if (raw) {
@@ -115,6 +139,7 @@ export const useModulesStore = defineStore('modules', {
 
     /**
      * Fetch lightweight module manifest asynchronously for startup / navbar.
+     * Deduplicates in-flight promises so concurrent callers share a single request.
      *
      * @param {boolean} [force=false]
      * @returns {Promise<Array<string>>}
@@ -124,92 +149,63 @@ export const useModulesStore = defineStore('modules', {
         return this.enabledIds
       }
 
+      if (manifestInFlightPromise && !force) {
+        return manifestInFlightPromise
+      }
+
       this.loading = true
       this.error = null
 
-      try {
-        const manifest = await modulesApi.getManifest()
-        const enabled = Array.isArray(manifest?.enabled_ids) ? manifest.enabled_ids : []
-
-        this.enabledIds = enabled
-        this.initialized = true
-        this.lastFetched = Date.now()
-
-        // Cache verified manifest state locally
+      manifestInFlightPromise = (async () => {
         try {
-          localStorage.setItem(
-            MANIFEST_CACHE_KEY,
-            JSON.stringify({ enabledIds: enabled, timestamp: Date.now() })
-          )
-        } catch (e) {
-        }
+          const manifest = await modulesApi.getManifest()
+          const enabled = Array.isArray(manifest?.enabled_ids) ? manifest.enabled_ids : []
 
-        return enabled
-      } catch (err) {
-        console.warn('[useModulesStore] Failed to fetch manifest:', err)
-        this.error = err?.message || 'Failed to fetch module manifest.'
-
-        // If no cache was hydrated, strictly remain fail-closed ([])
-        if (!this.initialized) {
-          this.enabledIds = []
+          this.enabledIds = enabled
           this.initialized = true
-        }
+          this.lastFetched = Date.now()
 
-        return this.enabledIds
-      } finally {
-        this.loading = false
-      }
+          // Cache verified manifest state locally
+          try {
+            localStorage.setItem(
+              MANIFEST_CACHE_KEY,
+              JSON.stringify({ enabledIds: enabled, timestamp: Date.now() })
+            )
+          } catch (e) {
+          }
+
+          return enabled
+        } catch (err) {
+          console.warn('[useModulesStore] Failed to fetch manifest:', err)
+          this.error = err?.message || 'Failed to fetch module manifest.'
+
+          if (!this.initialized) {
+            this.enabledIds = []
+            this.initialized = true
+          }
+
+          return this.enabledIds
+        } finally {
+          this.loading = false
+          manifestInFlightPromise = null
+        }
+      })()
+
+      return manifestInFlightPromise
     },
 
     /**
-     * Fetch full module details for the Module Management control plane.
-     *
-     * @param {boolean} [force=false]
-     * @returns {Promise<Array<Object>>}
-     */
-    async fetchModules(force = false) {
-      if (this.modules.length > 0 && !force) {
-        return this.modules
-      }
-
-      this.loading = true
-      this.error = null
-
-      try {
-        const response = await modulesApi.getModules()
-        const items = Array.isArray(response?.data) ? response.data : []
-
-        this.modules = items
-        this.enabledIds = items
-          .filter((item) => item.is_enabled === true || item.is_enabled === 1)
-          .map((item) => item.id)
-
-        this.initialized = true
-        this.lastFetched = Date.now()
-
-        try {
-          localStorage.setItem(
-            MANIFEST_CACHE_KEY,
-            JSON.stringify({ enabledIds: this.enabledIds, timestamp: Date.now() })
-          )
-        } catch (e) {
-        }
-
-        return items
-      } catch (err) {
-        console.error('[useModulesStore] Failed to fetch modules list:', err)
-        this.error = err?.message || 'Failed to fetch module registry status from server.'
-        return this.modules
-      } finally {
-        this.loading = false
-      }
-    },
-
-    /**
-     * Ensure module state is loaded before route execution.
+     * Ensure module state is ready before route execution without duplicate blocking calls.
      */
     async ensureLoaded() {
-      if (this.initialized) return
+      if (this.initialized) {
+        // Run background non-blocking manifest freshness sync if cache is stale
+        if (Date.now() - (this.lastFetched || 0) >= 60000) {
+          this.fetchManifest()
+        }
+        return
+      }
+
       this.hydrateFromCache()
       if (!this.initialized) {
         await this.fetchManifest()

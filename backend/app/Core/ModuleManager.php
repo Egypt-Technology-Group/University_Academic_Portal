@@ -329,6 +329,8 @@ class ModuleManager
         // 1. Save to cache
         try {
             Cache::forever($cacheKey, $enabledIds);
+            Cache::forget('app_modules_public_manifest_ar');
+            Cache::forget('app_modules_public_manifest_en');
         } catch (\Throwable $e) {
             Log::warning("Could not persist module state to cache: {$e->getMessage()}");
         }
@@ -352,6 +354,8 @@ class ModuleManager
         $this->entitlementManager->resetCache();
         try {
             Cache::forget(config('modules.cache_key', 'app_modules_enabled'));
+            Cache::forget('app_modules_public_manifest_ar');
+            Cache::forget('app_modules_public_manifest_en');
         } catch (\Throwable $e) {
         }
     }
@@ -366,6 +370,8 @@ class ModuleManager
         $this->entitlementManager->resetCache();
         try {
             Cache::forget(config('modules.cache_key', 'app_modules_enabled'));
+            Cache::forget('app_modules_public_manifest_ar');
+            Cache::forget('app_modules_public_manifest_en');
         } catch (\Throwable $e) {
         }
         try {
