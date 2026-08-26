@@ -8,10 +8,10 @@
           'px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5',
           activeTab === 'structured' ? 'bg-white text-navy-950 shadow-xs' : 'text-slate-600 hover:text-navy-950'
         ]"
-        @click="activeTab = 'structured'"
+        @click="switchTab('structured')"
       >
         <FileText class="w-3.5 h-3.5" />
-        <span>{{ localeStore.isRtl ? 'البيانات المنظمة وتوليد الوثيقة' : 'Structured Data (Auto-Generate)' }}</span>
+        <span>{{ structuredTabLabel || (localeStore.isRtl ? 'البيانات المنظمة وتوليد الوثيقة' : 'Structured Data (Auto-Generate)') }}</span>
       </button>
 
       <button
@@ -20,10 +20,10 @@
           'px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5',
           activeTab === 'upload' ? 'bg-white text-navy-950 shadow-xs' : 'text-slate-600 hover:text-navy-950'
         ]"
-        @click="activeTab = 'upload'"
+        @click="switchTab('upload')"
       >
         <Upload class="w-3.5 h-3.5" />
-        <span>{{ localeStore.isRtl ? 'رفع وثيقة رقمية جاهزة' : 'Upload Digital Document' }}</span>
+        <span>{{ uploadTabLabel || (localeStore.isRtl ? 'رفع وثيقة رقمية جاهزة (ملف فقط)' : 'Upload Digital Document (File Only)') }}</span>
       </button>
     </div>
 
@@ -42,7 +42,7 @@
       <!-- Live Generated Preview Ribbon -->
       <div v-if="showLivePreview" class="p-4 rounded-2xl bg-navy-50/70 border border-navy-100 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-navy-900 text-white flex items-center justify-center font-bold text-xs">
+          <div class="w-10 h-10 rounded-xl bg-navy-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
             📄
           </div>
           <div>
@@ -56,7 +56,7 @@
         </div>
         <button
           type="button"
-          class="px-3 py-1.5 rounded-xl bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-white font-bold text-xs shadow-xs transition-all cursor-pointer"
+          class="px-3 py-1.5 rounded-xl bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-white font-bold text-xs shadow-xs transition-all cursor-pointer shrink-0"
           @click="$emit('preview-generated', modelValue.structuredData)"
         >
           {{ localeStore.isRtl ? 'معاينة النموذج' : 'Preview Document' }}
@@ -66,6 +66,15 @@
 
     <!-- Direct File / Document Upload Mode -->
     <div v-if="activeTab === 'upload'" class="space-y-4">
+      <!-- File Only Mode Notice -->
+      <div class="p-3 bg-gold-50/70 border border-gold-200/80 rounded-2xl flex items-center gap-2.5 text-xs text-gold-950">
+        <span class="text-base shrink-0">📎</span>
+        <div>
+          <strong>{{ localeStore.isRtl ? 'وضع الاعتماد المباشر للملف (File Only Mode):' : 'File-Only Authoritative Mode:' }}</strong>
+          <span class="ms-1">{{ localeStore.isRtl ? 'الملف المرفوع هو المصدر المعتمد والرسمي للمحتوى وسيحل محل التوليد اليدوي بالكامل.' : 'The uploaded digital file will serve as the primary official document asset.' }}</span>
+        </div>
+      </div>
+
       <div
         class="border-2 border-dashed rounded-2xl p-6 text-center transition-all cursor-pointer relative"
         :class="[
@@ -91,7 +100,7 @@
         <!-- Selected / Existing File Preview -->
         <div v-if="selectedFile || existingFileUrl" class="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="flex items-center gap-3.5 text-start">
-            <div class="w-12 h-12 rounded-xl bg-navy-950 text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+            <div class="w-12 h-12 rounded-xl bg-navy-950 text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0 font-mono">
               {{ fileTypeLabel }}
             </div>
             <div>
@@ -145,6 +154,9 @@
           </p>
         </div>
       </div>
+
+      <!-- Optional Extra Fields Slot in File Mode (e.g. Title or Audience) -->
+      <slot name="file-meta-form"></slot>
     </div>
   </div>
 </template>
@@ -191,20 +203,37 @@ const props = defineProps({
   supportedFormatsText: {
     type: String,
     default: ''
+  },
+  structuredTabLabel: {
+    type: String,
+    default: ''
+  },
+  uploadTabLabel: {
+    type: String,
+    default: ''
   }
 })
 
-const emit = defineEmits(['update:modelValue', 'file-selected', 'file-removed', 'preview-generated'])
+const emit = defineEmits(['update:modelValue', 'mode-changed', 'file-selected', 'file-removed', 'preview-generated'])
 
 const localeStore = useLocaleStore()
-const activeTab = ref(props.mode === 'upload' ? 'upload' : 'structured')
+const activeTab = ref(props.mode === 'upload' ? 'upload' : (props.modelValue?.mode || 'structured'))
 const isDragging = ref(false)
-const selectedFile = ref(null)
+const selectedFile = ref(props.modelValue?.file || null)
 
 watch(() => props.mode, (newMode) => {
-  if (newMode === 'upload') activeTab.value = 'upload'
-  else if (newMode === 'structured') activeTab.value = 'structured'
+  if (newMode === 'upload') switchTab('upload')
+  else if (newMode === 'structured') switchTab('structured')
 })
+
+const switchTab = (tab) => {
+  activeTab.value = tab
+  emit('mode-changed', tab)
+  emit('update:modelValue', {
+    ...props.modelValue,
+    mode: tab
+  })
+}
 
 const fileTypeLabel = computed(() => {
   if (selectedFile.value) {
@@ -220,7 +249,10 @@ const fileTypeLabel = computed(() => {
 
 const fileSizeLabel = computed(() => {
   if (selectedFile.value) {
-    return (selectedFile.value.size / (1024 * 1024)).toFixed(2) + ' MB'
+    const bytes = selectedFile.value.size
+    return bytes >= 1048576
+      ? (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+      : (bytes / 1024).toFixed(0) + ' KB'
   }
   return 'Uploaded Document'
 })

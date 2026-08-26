@@ -315,7 +315,19 @@
             <tbody class="divide-y divide-slate-100">
               <tr v-for="exam in examSchedulesList" :key="exam.id" class="hover:bg-slate-50/80 transition-colors">
                 <td class="py-3.5 px-4">
-                  <div class="font-mono font-bold text-navy-950 text-sm">{{ exam.course_code }}</div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-bold text-navy-950 text-sm">{{ exam.course_code }}</span>
+                    <a
+                      v-if="exam.timetable_document_path"
+                      :href="exam.timetable_document_path"
+                      target="_blank"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gold-100 text-gold-950 text-[10px] font-bold hover:bg-gold-200 transition-colors"
+                      title="View Attached Official Timetable"
+                    >
+                      <Download class="w-3 h-3" />
+                      <span>PDF Asset</span>
+                    </a>
+                  </div>
                   <div class="text-xs text-slate-600 font-bold mt-0.5">{{ getTranslated(exam.course_name, localeStore.locale) }}</div>
                 </td>
 
@@ -372,8 +384,73 @@
       </div>
     </div>
 
-    <!-- TAB 4: STUDY PLANS & CURRICULUM -->
+    <!-- TAB 4: STUDY PLANS & CURRICULUM (HYBRID WORKFLOW) -->
     <div v-if="activeTab === 'study_plans'" class="space-y-4">
+      <!-- Master Study Plan PDF Upload Ribbon (Hybrid Document Workflow) -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h3 class="text-base font-bold text-navy-950 flex items-center gap-2">
+              <BookOpenCheck class="w-5 h-5 text-gold-500" />
+              <span>{{ localeStore.isRtl ? 'لائحة الخطة الدراسية وتوصيف المقررات (Hybrid Document Mode)' : 'Master Curriculum Blueprint (Hybrid Document Mode)' }}</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-1">
+              {{ localeStore.isRtl ? 'يمكنك إدخال المقررات يدوياً لكل مستوى، أو رفع ملف اللائحة والخطة المعتمدة (PDF / Excel) ليعتمد كوثيقة الخطة الرسمية مباشرة.' : 'You can enter courses level-by-level or upload an official accredited Curriculum Blueprint (PDF/Excel) as the primary document asset.' }}
+            </p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-bold text-xs shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
+              @click="openCourseStudyPlanHybridModal"
+            >
+              <Upload class="w-3.5 h-3.5" />
+              <span>{{ localeStore.isRtl ? 'رفع وثيقة اللائحة والخطة المعتمدة' : 'Upload Master Study Plan PDF' }}</span>
+            </button>
+            <button
+              type="button"
+              class="px-4 py-2 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-sm transition-all cursor-pointer inline-flex items-center gap-1.5"
+              @click="openNewCourseModal"
+            >
+              <Plus class="w-3.5 h-3.5" />
+              <span>{{ localeStore.isRtl ? 'إضافة مقرر فردي' : 'Add Single Course' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Master Document Asset Notice if uploaded -->
+        <div v-if="masterStudyPlanFileUrl" class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xs font-mono">
+              PDF
+            </div>
+            <div>
+              <div class="text-xs font-bold text-navy-950">{{ masterStudyPlanFileName || 'Accredited Curriculum Blueprint' }}</div>
+              <div class="text-[11px] text-emerald-800 font-medium">
+                {{ localeStore.isRtl ? 'الوثيقة الرسمية المعتمدة للخطة الدراسية نشطة ومتاحة للتحميل.' : 'Accredited study plan file is currently active and primary.' }}
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <a
+              :href="masterStudyPlanFileUrl"
+              target="_blank"
+              class="px-3 py-1.5 rounded-lg bg-white border border-emerald-300 text-navy-950 font-bold text-xs hover:bg-emerald-100 transition-colors inline-flex items-center gap-1"
+            >
+              <Download class="w-3.5 h-3.5 text-gold-600" />
+              <span>{{ localeStore.isRtl ? 'تحميل' : 'Download' }}</span>
+            </a>
+            <button
+              type="button"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              @click="removeMasterStudyPlanFile"
+            >
+              <Trash2 class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div v-for="lvl in [1, 2, 3, 4]" :key="lvl" class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs space-y-3">
           <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -451,179 +528,256 @@
       </template>
     </Modal>
 
-    <!-- MODAL: ISSUE OFFICIAL STATEMENT -->
-    <Modal v-model="isStatementModalOpen" :title="localeStore.isRtl ? 'إصدار إفادة قيد رسمية موثقة' : 'Issue Verifiable Statement'" size="lg" @close="isStatementModalOpen = false">
-      <form @submit.prevent="submitStatementForm" class="space-y-4 text-start text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-          <EnterpriseFormField
-            v-model="statementForm.student_id_number"
-            type="text"
-            :label="localeStore.isRtl ? 'كود الطالب الجامعي' : 'Student ID Number'"
-            required
-            col-span="6"
-            placeholder="20241001"
-          />
-          <EnterpriseFormField
-            v-model="statementForm.student_name"
-            type="text"
-            :label="localeStore.isRtl ? 'اسم الطالب الرباعي' : 'Student Full Name'"
-            required
-            col-span="6"
-            placeholder="يوسف أحمد حسن"
-          />
-          <EnterpriseFormField
-            v-model="statementForm.national_id"
-            type="text"
-            :label="localeStore.isRtl ? 'الرقم القومي / جواز السفر' : 'National ID / Passport'"
-            required
-            col-span="6"
-            placeholder="30405150102233"
-          />
-          <EnterpriseFormField
-            v-model="statementForm.statement_type"
-            type="select"
-            :label="localeStore.isRtl ? 'نوع الإفادة' : 'Statement Type'"
-            col-span="6"
-            :options="[
-              { label: 'إفادة قيد بكالوريوس رسمية (Enrollment Certificate)', value: 'official_enrollment' },
-              { label: 'شهادة تخرج مؤقتة (Graduation Certificate)', value: 'completion_statement' },
-              { label: 'شهادة دراسة باللغة الإنجليزية (Medium of Instruction)', value: 'english_proficiency' }
-            ]"
-          />
-          <EnterpriseFormField
-            v-model="statementForm.recipient_entity_ar"
-            type="text"
-            :label="localeStore.isRtl ? 'الجهة الموجه إليها (عربي)' : 'Addressed Entity (Ar)'"
-            col-span="6"
-            placeholder="إلى من يهمه الأمر / نقابة المهندسين"
-          />
-          <EnterpriseFormField
-            v-model="statementForm.recipient_entity_en"
-            type="text"
-            label="Addressed Entity (En)"
-            col-span="6"
-            placeholder="To Whom It May Concern / Embassy"
-          />
-        </div>
-      </form>
+    <!-- MODAL: ISSUE OFFICIAL STATEMENT (HYBRID DOCUMENT WORKFLOW) -->
+    <Modal
+      v-model="isStatementModalOpen"
+      :title="localeStore.isRtl ? 'إصدار إفادة / شهادة معتمدة (Hybrid Workflow)' : 'Issue Verifiable Statement (Hybrid Workflow)'"
+      size="lg"
+      @close="isStatementModalOpen = false"
+    >
+      <div class="space-y-4 text-start text-xs">
+        <HybridDocumentWorkflow
+          v-model="statementWorkflowModel"
+          mode="both"
+          :existing-file-url="statementWorkflowModel.fileUrl"
+          :existing-file-name="statementWorkflowModel.fileName"
+          :structured-tab-label="localeStore.isRtl ? 'توليد إلكتروني معتمد' : 'Structured Credential Form'"
+          :upload-tab-label="localeStore.isRtl ? 'رفع إفادة ممسوحة / مستند رقمي' : 'Direct Certificate Upload'"
+          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+          @file-selected="handleStatementFileSelected"
+          @file-removed="handleStatementFileRemoved"
+        >
+          <template #structured-form>
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              <EnterpriseFormField
+                v-model="statementForm.student_id_number"
+                type="text"
+                :label="localeStore.isRtl ? 'كود الطالب الجامعي' : 'Student ID Number'"
+                required
+                col-span="6"
+                placeholder="20241001"
+              />
+              <EnterpriseFormField
+                v-model="statementForm.student_name"
+                type="text"
+                :label="localeStore.isRtl ? 'اسم الطالب الرباعي' : 'Student Full Name'"
+                required
+                col-span="6"
+                placeholder="يوسف أحمد حسن"
+              />
+              <EnterpriseFormField
+                v-model="statementForm.national_id"
+                type="text"
+                :label="localeStore.isRtl ? 'الرقم القومي / جواز السفر' : 'National ID / Passport'"
+                required
+                col-span="6"
+                placeholder="30405150102233"
+              />
+              <EnterpriseFormField
+                v-model="statementForm.statement_type"
+                type="select"
+                :label="localeStore.isRtl ? 'نوع الإفادة' : 'Statement Type'"
+                col-span="6"
+                :options="[
+                  { label: 'إفادة قيد بكالوريوس رسمية (Enrollment Certificate)', value: 'official_enrollment' },
+                  { label: 'شهادة تخرج مؤقتة (Graduation Certificate)', value: 'completion_statement' },
+                  { label: 'شهادة دراسة باللغة الإنجليزية (Medium of Instruction)', value: 'english_proficiency' }
+                ]"
+              />
+              <EnterpriseFormField
+                v-model="statementForm.recipient_entity_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'الجهة الموجه إليها (عربي)' : 'Addressed Entity (Ar)'"
+                col-span="6"
+                placeholder="إلى من يهمه الأمر / نقابة المهندسين"
+              />
+              <EnterpriseFormField
+                v-model="statementForm.recipient_entity_en"
+                type="text"
+                label="Addressed Entity (En)"
+                col-span="6"
+                placeholder="To Whom It May Concern / Embassy"
+              />
+            </div>
+          </template>
+
+          <template #file-meta-form>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <EnterpriseFormField
+                v-model="statementForm.title_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'عنوان الوثيقة أو الإفادة (عربي)' : 'Document Title (Ar)'"
+                placeholder="شهادة تخرج معتمدة وموثقة"
+              />
+              <EnterpriseFormField
+                v-model="statementForm.student_id_number"
+                type="text"
+                :label="localeStore.isRtl ? 'كود الطالب (اختياري للربط بالسجل)' : 'Student ID (Optional)'"
+                placeholder="20241001"
+              />
+            </div>
+          </template>
+        </HybridDocumentWorkflow>
+      </div>
 
       <template #footer>
-        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isStatementModalOpen = false">{{ $t('common.cancel') }}</button>
-        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitStatementForm">{{ localeStore.isRtl ? 'إصدار الوثيقة وتوليد QR' : 'Issue & Generate QR' }}</button>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 cursor-pointer" @click="isStatementModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md cursor-pointer inline-flex items-center gap-1.5" @click="submitStatementForm">
+          <ShieldCheck class="w-4 h-4 text-gold-400" />
+          <span>{{ statementWorkflowModel.mode === 'upload' ? (localeStore.isRtl ? 'اعتماد وحفظ المستند الرقمي' : 'Store & Certify Digital Asset') : (localeStore.isRtl ? 'إصدار الوثيقة وتوليد QR' : 'Issue & Generate QR') }}</span>
+        </button>
       </template>
     </Modal>
 
-    <!-- MODAL: SCHEDULE / EDIT EXAM -->
+    <!-- MODAL: SCHEDULE / EDIT EXAM (HYBRID DOCUMENT WORKFLOW) -->
     <Modal
       v-model="isExamModalOpen"
-      :title="isEditingExam ? (localeStore.isRtl ? 'تعديل موعد الامتحان ولجنة المراقبة' : 'Edit Exam Schedule & Invigilation') : (localeStore.isRtl ? 'جدولة امتحان جديد وتعيين القاعات' : 'Schedule Exam & Assign Halls')"
+      :title="isEditingExam ? (localeStore.isRtl ? 'تعديل موعد الامتحان ولجنة المراقبة' : 'Edit Exam Schedule & Invigilation') : (localeStore.isRtl ? 'جدولة امتحان جديد أو رفع جدول كامل' : 'Schedule Exam or Upload Full Timetable')"
       size="lg"
       @close="isExamModalOpen = false"
     >
-      <form @submit.prevent="submitExamForm" class="space-y-4 text-start text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-          <EnterpriseFormField
-            v-model="examForm.course_code"
-            type="text"
-            :label="localeStore.isRtl ? 'كود المقرر' : 'Course Code'"
-            required
-            col-span="4"
-            placeholder="CS301"
-          />
-          <EnterpriseFormField
-            v-model="examForm.course_name_ar"
-            type="text"
-            :label="localeStore.isRtl ? 'اسم المقرر (عربي)' : 'Course Name (Ar)'"
-            required
-            col-span="4"
-            placeholder="الذكاء الاصطناعي وتعلم الآلة"
-          />
-          <EnterpriseFormField
-            v-model="examForm.course_name_en"
-            type="text"
-            label="Course Name (En)"
-            required
-            col-span="4"
-            placeholder="Artificial Intelligence & ML"
-          />
-          <EnterpriseFormField
-            v-model="examForm.exam_type"
-            type="select"
-            :label="localeStore.isRtl ? 'نوع الامتحان' : 'Exam Type'"
-            required
-            col-span="3"
-            :options="[
-              { label: 'Midterm (نصفي)', value: 'midterm' },
-              { label: 'Final (نهائي)', value: 'final' },
-              { label: 'Practical (عملي)', value: 'practical' },
-              { label: 'Oral (شفوي)', value: 'oral' }
-            ]"
-          />
-          <EnterpriseFormField
-            v-model="examForm.exam_date"
-            type="date"
-            :label="localeStore.isRtl ? 'تاريخ الامتحان' : 'Exam Date'"
-            required
-            col-span="3"
-          />
-          <EnterpriseFormField
-            v-model="examForm.start_time"
-            type="time"
-            :label="localeStore.isRtl ? 'وقت البدء' : 'Start Time'"
-            required
-            col-span="3"
-          />
-          <EnterpriseFormField
-            v-model="examForm.end_time"
-            type="time"
-            :label="localeStore.isRtl ? 'وقت الانتهاء' : 'End Time'"
-            required
-            col-span="3"
-          />
-          <EnterpriseFormField
-            v-model="examForm.hall_location_ar"
-            type="text"
-            :label="localeStore.isRtl ? 'المدرج / القاعة (عربي)' : 'Hall Location (Ar)'"
-            required
-            col-span="6"
-            placeholder="مدرج الدكتور مجدي يعقوب (مبنى أ)"
-          />
-          <EnterpriseFormField
-            v-model="examForm.hall_location_en"
-            type="text"
-            label="Hall Location (En)"
-            required
-            col-span="6"
-            placeholder="Magdi Yacoub Auditorium (Hall A)"
-          />
-          <EnterpriseFormField
-            v-model="examForm.chief_invigilator_ar"
-            type="text"
-            :label="localeStore.isRtl ? 'رئيس اللجنة (عربي)' : 'Chief Proctor (Ar)'"
-            col-span="4"
-            placeholder="أ.د. عصام النجار"
-          />
-          <EnterpriseFormField
-            v-model="examForm.chief_invigilator_en"
-            type="text"
-            label="Chief Proctor (En)"
-            col-span="4"
-            placeholder="Prof. Dr. Essam El-Naggar"
-          />
-          <EnterpriseFormField
-            v-model="examForm.seating_capacity"
-            type="number"
-            :label="localeStore.isRtl ? 'سعة القاعة' : 'Seating Capacity'"
-            :min="10"
-            :max="1000"
-            col-span="4"
-          />
-        </div>
-      </form>
+      <div class="space-y-4 text-start text-xs">
+        <HybridDocumentWorkflow
+          v-model="examWorkflowModel"
+          mode="both"
+          :existing-file-url="examWorkflowModel.fileUrl"
+          :existing-file-name="examWorkflowModel.fileName"
+          :structured-tab-label="localeStore.isRtl ? 'إدخال مقرر وموعد محدد' : 'Course-Level Entry'"
+          :upload-tab-label="localeStore.isRtl ? 'رفع جدول الامتحانات العام (ملف PDF / Excel)' : 'Upload Master Timetable (PDF / Excel)'"
+          accept=".pdf,.xls,.xlsx,.doc,.docx,.jpg,.jpeg,.png"
+          @file-selected="handleExamFileSelected"
+          @file-removed="handleExamFileRemoved"
+        >
+          <template #structured-form>
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              <EnterpriseFormField
+                v-model="examForm.course_code"
+                type="text"
+                :label="localeStore.isRtl ? 'كود المقرر' : 'Course Code'"
+                required
+                col-span="4"
+                placeholder="CS301"
+              />
+              <EnterpriseFormField
+                v-model="examForm.course_name_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'اسم المقرر (عربي)' : 'Course Name (Ar)'"
+                required
+                col-span="4"
+                placeholder="الذكاء الاصطناعي وتعلم الآلة"
+              />
+              <EnterpriseFormField
+                v-model="examForm.course_name_en"
+                type="text"
+                label="Course Name (En)"
+                required
+                col-span="4"
+                placeholder="Artificial Intelligence & ML"
+              />
+              <EnterpriseFormField
+                v-model="examForm.exam_type"
+                type="select"
+                :label="localeStore.isRtl ? 'نوع الامتحان' : 'Exam Type'"
+                required
+                col-span="3"
+                :options="[
+                  { label: 'Midterm (نصفي)', value: 'midterm' },
+                  { label: 'Final (نهائي)', value: 'final' },
+                  { label: 'Practical (عملي)', value: 'practical' },
+                  { label: 'Oral (شفوي)', value: 'oral' }
+                ]"
+              />
+              <EnterpriseFormField
+                v-model="examForm.exam_date"
+                type="date"
+                :label="localeStore.isRtl ? 'تاريخ الامتحان' : 'Exam Date'"
+                required
+                col-span="3"
+              />
+              <EnterpriseFormField
+                v-model="examForm.start_time"
+                type="time"
+                :label="localeStore.isRtl ? 'وقت البدء' : 'Start Time'"
+                required
+                col-span="3"
+              />
+              <EnterpriseFormField
+                v-model="examForm.end_time"
+                type="time"
+                :label="localeStore.isRtl ? 'وقت الانتهاء' : 'End Time'"
+                required
+                col-span="3"
+              />
+              <EnterpriseFormField
+                v-model="examForm.hall_location_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'المدرج / القاعة (عربي)' : 'Hall Location (Ar)'"
+                required
+                col-span="6"
+                placeholder="مدرج الدكتور مجدي يعقوب (مبنى أ)"
+              />
+              <EnterpriseFormField
+                v-model="examForm.hall_location_en"
+                type="text"
+                label="Hall Location (En)"
+                required
+                col-span="6"
+                placeholder="Magdi Yacoub Auditorium (Hall A)"
+              />
+              <EnterpriseFormField
+                v-model="examForm.chief_invigilator_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'رئيس اللجنة (عربي)' : 'Chief Proctor (Ar)'"
+                col-span="4"
+                placeholder="أ.د. عصام النجار"
+              />
+              <EnterpriseFormField
+                v-model="examForm.chief_invigilator_en"
+                type="text"
+                label="Chief Proctor (En)"
+                col-span="4"
+                placeholder="Prof. Dr. Essam El-Naggar"
+              />
+              <EnterpriseFormField
+                v-model="examForm.seating_capacity"
+                type="number"
+                :label="localeStore.isRtl ? 'سعة القاعة' : 'Seating Capacity'"
+                :min="10"
+                :max="1000"
+                col-span="4"
+              />
+            </div>
+          </template>
+
+          <template #file-meta-form>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <EnterpriseFormField
+                v-model="examForm.course_name_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'اسم أو عنوان الجدول المرفوع (عربي)' : 'Timetable Title (Ar)'"
+                placeholder="جدول الامتحانات النهائية للفصل الدراسي الثاني"
+              />
+              <EnterpriseFormField
+                v-model="examForm.exam_type"
+                type="select"
+                :label="localeStore.isRtl ? 'فترة / نوع الامتحانات' : 'Exam Season'"
+                :options="[
+                  { label: 'Final Examinations (نهائي)', value: 'final' },
+                  { label: 'Midterm Examinations (نصفي)', value: 'midterm' },
+                  { label: 'Practical & Labs (عملي)', value: 'practical' }
+                ]"
+              />
+            </div>
+          </template>
+        </HybridDocumentWorkflow>
+      </div>
 
       <template #footer>
-        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isExamModalOpen = false">{{ $t('common.cancel') }}</button>
-        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitExamForm">{{ localeStore.isRtl ? 'حفظ الامتحان' : 'Save Exam Schedule' }}</button>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 cursor-pointer" @click="isExamModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md cursor-pointer inline-flex items-center gap-1.5" @click="submitExamForm">
+          <CalendarDays class="w-4 h-4 text-gold-400" />
+          <span>{{ examWorkflowModel.mode === 'upload' ? (localeStore.isRtl ? 'اعتماد ونشر ملف الجدول' : 'Publish Master Timetable File') : (localeStore.isRtl ? 'حفظ الموعد الأكاديمي' : 'Save Exam Schedule') }}</span>
+        </button>
       </template>
     </Modal>
 
@@ -740,6 +894,83 @@
         <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitCourseForm">{{ localeStore.isRtl ? 'حفظ المقرر' : 'Save Course' }}</button>
       </template>
     </Modal>
+
+    <!-- MODAL: UPLOAD MASTER CURRICULUM BLUEPRINT (HYBRID DOCUMENT WORKFLOW) -->
+    <Modal
+      v-model="isCurriculumUploadModalOpen"
+      :title="localeStore.isRtl ? 'إدارة واعتماد وثيقة اللائحة والخطة الدراسية (Hybrid Workflow)' : 'Master Curriculum Blueprint Management (Hybrid Workflow)'"
+      size="xl"
+      @close="isCurriculumUploadModalOpen = false"
+    >
+      <form @submit.prevent="submitCurriculumBlueprintUpload" class="space-y-5 text-start text-xs">
+        <HybridDocumentWorkflow
+          v-model="curriculumWorkflowModel"
+          structured-tab-label="مقررات وتوصيف الخطة (Curriculum Specs)"
+          upload-tab-label="ملف اللائحة المعتمدة (Official PDF / Excel Blueprint)"
+          @file-selected="handleCurriculumFileSelected"
+          @file-removed="handleCurriculumFileRemoved"
+        >
+          <template #structured>
+            <div class="space-y-4">
+              <div class="p-3.5 bg-blue-50/70 border border-blue-200 text-blue-900 rounded-2xl text-xs">
+                {{ localeStore.isRtl ? 'أدخل البيانات العامة للائحة والخطة الدراسية لتوليد فهرس معتمد للمقررات.' : 'Provide high-level degree specification parameters and credit distribution.' }}
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                <EnterpriseFormField
+                  v-model="curriculumPlanMeta.program_name_ar"
+                  type="text"
+                  :label="localeStore.isRtl ? 'اسم البرنامج الأكاديمي (عربي)' : 'Program Name (Ar)'"
+                  required
+                  col-span="6"
+                  placeholder="بكالوريوس الذكاء الاصطناعي وهندسة البرمجيات"
+                />
+                <EnterpriseFormField
+                  v-model="curriculumPlanMeta.program_name_en"
+                  type="text"
+                  :label="localeStore.isRtl ? 'اسم البرنامج (إنجليزي)' : 'Program Name (En)'"
+                  required
+                  col-span="6"
+                  placeholder="B.Sc. in Artificial Intelligence & Software Eng."
+                />
+                <EnterpriseFormField
+                  v-model="curriculumPlanMeta.total_credits"
+                  type="number"
+                  :label="localeStore.isRtl ? 'إجمالي الساعات المعتمدة' : 'Total Credit Hours'"
+                  required
+                  col-span="4"
+                  placeholder="136"
+                />
+                <EnterpriseFormField
+                  v-model="curriculumPlanMeta.degree_level"
+                  type="select"
+                  :label="localeStore.isRtl ? 'الدرجة العلمية' : 'Degree Level'"
+                  col-span="4"
+                  :options="[
+                    { label: 'Bachelor (بكالوريوس)', value: 'bachelor' },
+                    { label: 'Master (ماجستير)', value: 'master' },
+                    { label: 'PhD (دكتوراه)', value: 'phd' }
+                  ]"
+                />
+                <EnterpriseFormField
+                  v-model="curriculumPlanMeta.effective_year"
+                  type="text"
+                  :label="localeStore.isRtl ? 'اللائحة المعتمدة من عام' : 'Effective Academic Year'"
+                  col-span="4"
+                  placeholder="2025/2026"
+                />
+              </div>
+            </div>
+          </template>
+        </HybridDocumentWorkflow>
+      </form>
+
+      <template #footer>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isCurriculumUploadModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md" @click="submitCurriculumBlueprintUpload">
+          {{ localeStore.isRtl ? 'اعتماد وحفظ الخطة الدراسية' : 'Save & Publish Blueprint' }}
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -751,6 +982,7 @@ import { formatStandardDate, formatStandardTime, formatTimeRange } from '../../u
 import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
+import HybridDocumentWorkflow from '../../components/ui/HybridDocumentWorkflow.vue'
 import {
   GraduationCap,
   FileText,
@@ -770,6 +1002,100 @@ import {
 
 const localeStore = useLocaleStore()
 const activeTab = ref('requests')
+
+const statementWorkflowModel = reactive({
+  structuredData: {},
+  file: null,
+  fileUrl: '',
+  fileName: '',
+  mode: 'structured'
+})
+
+const handleStatementFileSelected = (file) => {
+  statementWorkflowModel.file = file
+  statementWorkflowModel.fileName = file.name
+}
+
+const handleStatementFileRemoved = () => {
+  statementWorkflowModel.file = null
+  statementWorkflowModel.fileUrl = ''
+  statementWorkflowModel.fileName = ''
+}
+
+const examWorkflowModel = reactive({
+  structuredData: {},
+  file: null,
+  fileUrl: '',
+  fileName: '',
+  mode: 'structured'
+})
+
+const handleExamFileSelected = (file) => {
+  examWorkflowModel.file = file
+  examWorkflowModel.fileName = file.name
+}
+
+const handleExamFileRemoved = () => {
+  examWorkflowModel.file = null
+  examWorkflowModel.fileUrl = ''
+  examWorkflowModel.fileName = ''
+}
+
+const isCurriculumUploadModalOpen = ref(false)
+const masterStudyPlanFileUrl = ref('/storage/curriculum_plans/Master_Curriculum_Matrix_2026.pdf')
+const masterStudyPlanFileName = ref('Master_Curriculum_Matrix_2026.pdf')
+
+const curriculumPlanMeta = reactive({
+  program_name_ar: 'بكالوريوس الذكاء الاصطناعي وهندسة البرمجيات',
+  program_name_en: 'B.Sc. in Artificial Intelligence & Software Engineering',
+  total_credits: 136,
+  degree_level: 'bachelor',
+  effective_year: '2025/2026'
+})
+
+const curriculumWorkflowModel = reactive({
+  structuredData: {},
+  file: null,
+  fileUrl: '/storage/curriculum_plans/Master_Curriculum_Matrix_2026.pdf',
+  fileName: 'Master_Curriculum_Matrix_2026.pdf',
+  mode: 'both'
+})
+
+const handleCurriculumFileSelected = (file) => {
+  curriculumWorkflowModel.file = file
+  curriculumWorkflowModel.fileName = file.name
+}
+
+const handleCurriculumFileRemoved = () => {
+  curriculumWorkflowModel.file = null
+  curriculumWorkflowModel.fileUrl = ''
+  curriculumWorkflowModel.fileName = ''
+}
+
+const openCourseStudyPlanHybridModal = () => {
+  curriculumWorkflowModel.file = null
+  curriculumWorkflowModel.fileUrl = masterStudyPlanFileUrl.value
+  curriculumWorkflowModel.fileName = masterStudyPlanFileName.value
+  curriculumWorkflowModel.mode = masterStudyPlanFileUrl.value ? 'both' : 'structured'
+  isCurriculumUploadModalOpen.value = true
+}
+
+const removeMasterStudyPlanFile = () => {
+  masterStudyPlanFileUrl.value = ''
+  masterStudyPlanFileName.value = ''
+}
+
+const submitCurriculumBlueprintUpload = () => {
+  if (curriculumWorkflowModel.file) {
+    masterStudyPlanFileUrl.value = URL.createObjectURL(curriculumWorkflowModel.file)
+    masterStudyPlanFileName.value = curriculumWorkflowModel.file.name
+  } else if (curriculumWorkflowModel.fileUrl) {
+    masterStudyPlanFileUrl.value = curriculumWorkflowModel.fileUrl
+    masterStudyPlanFileName.value = curriculumWorkflowModel.fileName
+  }
+  isCurriculumUploadModalOpen.value = false
+  alert(localeStore.isRtl ? 'تم تحديث واعتماد وثيقة اللائحة والخطة الدراسية بنجاح.' : 'Curriculum Blueprint saved successfully.')
+}
 
 const requestsList = ref([])
 const examSchedulesList = ref([])
@@ -964,6 +1290,12 @@ const openNewExamModal = () => {
   examForm.chief_invigilator_ar = 'أ.د. عصام النجار'
   examForm.chief_invigilator_en = 'Prof. Dr. Essam El-Naggar'
   examForm.seating_capacity = 120
+
+  examWorkflowModel.file = null
+  examWorkflowModel.fileUrl = ''
+  examWorkflowModel.fileName = ''
+  examWorkflowModel.mode = 'structured'
+
   isExamModalOpen.value = true
 }
 
@@ -982,18 +1314,25 @@ const openEditExamModal = (exam) => {
   examForm.chief_invigilator_ar = exam.chief_invigilator?.ar || exam.chief_invigilator || 'أ.د. عصام النجار'
   examForm.chief_invigilator_en = exam.chief_invigilator?.en || exam.chief_invigilator || 'Prof. Dr. Essam El-Naggar'
   examForm.seating_capacity = exam.seating_capacity || 120
+
+  examWorkflowModel.file = null
+  examWorkflowModel.fileUrl = exam.timetable_document_path || ''
+  examWorkflowModel.fileName = exam.timetable_file_name || (exam.timetable_document_path ? 'Timetable Document' : '')
+  examWorkflowModel.mode = exam.workflow_mode || (exam.timetable_document_path ? 'upload' : 'structured')
+
   isExamModalOpen.value = true
 }
 
 const submitExamForm = async () => {
-  if (!examForm.course_code || !examForm.course_name_ar || !examForm.exam_date) {
-    alert('يرجى ملء الحقول الإلزامية')
-    return
-  }
-
   try {
+    const payload = {
+      ...examForm,
+      workflow_mode: examWorkflowModel.mode,
+      timetable_document: examWorkflowModel.file
+    }
+
     if (isEditingExam.value) {
-      const updated = await api.updateExamSchedule(editingExamId.value, { ...examForm })
+      const updated = await api.updateExamSchedule(editingExamId.value, payload)
       const idx = examSchedulesList.value.findIndex((e) => e.id === editingExamId.value)
       if (idx !== -1) {
         examSchedulesList.value[idx] = {
@@ -1007,11 +1346,13 @@ const submitExamForm = async () => {
           hall_location: { ar: examForm.hall_location_ar, en: examForm.hall_location_en },
           chief_invigilator: { ar: examForm.chief_invigilator_ar, en: examForm.chief_invigilator_en },
           seating_capacity: examForm.seating_capacity,
+          timetable_document_path: updated?.timetable_document_path || examWorkflowModel.fileUrl,
+          timetable_file_name: updated?.timetable_file_name || examWorkflowModel.fileName,
           ...updated,
         }
       }
     } else {
-      const created = await api.storeExamSchedule({ ...examForm })
+      const created = await api.storeExamSchedule(payload)
       examSchedulesList.value.unshift(created)
     }
     isExamModalOpen.value = false
@@ -1085,14 +1426,27 @@ const handleDeleteExam = async (id) => {
 }
 
 const openIssueStatementModal = () => {
+  statementWorkflowModel.file = null
+  statementWorkflowModel.fileUrl = ''
+  statementWorkflowModel.fileName = ''
+  statementWorkflowModel.mode = 'structured'
   isStatementModalOpen.value = true
 }
 
 const submitStatementForm = async () => {
-  const statement = await api.issueOfficialStatement({ ...statementForm })
-  sampleStatements.value.unshift(statement)
-  isStatementModalOpen.value = false
-  alert(localeStore.isRtl ? 'تم إصدار الوثيقة واعتمادها بنجاح برمز التحقق المشفر.' : 'Official Statement issued and signed.')
+  try {
+    const payload = {
+      ...statementForm,
+      workflow_mode: statementWorkflowModel.mode,
+      document: statementWorkflowModel.file
+    }
+    const statement = await api.issueOfficialStatement(payload)
+    sampleStatements.value.unshift(statement)
+    isStatementModalOpen.value = false
+    alert(localeStore.isRtl ? 'تم إصدار الوثيقة واعتمادها بنجاح برمز التحقق المشفر.' : 'Official Statement issued and signed.')
+  } catch (err) {
+    alert('Failed to issue statement')
+  }
 }
 
 const printStatement = (st) => {

@@ -127,8 +127,18 @@
             </p>
             <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 pt-2 justify-center sm:justify-start">
               <span>✉ {{ selectedFac.email }}</span>
-              <span>•</span>
-              <span>📞 {{ selectedFac.phone }}</span>
+              <span v-if="selectedFac.phone">•</span>
+              <span v-if="selectedFac.phone">📞 {{ selectedFac.phone }}</span>
+              <span v-if="selectedFac.cv_path">•</span>
+              <a
+                v-if="selectedFac.cv_path"
+                :href="selectedFac.cv_path"
+                target="_blank"
+                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-black text-xs shadow-xs transition-all"
+              >
+                <span>📥</span>
+                <span>{{ localeStore.isRtl ? 'تحميل السيرة الذاتية الرسمية (PDF)' : 'Download Full CV (PDF)' }}</span>
+              </a>
             </div>
           </div>
         </div>

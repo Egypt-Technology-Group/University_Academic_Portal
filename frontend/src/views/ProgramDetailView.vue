@@ -145,7 +145,30 @@
             </div>
           </Card>
 
-          <!-- Career Prospects -->
+          <!-- Official Study Plan Blueprint / Curriculum Document Download (Hybrid Workflow Asset) -->
+          <div v-if="program.study_plan_document_path" class="p-5 rounded-2xl bg-gold-50/70 border border-gold-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3 text-start">
+              <div class="w-12 h-12 rounded-xl bg-navy-950 text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+                PDF
+              </div>
+              <div>
+                <h3 class="font-bold text-navy-950 text-sm">
+                  {{ localeStore.isRtl ? 'لائحة الخطة الدراسية وتوزيع المقررات المعتمدة' : 'Official Accredited Curriculum Blueprint & Matrix' }}
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">
+                  {{ program.study_plan_file_name || (localeStore.isRtl ? 'مصفوفة الساعات وتوصيف المقررات الرسمية' : 'Full Degree Specification Document') }}
+                </p>
+              </div>
+            </div>
+            <a
+              :href="program.study_plan_document_path"
+              target="_blank"
+              class="px-4 py-2.5 rounded-xl bg-navy-950 hover:bg-gold-500 hover:text-navy-950 text-white font-bold text-xs shadow-md transition-all shrink-0 inline-flex items-center gap-2"
+            >
+              <span>📥</span>
+              <span>{{ localeStore.isRtl ? 'تحميل الخطة المعتمدة (PDF)' : 'Download Curriculum (PDF)' }}</span>
+            </a>
+          </div>
           <Card padding="lg">
             <h2 class="text-xl font-bold text-navy-950 mb-4 flex items-center gap-2">
               <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>

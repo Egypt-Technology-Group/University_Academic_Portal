@@ -1187,7 +1187,16 @@ export const api = {
 
   async issueOfficialStatement(data) {
     try {
-      const response = await apiClient.post('/admin/official-statements/issue', data)
+      let payload = data
+      let config = {}
+      if (data.document instanceof File) {
+        payload = new FormData()
+        Object.entries(data).forEach(([key, val]) => {
+          if (val !== undefined && val !== null) payload.append(key, val)
+        })
+        config = { headers: { 'Content-Type': 'multipart/form-data' } }
+      }
+      const response = await apiClient.post('/admin/official-statements/issue', payload, config)
       return response.data.data || response.data
     } catch (e) {
       const certCode = 'CERT-2025-EG' + Math.floor(100000 + Math.random() * 900000)
@@ -1197,7 +1206,8 @@ export const api = {
         verification_hash: 'sha256_mock_hash_' + Date.now(),
         qr_payload: window.location.origin + '/verify-certificate?code=' + certCode,
         issue_date: new Date().toISOString(),
-        ...data
+        ...data,
+        document_path: data.document instanceof File ? URL.createObjectURL(data.document) : (data.document_path || null)
       }
     }
   },
@@ -1262,12 +1272,22 @@ export const api = {
 
   async storeExamSchedule(data) {
     try {
-      const response = await apiClient.post('/admin/exam-schedules', data)
+      let payload = data
+      let config = {}
+      if (data.timetable_document instanceof File) {
+        payload = new FormData()
+        Object.entries(data).forEach(([key, val]) => {
+          if (val !== undefined && val !== null) payload.append(key, val)
+        })
+        config = { headers: { 'Content-Type': 'multipart/form-data' } }
+      }
+      const response = await apiClient.post('/admin/exam-schedules', payload, config)
       return response.data.data || response.data
     } catch (e) {
       return {
         id: Date.now(),
         ...data,
+        timetable_document_path: data.timetable_document instanceof File ? URL.createObjectURL(data.timetable_document) : null,
         created_at: new Date().toISOString()
       }
     }
@@ -1275,10 +1295,27 @@ export const api = {
 
   async updateExamSchedule(id, data) {
     try {
-      const response = await apiClient.patch(`/admin/exam-schedules/${id}`, data)
+      let payload = data
+      let config = {}
+      if (data.timetable_document instanceof File) {
+        payload = new FormData()
+        payload.append('_method', 'PATCH')
+        Object.entries(data).forEach(([key, val]) => {
+          if (val !== undefined && val !== null) payload.append(key, val)
+        })
+        config = { headers: { 'Content-Type': 'multipart/form-data' } }
+        const response = await apiClient.post(`/admin/exam-schedules/${id}`, payload, config)
+        return response.data.data || response.data
+      }
+      const response = await apiClient.patch(`/admin/exam-schedules/${id}`, payload)
       return response.data.data || response.data
     } catch (e) {
-      return { success: true, id, ...data }
+      return {
+        success: true,
+        id,
+        ...data,
+        timetable_document_path: data.timetable_document instanceof File ? URL.createObjectURL(data.timetable_document) : (data.timetable_document_path || null)
+      }
     }
   },
 
@@ -1391,7 +1428,16 @@ export const api = {
 
   async createProgram(data) {
     try {
-      const response = await apiClient.post('/admin/programs', data)
+      let payload = data
+      let config = {}
+      if (data.study_plan_document instanceof File) {
+        payload = new FormData()
+        Object.entries(data).forEach(([key, val]) => {
+          if (val !== undefined && val !== null) payload.append(key, val)
+        })
+        config = { headers: { 'Content-Type': 'multipart/form-data' } }
+      }
+      const response = await apiClient.post('/admin/programs', payload, config)
       return response.data.data || response.data
     } catch (e) {
       const newProg = {
@@ -1404,6 +1450,7 @@ export const api = {
         credit_hours: data.credit_hours || 136,
         tuition_fees: { ar: data.tuition_fees_ar || '55,000 ج.م', en: data.tuition_fees_en || '55,000 EGP' },
         admission_requirements: { ar: [data.admission_requirements_ar || 'الثانوية العامة'], en: [data.admission_requirements_en || 'High School'] },
+        study_plan_document_path: data.study_plan_document instanceof File ? URL.createObjectURL(data.study_plan_document) : null,
         is_active: data.is_active ?? true
       }
       mockPrograms.unshift(newProg)
@@ -1413,7 +1460,19 @@ export const api = {
 
   async updateProgram(id, data) {
     try {
-      const response = await apiClient.patch(`/admin/programs/${id}`, data)
+      let payload = data
+      let config = {}
+      if (data.study_plan_document instanceof File) {
+        payload = new FormData()
+        payload.append('_method', 'PATCH')
+        Object.entries(data).forEach(([key, val]) => {
+          if (val !== undefined && val !== null) payload.append(key, val)
+        })
+        config = { headers: { 'Content-Type': 'multipart/form-data' } }
+        const response = await apiClient.post(`/admin/programs/${id}`, payload, config)
+        return response.data.data || response.data
+      }
+      const response = await apiClient.patch(`/admin/programs/${id}`, payload)
       return response.data.data || response.data
     } catch (e) {
       const idx = mockPrograms.findIndex((p) => p.id === id)
@@ -1423,6 +1482,7 @@ export const api = {
         if (data.degree_level) mockPrograms[idx].degree_level = data.degree_level
         if (data.duration_years) mockPrograms[idx].duration_years = data.duration_years
         if (data.credit_hours) mockPrograms[idx].credit_hours = data.credit_hours
+        if (data.study_plan_document instanceof File) mockPrograms[idx].study_plan_document_path = URL.createObjectURL(data.study_plan_document)
         return mockPrograms[idx]
       }
       return { success: true, id, ...data }
@@ -1445,7 +1505,16 @@ export const api = {
   // ----------------------------------------------------
   async createFaculty(data) {
     try {
-      const response = await apiClient.post('/admin/faculty', data)
+      let payload = data
+      let config = {}
+      if (data.cv_file instanceof File) {
+        payload = new FormData()
+        Object.entries(data).forEach(([key, val]) => {
+          if (val !== undefined && val !== null) payload.append(key, val)
+        })
+        config = { headers: { 'Content-Type': 'multipart/form-data' } }
+      }
+      const response = await apiClient.post('/admin/faculty', payload, config)
       return response.data.data || response.data
     } catch (e) {
       const newFac = {
@@ -1458,7 +1527,7 @@ export const api = {
         phone: data.phone || '',
         office_location: { ar: data.office_location_ar || '', en: data.office_location_en || '' },
         avatar: data.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-        cv_path: data.cv_path || null,
+        cv_path: data.cv_file instanceof File ? URL.createObjectURL(data.cv_file) : (data.cv_path || null),
         google_scholar_url: data.google_scholar_url || '',
         orcid_id: data.orcid_id || '',
         is_featured: data.is_featured ?? false,
@@ -1471,7 +1540,19 @@ export const api = {
 
   async updateFaculty(id, data) {
     try {
-      const response = await apiClient.patch(`/admin/faculty/${id}`, data)
+      let payload = data
+      let config = {}
+      if (data.cv_file instanceof File) {
+        payload = new FormData()
+        payload.append('_method', 'PATCH')
+        Object.entries(data).forEach(([key, val]) => {
+          if (val !== undefined && val !== null) payload.append(key, val)
+        })
+        config = { headers: { 'Content-Type': 'multipart/form-data' } }
+        const response = await apiClient.post(`/admin/faculty/${id}`, payload, config)
+        return response.data.data || response.data
+      }
+      const response = await apiClient.patch(`/admin/faculty/${id}`, payload)
       return response.data.data || response.data
     } catch (e) {
       const idx = mockFaculty.findIndex((f) => f.id === id)
@@ -1481,6 +1562,7 @@ export const api = {
         if (data.academic_title_en) mockFaculty[idx].academic_title.en = data.academic_title_en
         if (data.email) mockFaculty[idx].email = data.email
         if (data.phone) mockFaculty[idx].phone = data.phone
+        if (data.cv_file instanceof File) mockFaculty[idx].cv_path = URL.createObjectURL(data.cv_file)
         return mockFaculty[idx]
       }
       return { success: true, id, ...data }
@@ -1500,4 +1582,5 @@ export const api = {
 }
 
 export default apiClient
+
 

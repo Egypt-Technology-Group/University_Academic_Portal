@@ -23,6 +23,7 @@ class ExamSchedule extends Model
         'course_code',
         'course_name',
         'exam_type',
+        'workflow_mode',
         'exam_date',
         'start_time',
         'end_time',
@@ -30,6 +31,9 @@ class ExamSchedule extends Model
         'chief_invigilator',
         'proctors_list',
         'seating_capacity',
+        'timetable_document_path',
+        'timetable_file_name',
+        'timetable_file_size',
     ];
 
     protected function casts(): array

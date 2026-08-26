@@ -31,6 +31,9 @@ class Program extends Model
         'career_opportunities',
         'tuition_fees',
         'admission_requirements',
+        'study_plan_document_path',
+        'study_plan_file_name',
+        'study_plan_file_size',
         'is_active',
     ];
 

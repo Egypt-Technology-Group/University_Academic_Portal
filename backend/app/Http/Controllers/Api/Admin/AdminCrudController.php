@@ -603,10 +603,29 @@ class AdminCrudController extends Controller
             'tuition_fees_en' => 'nullable',
             'admission_requirements_ar' => 'nullable',
             'admission_requirements_en' => 'nullable',
+            'study_plan_document' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:51200',
+            'study_plan_document_path' => 'nullable|string',
+            'study_plan_file_name' => 'nullable|string',
+            'study_plan_file_size' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
         $slug = Str::slug($validated['name_en']).'-'.rand(10, 99);
+
+        $docPath = $validated['study_plan_document_path'] ?? null;
+        $fileName = $validated['study_plan_file_name'] ?? null;
+        $fileSize = $validated['study_plan_file_size'] ?? null;
+
+        if ($request->hasFile('study_plan_document')) {
+            $uploaded = $request->file('study_plan_document');
+            $stored = $uploaded->store('curriculum_plans', 'public');
+            $docPath = '/storage/' . $stored;
+            $fileName = $uploaded->getClientOriginalName();
+            $bytes = $uploaded->getSize();
+            $fileSize = $bytes >= 1048576 
+                ? number_format($bytes / 1048576, 1) . ' MB' 
+                : number_format($bytes / 1024, 0) . ' KB';
+        }
 
         $program = Program::create([
             'department_id' => $validated['department_id'],
@@ -631,6 +650,9 @@ class AdminCrudController extends Controller
                 'ar' => $validated['admission_requirements_ar'] ?? ['شهادة الثانوية العامة أو ما يعادلها'],
                 'en' => $validated['admission_requirements_en'] ?? ['High school certificate or equivalent'],
             ],
+            'study_plan_document_path' => $docPath,
+            'study_plan_file_name' => $fileName,
+            'study_plan_file_size' => $fileSize,
             'is_active' => $validated['is_active'] ?? true,
         ]);
 
@@ -660,8 +682,27 @@ class AdminCrudController extends Controller
             'tuition_fees_en' => 'nullable',
             'admission_requirements_ar' => 'nullable',
             'admission_requirements_en' => 'nullable',
+            'study_plan_document' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:51200',
+            'study_plan_document_path' => 'nullable|string',
+            'study_plan_file_name' => 'nullable|string',
+            'study_plan_file_size' => 'nullable|string',
             'is_active' => 'nullable|boolean',
         ]);
+
+        if ($request->hasFile('study_plan_document')) {
+            $uploaded = $request->file('study_plan_document');
+            $stored = $uploaded->store('curriculum_plans', 'public');
+            $program->study_plan_document_path = '/storage/' . $stored;
+            $program->study_plan_file_name = $uploaded->getClientOriginalName();
+            $bytes = $uploaded->getSize();
+            $program->study_plan_file_size = $bytes >= 1048576 
+                ? number_format($bytes / 1048576, 1) . ' MB' 
+                : number_format($bytes / 1024, 0) . ' KB';
+        } elseif (isset($validated['study_plan_document_path'])) {
+            $program->study_plan_document_path = $validated['study_plan_document_path'];
+            if (isset($validated['study_plan_file_name'])) $program->study_plan_file_name = $validated['study_plan_file_name'];
+            if (isset($validated['study_plan_file_size'])) $program->study_plan_file_size = $validated['study_plan_file_size'];
+        }
 
         if (isset($validated['department_id'])) {
             if ($validated['department_id'] && Department::where('id', $validated['department_id'])->exists()) {
@@ -733,6 +774,7 @@ class AdminCrudController extends Controller
             'office_location_ar' => 'nullable|string|max:255',
             'office_location_en' => 'nullable|string|max:255',
             'avatar' => 'nullable|string',
+            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:51200',
             'cv_path' => 'nullable|string',
             'google_scholar_url' => 'nullable|url',
             'orcid_id' => 'nullable|string|max:50',
@@ -749,6 +791,13 @@ class AdminCrudController extends Controller
         $deptId = $validated['department_id'] ?? null;
         if (!$deptId || !Department::where('id', $deptId)->exists()) {
             $deptId = Department::value('id') ?? 1;
+        }
+
+        $cvPath = $validated['cv_path'] ?? null;
+        if ($request->hasFile('cv_file')) {
+            $uploadedCv = $request->file('cv_file');
+            $storedCv = $uploadedCv->store('faculty_cvs', 'public');
+            $cvPath = '/storage/' . $storedCv;
         }
 
         // Create associated user or profile
@@ -770,7 +819,7 @@ class AdminCrudController extends Controller
             'phone' => $validated['phone'] ?? null,
             'office_location' => ['ar' => $validated['office_location_ar'] ?? '', 'en' => $validated['office_location_en'] ?? ''],
             'avatar' => $validated['avatar'] ?? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-            'cv_path' => $validated['cv_path'] ?? null,
+            'cv_path' => $cvPath,
             'google_scholar_url' => $validated['google_scholar_url'] ?? null,
             'orcid_id' => $validated['orcid_id'] ?? null,
             'office_hours' => $validated['office_hours'] ?? null,
@@ -804,6 +853,7 @@ class AdminCrudController extends Controller
             'office_location_ar' => 'nullable|string|max:255',
             'office_location_en' => 'nullable|string|max:255',
             'avatar' => 'nullable|string',
+            'cv_file' => 'nullable|file|mimes:pdf,doc,docx|max:51200',
             'cv_path' => 'nullable|string',
             'google_scholar_url' => 'nullable|string',
             'orcid_id' => 'nullable|string|max:50',
@@ -811,6 +861,14 @@ class AdminCrudController extends Controller
             'publications' => 'nullable|array',
             'is_featured' => 'nullable|boolean',
         ]);
+
+        if ($request->hasFile('cv_file')) {
+            $uploadedCv = $request->file('cv_file');
+            $storedCv = $uploadedCv->store('faculty_cvs', 'public');
+            $faculty->cv_path = '/storage/' . $storedCv;
+        } elseif (isset($validated['cv_path'])) {
+            $faculty->cv_path = $validated['cv_path'];
+        }
 
         if (isset($validated['department_id'])) {
             if ($validated['department_id'] && Department::where('id', $validated['department_id'])->exists()) {
@@ -839,7 +897,6 @@ class AdminCrudController extends Controller
         }
         if (isset($validated['phone'])) $faculty->phone = $validated['phone'];
         if (isset($validated['avatar'])) $faculty->avatar = $validated['avatar'];
-        if (isset($validated['cv_path'])) $faculty->cv_path = $validated['cv_path'];
         if (isset($validated['google_scholar_url'])) $faculty->google_scholar_url = $validated['google_scholar_url'];
         if (isset($validated['orcid_id'])) $faculty->orcid_id = $validated['orcid_id'];
         if (isset($validated['office_hours'])) $faculty->office_hours = $validated['office_hours'];

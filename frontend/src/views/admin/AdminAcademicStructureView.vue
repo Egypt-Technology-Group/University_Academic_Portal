@@ -286,7 +286,19 @@
             <tbody class="divide-y divide-slate-100">
               <tr v-for="prog in filteredPrograms" :key="prog.id" class="hover:bg-slate-50/80 transition-colors">
                 <td class="py-3.5 px-4">
-                  <div class="font-bold text-navy-950 text-sm">{{ getTranslated(prog.name, localeStore.locale) }}</div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-bold text-navy-950 text-sm">{{ getTranslated(prog.name, localeStore.locale) }}</span>
+                    <a
+                      v-if="prog.study_plan_document_path"
+                      :href="prog.study_plan_document_path"
+                      target="_blank"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-navy-50 text-navy-900 text-[10px] font-bold hover:bg-navy-100 transition-colors border border-navy-200"
+                      title="Download Official Study Plan Matrix (PDF)"
+                    >
+                      <Download class="w-3 h-3 text-gold-600" />
+                      <span>Study Plan Matrix</span>
+                    </a>
+                  </div>
                   <div class="text-[11px] text-slate-400 font-mono mt-0.5">{{ prog.slug }}</div>
                 </td>
 
@@ -336,80 +348,116 @@
       </div>
     </div>
 
-    <!-- MODAL: CREATE/EDIT PROGRAM -->
+    <!-- MODAL: CREATE/EDIT PROGRAM (HYBRID DOCUMENT WORKFLOW) -->
     <Modal
       v-model="isProgramModalOpen"
-      :title="isEditingProgram ? (localeStore.isRtl ? 'تعديل البرنامج الأكاديمي والدرجة العلمية' : 'Edit Degree Program') : (localeStore.isRtl ? 'إضافة برنامج دراسي جديد' : 'New Degree Program')"
+      :title="isEditingProgram ? (localeStore.isRtl ? 'تعديل البرنامج والخطة الدراسية' : 'Edit Degree Program & Study Plan') : (localeStore.isRtl ? 'إضافة برنامج دراسي جديد (Hybrid Workflow)' : 'New Degree Program (Hybrid Workflow)')"
       size="lg"
       @close="isProgramModalOpen = false"
     >
-      <form @submit.prevent="submitProgramForm" class="space-y-4 text-start text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'القسم العلمي التابع له البرنامج' : 'Affiliated Department' }} *</label>
-          <select v-model="programForm.department_id" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold bg-white">
-            <option v-for="d in sampleDepartments" :key="d.id" :value="d.id">
-              {{ getTranslated(d.name, localeStore.locale) }}
-            </option>
-          </select>
-        </div>
+      <div class="space-y-4 text-start text-xs">
+        <HybridDocumentWorkflow
+          v-model="programWorkflowModel"
+          mode="both"
+          :existing-file-url="programWorkflowModel.fileUrl"
+          :existing-file-name="programWorkflowModel.fileName"
+          :structured-tab-label="localeStore.isRtl ? 'بيانات البرنامج الأكاديمي' : 'Structured Program Details'"
+          :upload-tab-label="localeStore.isRtl ? 'رفع وثيقة اللائحة والخطة المعتمدة (ملف PDF)' : 'Upload Official Study Plan Matrix (PDF)'"
+          accept=".pdf,.doc,.docx,.xls,.xlsx"
+          @file-selected="handleProgramFileSelected"
+          @file-removed="handleProgramFileRemoved"
+        >
+          <template #structured-form>
+            <div class="space-y-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'القسم العلمي التابع له البرنامج' : 'Affiliated Department' }} *</label>
+                <select v-model="programForm.department_id" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold bg-white">
+                  <option v-for="d in sampleDepartments" :key="d.id" :value="d.id">
+                    {{ getTranslated(d.name, localeStore.locale) }}
+                  </option>
+                </select>
+              </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم البرنامج (عربي)' : 'Program Name (Ar)' }} *</label>
-            <input v-model="programForm.name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="بكالوريوس هندسة الذكاء الاصطناعي" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Program Name (En) *</label>
-            <input v-model="programForm.name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="B.Sc. in Artificial Intelligence Engineering" />
-          </div>
-        </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم البرنامج (عربي)' : 'Program Name (Ar)' }} *</label>
+                  <input v-model="programForm.name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="بكالوريوس هندسة الذكاء الاصطناعي" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Program Name (En) *</label>
+                  <input v-model="programForm.name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="B.Sc. in Artificial Intelligence Engineering" />
+                </div>
+              </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المستوى / الدرجة' : 'Degree Level' }} *</label>
-            <select v-model="programForm.degree_level" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white">
-              <option value="bachelor">Bachelor (بكالوريوس)</option>
-              <option value="master">Master (ماجستير)</option>
-              <option value="doctorate">Doctorate (دكتوراه)</option>
-              <option value="diploma">Diploma (دبلوم)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'سنوات الدراسة' : 'Duration (Years)' }} *</label>
-            <input v-model.number="programForm.duration_years" type="number" min="1" max="7" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الساعات المعتمدة' : 'Credit Hours' }} *</label>
-            <input v-model.number="programForm.credit_hours" type="number" min="30" max="300" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
-          </div>
-        </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المستوى / الدرجة' : 'Degree Level' }} *</label>
+                  <select v-model="programForm.degree_level" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white">
+                    <option value="bachelor">Bachelor (بكالوريوس)</option>
+                    <option value="master">Master (ماجستير)</option>
+                    <option value="doctorate">Doctorate (دكتوراه)</option>
+                    <option value="diploma">Diploma (دبلوم)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'سنوات الدراسة' : 'Duration (Years)' }} *</label>
+                  <input v-model.number="programForm.duration_years" type="number" min="1" max="7" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الساعات المعتمدة' : 'Credit Hours' }} *</label>
+                  <input v-model.number="programForm.credit_hours" type="number" min="30" max="300" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" />
+                </div>
+              </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المصروفات السنوية (عربي)' : 'Tuition Fees (Ar)' }}</label>
-            <input v-model="programForm.tuition_fees_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="55,000 جنيه مصري / العام الدراسي" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Tuition Fees (En)</label>
-            <input v-model="programForm.tuition_fees_en" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="55,000 EGP / Academic Year" />
-          </div>
-        </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'المصروفات السنوية (عربي)' : 'Tuition Fees (Ar)' }}</label>
+                  <input v-model="programForm.tuition_fees_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="55,000 جنيه مصري / العام الدراسي" />
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Tuition Fees (En)</label>
+                  <input v-model="programForm.tuition_fees_en" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="55,000 EGP / Academic Year" />
+                </div>
+              </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'شروط القبول (عربي)' : 'Admission Requirements (Ar)' }}</label>
-            <textarea v-model="programForm.admission_requirements_ar" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="شهادة الثانوية العامة شعبة علمي رياضة أو ما يعادلها..."></textarea>
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Admission Requirements (En)</label>
-            <textarea v-model="programForm.admission_requirements_en" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="High school diploma (Math section) or equivalent..."></textarea>
-          </div>
-        </div>
-      </form>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'شروط القبول (عربي)' : 'Admission Requirements (Ar)' }}</label>
+                  <textarea v-model="programForm.admission_requirements_ar" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="شهادة الثانوية العامة شعبة علمي رياضة أو ما يعادلها..."></textarea>
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-700 mb-1">Admission Requirements (En)</label>
+                  <textarea v-model="programForm.admission_requirements_en" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="High school diploma (Math section) or equivalent..."></textarea>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <template #file-meta-form>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'القسم العلمي التابع له البرنامج' : 'Affiliated Department' }} *</label>
+                <select v-model="programForm.department_id" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold bg-white">
+                  <option v-for="d in sampleDepartments" :key="d.id" :value="d.id">
+                    {{ getTranslated(d.name, localeStore.locale) }}
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'اسم البرنامج الأكاديمي' : 'Program Name' }}</label>
+                <input v-model="programForm.name_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-bold" placeholder="لائحة برنامج هندسة الذكاء الاصطناعي" />
+              </div>
+            </div>
+          </template>
+        </HybridDocumentWorkflow>
+      </div>
 
       <template #footer>
-        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isProgramModalOpen = false">{{ $t('common.cancel') }}</button>
-        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitProgramForm">{{ localeStore.isRtl ? 'حفظ البرنامج' : 'Save Program' }}</button>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 cursor-pointer" @click="isProgramModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md cursor-pointer inline-flex items-center gap-1.5" @click="submitProgramForm">
+          <BookOpenCheck class="w-4 h-4 text-gold-400" />
+          <span>{{ localeStore.isRtl ? 'حفظ واعتماد البرنامج والخطة' : 'Save & Publish Program' }}</span>
+        </button>
       </template>
     </Modal>
 
@@ -598,6 +646,16 @@
               <span v-if="fac.is_featured" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gold-100 text-gold-900 border border-gold-200">
                 ★ Featured
               </span>
+              <a
+                v-if="fac.cv_path"
+                :href="fac.cv_path"
+                target="_blank"
+                class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-navy-50 text-navy-900 hover:bg-navy-100 border border-navy-200 inline-flex items-center gap-1"
+                title="Download CV"
+              >
+                <Download class="w-3 h-3 text-gold-600" />
+                <span>CV (PDF)</span>
+              </a>
             </div>
             <div class="flex items-center gap-1.5">
               <button
@@ -620,76 +678,110 @@
       </div>
     </div>
 
-    <!-- MODAL: CREATE/EDIT FACULTY -->
+    <!-- MODAL: CREATE/EDIT FACULTY (HYBRID DOCUMENT WORKFLOW) -->
     <Modal
       v-model="isFacultyModalOpen"
-      :title="isEditingFaculty ? (localeStore.isRtl ? 'تعديل بيانات عضو هيئة التدريس' : 'Edit Faculty Profile') : (localeStore.isRtl ? 'إضافة عضو هيئة تدريس جديد' : 'Add Faculty Member')"
+      :title="isEditingFaculty ? (localeStore.isRtl ? 'تعديل بيانات عضو هيئة التدريس والسيرة الذاتية' : 'Edit Faculty Profile & CV Document') : (localeStore.isRtl ? 'إضافة عضو هيئة تدريس وسيرة ذاتية (Hybrid Workflow)' : 'Add Faculty Member & CV (Hybrid Workflow)')"
       size="lg"
       @close="isFacultyModalOpen = false"
     >
-      <form @submit.prevent="submitFacultyForm" class="space-y-4 text-start text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-          <EnterpriseFormField
-            v-model="facultyForm.name_ar"
-            type="text"
-            :label="localeStore.isRtl ? 'الاسم بالكامل (عربي)' : 'Full Name (Ar)'"
-            required
-            col-span="6"
-            placeholder="أ.د. حسام عادل الشافعي"
-          />
-          <EnterpriseFormField
-            v-model="facultyForm.name_en"
-            type="text"
-            label="Full Name (En)"
-            required
-            col-span="6"
-            placeholder="Prof. Dr. Hossam Adel El-Shafei"
-          />
-          <EnterpriseFormField
-            v-model="facultyForm.academic_title_ar"
-            type="text"
-            :label="localeStore.isRtl ? 'الدرجة الأكاديمية (عربي)' : 'Academic Rank (Ar)'"
-            required
-            col-span="6"
-            placeholder="أستاذ ورئيس قسم الذكاء الاصطناعي"
-          />
-          <EnterpriseFormField
-            v-model="facultyForm.academic_title_en"
-            type="text"
-            label="Academic Rank (En)"
-            required
-            col-span="6"
-            placeholder="Professor & Chair of AI Dept"
-          />
-          <EnterpriseFormField
-            v-model="facultyForm.email"
-            type="email"
-            :label="localeStore.isRtl ? 'البريد الإلكتروني الجامعي' : 'University Email'"
-            required
-            col-span="6"
-            placeholder="h.adel@university.edu.eg"
-          />
-          <EnterpriseFormField
-            type="image"
-            :label="localeStore.isRtl ? 'الصورة الشخصية لعضو هيئة التدريس' : 'Faculty Profile Photo'"
-            col-span="6"
-            :preview-url="facultyAvatarPreview || facultyForm.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'"
-            :button-text="localeStore.isRtl ? 'رفع صورة من جهازك' : 'Upload from Device'"
-            @file-selected="handleFacultyAvatarSelect"
-          />
-          <EnterpriseFormField
-            v-model="facultyForm.research_interests_ar"
-            type="text"
-            :label="localeStore.isRtl ? 'الاهتمامات البحثية' : 'Research Interests'"
-            col-span="12"
-            placeholder="التعلم العميق، الرؤية الحاسوبية، الروبوتات الطبية..."
-          />
-        </div>
-      </form>
+      <div class="space-y-4 text-start text-xs">
+        <HybridDocumentWorkflow
+          v-model="facultyWorkflowModel"
+          mode="both"
+          :existing-file-url="facultyWorkflowModel.fileUrl"
+          :existing-file-name="facultyWorkflowModel.fileName"
+          :structured-tab-label="localeStore.isRtl ? 'الملف الأكاديمي والبيانات' : 'Academic Profile Data'"
+          :upload-tab-label="localeStore.isRtl ? 'رفع السيرة الذاتية الرقمية (CV PDF)' : 'Upload Full Digital CV (PDF)'"
+          accept=".pdf,.doc,.docx"
+          @file-selected="handleFacultyCvSelected"
+          @file-removed="handleFacultyCvRemoved"
+        >
+          <template #structured-form>
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+              <EnterpriseFormField
+                v-model="facultyForm.name_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'الاسم بالكامل (عربي)' : 'Full Name (Ar)'"
+                required
+                col-span="6"
+                placeholder="أ.د. حسام عادل الشافعي"
+              />
+              <EnterpriseFormField
+                v-model="facultyForm.name_en"
+                type="text"
+                label="Full Name (En)"
+                required
+                col-span="6"
+                placeholder="Prof. Dr. Hossam Adel El-Shafei"
+              />
+              <EnterpriseFormField
+                v-model="facultyForm.academic_title_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'الدرجة الأكاديمية (عربي)' : 'Academic Rank (Ar)'"
+                required
+                col-span="6"
+                placeholder="أستاذ ورئيس قسم الذكاء الاصطناعي"
+              />
+              <EnterpriseFormField
+                v-model="facultyForm.academic_title_en"
+                type="text"
+                label="Academic Rank (En)"
+                required
+                col-span="6"
+                placeholder="Professor & Chair of AI Dept"
+              />
+              <EnterpriseFormField
+                v-model="facultyForm.email"
+                type="email"
+                :label="localeStore.isRtl ? 'البريد الإلكتروني الجامعي' : 'University Email'"
+                required
+                col-span="6"
+                placeholder="h.adel@university.edu.eg"
+              />
+              <EnterpriseFormField
+                type="image"
+                :label="localeStore.isRtl ? 'الصورة الشخصية لعضو هيئة التدريس' : 'Faculty Profile Photo'"
+                col-span="6"
+                :preview-url="facultyAvatarPreview || facultyForm.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'"
+                :button-text="localeStore.isRtl ? 'رفع صورة من جهازك' : 'Upload from Device'"
+                @file-selected="handleFacultyAvatarSelect"
+              />
+              <EnterpriseFormField
+                v-model="facultyForm.research_interests_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'الاهتمامات البحثية' : 'Research Interests'"
+                col-span="12"
+                placeholder="التعلم العميق، الرؤية الحاسوبية، الروبوتات الطبية..."
+              />
+            </div>
+          </template>
+
+          <template #file-meta-form>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <EnterpriseFormField
+                v-model="facultyForm.name_ar"
+                type="text"
+                :label="localeStore.isRtl ? 'اسم الأستاذ / الباحث (عربي)' : 'Faculty Name (Ar)'"
+                placeholder="أ.د. حسام عادل الشافعي"
+              />
+              <EnterpriseFormField
+                v-model="facultyForm.email"
+                type="email"
+                :label="localeStore.isRtl ? 'البريد الإلكتروني' : 'Email'"
+                placeholder="h.adel@university.edu.eg"
+              />
+            </div>
+          </template>
+        </HybridDocumentWorkflow>
+      </div>
 
       <template #footer>
-        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isFacultyModalOpen = false">{{ $t('common.cancel') }}</button>
-        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 text-white font-bold text-xs shadow-md" @click="submitFacultyForm">{{ localeStore.isRtl ? 'حفظ البيانات' : 'Save Faculty' }}</button>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 cursor-pointer" @click="isFacultyModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md cursor-pointer inline-flex items-center gap-1.5" @click="submitFacultyForm">
+          <UserCheck class="w-4 h-4 text-gold-400" />
+          <span>{{ localeStore.isRtl ? 'حفظ الملف والسيرة الذاتية' : 'Save Faculty Profile & CV' }}</span>
+        </button>
       </template>
     </Modal>
   </div>
@@ -702,6 +794,7 @@ import { api, getTranslated } from '../../services/api'
 import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
+import HybridDocumentWorkflow from '../../components/ui/HybridDocumentWorkflow.vue'
 import {
   School,
   Building2,
@@ -714,11 +807,51 @@ import {
   Edit3,
   UserCheck,
   Upload,
+  Download,
+  BookOpenCheck,
   X,
 } from 'lucide-vue-next'
 
 const localeStore = useLocaleStore()
 const activeTab = ref('colleges')
+
+const programWorkflowModel = reactive({
+  structuredData: {},
+  file: null,
+  fileUrl: '',
+  fileName: '',
+  mode: 'structured'
+})
+
+const handleProgramFileSelected = (file) => {
+  programWorkflowModel.file = file
+  programWorkflowModel.fileName = file.name
+}
+
+const handleProgramFileRemoved = () => {
+  programWorkflowModel.file = null
+  programWorkflowModel.fileUrl = ''
+  programWorkflowModel.fileName = ''
+}
+
+const facultyWorkflowModel = reactive({
+  structuredData: {},
+  file: null,
+  fileUrl: '',
+  fileName: '',
+  mode: 'structured'
+})
+
+const handleFacultyCvSelected = (file) => {
+  facultyWorkflowModel.file = file
+  facultyWorkflowModel.fileName = file.name
+}
+
+const handleFacultyCvRemoved = () => {
+  facultyWorkflowModel.file = null
+  facultyWorkflowModel.fileUrl = ''
+  facultyWorkflowModel.fileName = ''
+}
 
 const collegesList = ref([])
 const programsList = ref([])
@@ -822,6 +955,12 @@ const openNewFacultyModal = () => {
   facultyForm.email = ''
   facultyForm.avatar = ''
   facultyForm.research_interests_ar = ''
+
+  facultyWorkflowModel.file = null
+  facultyWorkflowModel.fileUrl = ''
+  facultyWorkflowModel.fileName = ''
+  facultyWorkflowModel.mode = 'structured'
+
   isFacultyModalOpen.value = true
 }
 
@@ -837,29 +976,46 @@ const openEditFacultyModal = (fac) => {
   facultyForm.email = fac.email || ''
   facultyForm.avatar = fac.avatar || ''
   facultyForm.research_interests_ar = fac.research_interests?.ar || ''
+
+  facultyWorkflowModel.file = null
+  facultyWorkflowModel.fileUrl = fac.cv_path || ''
+  facultyWorkflowModel.fileName = fac.cv_path ? 'Faculty CV Document (PDF)' : ''
+  facultyWorkflowModel.mode = fac.cv_path ? 'both' : 'structured'
+
   isFacultyModalOpen.value = true
 }
 
 const submitFacultyForm = async () => {
-  if (isEditingFaculty.value) {
-    const updated = await api.updateFaculty(editingFacultyId.value, { ...facultyForm })
-    const idx = facultyList.value.findIndex((f) => f.id === editingFacultyId.value)
-    if (idx !== -1) {
-      facultyList.value[idx] = {
-        ...facultyList.value[idx],
-        name: facultyForm.name_en || facultyForm.name_ar || facultyList.value[idx].name,
-        academic_title: { ar: facultyForm.academic_title_ar, en: facultyForm.academic_title_en },
-        email: facultyForm.email,
-        avatar: facultyForm.avatar || facultyList.value[idx].avatar,
-        research_interests: { ar: facultyForm.research_interests_ar, en: facultyForm.research_interests_en },
-        ...updated,
-      }
+  try {
+    const payload = {
+      ...facultyForm,
+      cv_file: facultyWorkflowModel.file,
+      cv_path: facultyWorkflowModel.fileUrl || undefined
     }
-  } else {
-    const created = await api.createFaculty({ ...facultyForm })
-    facultyList.value.unshift(created)
+
+    if (isEditingFaculty.value) {
+      const updated = await api.updateFaculty(editingFacultyId.value, payload)
+      const idx = facultyList.value.findIndex((f) => f.id === editingFacultyId.value)
+      if (idx !== -1) {
+        facultyList.value[idx] = {
+          ...facultyList.value[idx],
+          name: facultyForm.name_en || facultyForm.name_ar || facultyList.value[idx].name,
+          academic_title: { ar: facultyForm.academic_title_ar, en: facultyForm.academic_title_en },
+          email: facultyForm.email,
+          avatar: facultyForm.avatar || facultyList.value[idx].avatar,
+          research_interests: { ar: facultyForm.research_interests_ar, en: facultyForm.research_interests_en },
+          cv_path: updated?.cv_path || facultyWorkflowModel.fileUrl,
+          ...updated,
+        }
+      }
+    } else {
+      const created = await api.createFaculty(payload)
+      facultyList.value.unshift(created)
+    }
+    isFacultyModalOpen.value = false
+  } catch (err) {
+    alert('Failed to save faculty profile')
   }
-  isFacultyModalOpen.value = false
 }
 
 const handleDeleteFaculty = async (id) => {
@@ -1080,6 +1236,12 @@ const openNewProgramModal = () => {
   programForm.tuition_fees_en = '55,000 EGP / Academic Year'
   programForm.admission_requirements_ar = ''
   programForm.admission_requirements_en = ''
+
+  programWorkflowModel.file = null
+  programWorkflowModel.fileUrl = ''
+  programWorkflowModel.fileName = ''
+  programWorkflowModel.mode = 'structured'
+
   isProgramModalOpen.value = true
 }
 
@@ -1100,29 +1262,47 @@ const openEditProgramModal = (prog) => {
   programForm.admission_requirements_en = Array.isArray(prog.admission_requirements?.en)
     ? prog.admission_requirements.en.join(', ')
     : (prog.admission_requirements?.en || '')
+
+  programWorkflowModel.file = null
+  programWorkflowModel.fileUrl = prog.study_plan_document_path || ''
+  programWorkflowModel.fileName = prog.study_plan_file_name || (prog.study_plan_document_path ? 'Official Study Plan Matrix' : '')
+  programWorkflowModel.mode = prog.study_plan_document_path ? 'both' : 'structured'
+
   isProgramModalOpen.value = true
 }
 
 const submitProgramForm = async () => {
-  if (isEditingProgram.value) {
-    const updated = await api.updateProgram(editingProgramId.value, { ...programForm })
-    const idx = programsList.value.findIndex((p) => p.id === editingProgramId.value)
-    if (idx !== -1) {
-      programsList.value[idx] = {
-        ...programsList.value[idx],
-        name: { ar: programForm.name_ar, en: programForm.name_en },
-        degree_level: programForm.degree_level,
-        duration_years: programForm.duration_years,
-        credit_hours: programForm.credit_hours,
-        tuition_fees: { ar: programForm.tuition_fees_ar, en: programForm.tuition_fees_en },
-        ...updated,
-      }
+  try {
+    const payload = {
+      ...programForm,
+      study_plan_document: programWorkflowModel.file,
+      study_plan_document_path: programWorkflowModel.fileUrl || undefined
     }
-  } else {
-    const created = await api.createProgram({ ...programForm })
-    programsList.value.unshift(created)
+
+    if (isEditingProgram.value) {
+      const updated = await api.updateProgram(editingProgramId.value, payload)
+      const idx = programsList.value.findIndex((p) => p.id === editingProgramId.value)
+      if (idx !== -1) {
+        programsList.value[idx] = {
+          ...programsList.value[idx],
+          name: { ar: programForm.name_ar, en: programForm.name_en },
+          degree_level: programForm.degree_level,
+          duration_years: programForm.duration_years,
+          credit_hours: programForm.credit_hours,
+          tuition_fees: { ar: programForm.tuition_fees_ar, en: programForm.tuition_fees_en },
+          study_plan_document_path: updated?.study_plan_document_path || programWorkflowModel.fileUrl,
+          study_plan_file_name: updated?.study_plan_file_name || programWorkflowModel.fileName,
+          ...updated,
+        }
+      }
+    } else {
+      const created = await api.createProgram(payload)
+      programsList.value.unshift(created)
+    }
+    isProgramModalOpen.value = false
+  } catch (err) {
+    alert('Failed to save program')
   }
-  isProgramModalOpen.value = false
 }
 
 const handleDeleteProgram = async (id) => {
