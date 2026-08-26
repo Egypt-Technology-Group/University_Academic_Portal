@@ -41,132 +41,73 @@
     <!-- KPI Metric Cards Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
       <!-- 1. Pending Applications -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-            {{ $t('admin.dashboard.kpiPendingApps') }}
-          </span>
-          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Clock class="w-5 h-5" />
-          </div>
-        </div>
-        <div class="mt-4 flex items-baseline justify-between">
-          <span class="text-3xl font-black text-navy-950 font-mono">{{ stats.pending_applications || 14 }}</span>
-          <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-            {{ $t('admin.dashboard.kpiRequiresAction') }}
-          </span>
-        </div>
-        <div class="mt-3 text-xs text-slate-500 font-medium">
-          {{ $t('admin.dashboard.kpiPendingSub') }}
-        </div>
-      </div>
+      <KpiCard
+        :label="$t('admin.dashboard.kpiPendingApps')"
+        :value="stats.pending_applications || 14"
+        :icon="Clock"
+        variant="amber"
+        :badge="$t('admin.dashboard.kpiRequiresAction')"
+        pulse
+        :description="$t('admin.dashboard.kpiPendingSub')"
+      />
 
       <!-- 2. Accepted Applications -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-            {{ $t('admin.dashboard.kpiAcceptedApps') }}
-          </span>
-          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <CheckCircle2 class="w-5 h-5" />
-          </div>
-        </div>
-        <div class="mt-4 flex items-baseline justify-between">
-          <span class="text-3xl font-black text-navy-950 font-mono">{{ stats.accepted_applications || 106 }}</span>
-          <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
-            +18% {{ $t('admin.dashboard.kpiThisMonth') }}
-          </span>
-        </div>
-        <div class="mt-3 text-xs text-slate-500 font-medium">
-          {{ $t('admin.dashboard.kpiAcceptedSub') }}
-        </div>
-      </div>
+      <KpiCard
+        :label="$t('admin.dashboard.kpiAcceptedApps')"
+        :value="stats.accepted_applications || 106"
+        :icon="CheckCircle2"
+        variant="emerald"
+        :badge="'+18% ' + $t('admin.dashboard.kpiThisMonth')"
+        :description="$t('admin.dashboard.kpiAcceptedSub')"
+      />
 
       <!-- 3. Total Programs & Colleges -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-            {{ $t('admin.dashboard.kpiPrograms') }}
-          </span>
-          <div class="w-10 h-10 rounded-xl bg-navy-50 text-navy-800 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <GraduationCap class="w-5 h-5" />
-          </div>
-        </div>
-        <div class="mt-4 flex items-baseline justify-between">
-          <span class="text-3xl font-black text-navy-950 font-mono">{{ stats.total_programs || 28 }}</span>
-          <span class="text-xs font-bold text-navy-900 bg-navy-100 px-2 py-0.5 rounded-md">
-            {{ stats.total_colleges || 5 }} {{ $t('admin.dashboard.kpiCollegesCount') }}
-          </span>
-        </div>
-        <div class="mt-3 text-xs text-slate-500 font-medium">
-          {{ $t('admin.dashboard.kpiAccredited') }}
-        </div>
-      </div>
+      <KpiCard
+        :label="$t('admin.dashboard.kpiPrograms')"
+        :value="stats.total_programs || 28"
+        :icon="GraduationCap"
+        variant="navy"
+        :badge="(stats.total_colleges || 5) + ' ' + $t('admin.dashboard.kpiCollegesCount')"
+        :description="$t('admin.dashboard.kpiAccredited')"
+      />
 
       <!-- 4. Total Enrolled Students -->
-      <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
-            {{ $t('admin.dashboard.kpiStudents') }}
-          </span>
-          <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <Users class="w-5 h-5" />
-          </div>
-        </div>
-        <div class="mt-4 flex items-baseline justify-between">
-          <span class="text-3xl font-black text-navy-950 font-mono">{{ Number(stats.total_students || 15420).toLocaleString() }}</span>
-          <span class="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
-            {{ stats.total_faculty || 480 }} {{ $t('admin.dashboard.kpiFaculty') }}
-          </span>
-        </div>
-        <div class="mt-3 text-xs text-slate-500 font-medium">
-          {{ $t('admin.dashboard.kpiActiveEnrollment') }}
-        </div>
-      </div>
+      <KpiCard
+        :label="$t('admin.dashboard.kpiStudents')"
+        :value="Number(stats.total_students || 15420).toLocaleString()"
+        :icon="Users"
+        variant="blue"
+        :badge="(stats.total_faculty || 480) + ' ' + $t('admin.dashboard.kpiFaculty')"
+        :description="$t('admin.dashboard.kpiActiveEnrollment')"
+      />
     </div>
 
     <!-- Secondary Metrics Row: Published Media & Repository Stats -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-      <div class="bg-white rounded-xl p-4 border border-slate-200/80 flex items-center gap-3.5">
-        <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-          <Newspaper class="w-4 h-4" />
-        </div>
-        <div>
-          <div class="text-xs text-slate-500 font-medium">{{ $t('admin.dashboard.secNewsCount') }}</div>
-          <div class="text-lg font-black text-navy-950 font-mono">{{ stats.total_news || 18 }}</div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-4 border border-slate-200/80 flex items-center gap-3.5">
-        <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-          <Megaphone class="w-4 h-4" />
-        </div>
-        <div>
-          <div class="text-xs text-slate-500 font-medium">{{ $t('admin.dashboard.secAnnounceCount') }}</div>
-          <div class="text-lg font-black text-navy-950 font-mono">{{ stats.total_announcements || 9 }}</div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-4 border border-slate-200/80 flex items-center gap-3.5">
-        <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-          <Calendar class="w-4 h-4" />
-        </div>
-        <div>
-          <div class="text-xs text-slate-500 font-medium">{{ $t('admin.dashboard.secEventsCount') }}</div>
-          <div class="text-lg font-black text-navy-950 font-mono">{{ stats.total_events || 12 }}</div>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-4 border border-slate-200/80 flex items-center gap-3.5">
-        <div class="w-9 h-9 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-          <FileText class="w-4 h-4" />
-        </div>
-        <div>
-          <div class="text-xs text-slate-500 font-medium">{{ $t('admin.dashboard.secDocsCount') }}</div>
-          <div class="text-lg font-black text-navy-950 font-mono">{{ stats.total_documents || 24 }}</div>
-        </div>
-      </div>
+      <MetricStatCard
+        :label="$t('admin.dashboard.secNewsCount')"
+        :value="stats.total_news || 18"
+        :icon="Newspaper"
+        color="slate"
+      />
+      <MetricStatCard
+        :label="$t('admin.dashboard.secAnnounceCount')"
+        :value="stats.total_announcements || 9"
+        :icon="Megaphone"
+        color="slate"
+      />
+      <MetricStatCard
+        :label="$t('admin.dashboard.secEventsCount')"
+        :value="stats.total_events || 12"
+        :icon="Calendar"
+        color="slate"
+      />
+      <MetricStatCard
+        :label="$t('admin.dashboard.secDocsCount')"
+        :value="stats.total_documents || 24"
+        :icon="FileText"
+        color="slate"
+      />
     </div>
 
     <!-- Main Content Split: Recent Admissions Queue & Admissions Cycle Progress -->
@@ -193,7 +134,12 @@
         </div>
 
         <!-- Table -->
-        <div class="overflow-x-auto -mx-6 px-6 flex-1">
+        <EmptyState
+          v-if="recentApplications.length === 0"
+          :title="$t('admin.admissions.noApplicationsFound')"
+          :description="$t('admin.admissions.noApplicationsFoundDesc')"
+        />
+        <div v-else class="overflow-x-auto -mx-6 px-6 flex-1">
           <table class="w-full text-start text-xs border-collapse">
             <thead>
               <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[11px] bg-slate-50/50">
@@ -386,6 +332,9 @@ import { useAuthStore } from '../../stores/auth'
 import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
 import { formatStandardDate } from '../../utils/dateFormat'
+import KpiCard from '../../components/ui/KpiCard.vue'
+import MetricStatCard from '../../components/ui/MetricStatCard.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
 import {
   Sparkles,
   UserCheck,

@@ -118,7 +118,12 @@
 
     <!-- TAB 1: COLLEGES & INSTITUTES -->
     <div v-if="activeTab === 'colleges'" class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <EmptyState
+        v-if="collegesList.length === 0"
+        :title="localeStore.isRtl ? 'لا توجد كليات أو معاهد مسجلة' : 'No colleges or institutes registered'"
+        :description="localeStore.isRtl ? 'استخدم زر إضافة كلية جديد بالأعلى لإنشاء وتوثيق كلية أو معهد دراسي.' : 'Use the top action button to register a new college or institute.'"
+      />
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <div
           v-for="col in collegesList"
           :key="col.id"
@@ -261,7 +266,12 @@
 
       <!-- Programs Grid / Table -->
       <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div class="overflow-x-auto">
+        <EmptyState
+          v-if="filteredPrograms.length === 0"
+          :title="localeStore.isRtl ? 'لا توجد برامج أكاديمية مطابقة' : 'No degree programs found'"
+          :description="localeStore.isRtl ? 'لم يتم العثور على برامج دراسية تطابق معايير البحث أو التصفية الحالية.' : 'No academic programs match the current search or degree level filter.'"
+        />
+        <div v-else class="overflow-x-auto">
           <table class="w-full text-start text-xs border-collapse">
             <thead>
               <tr class="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
@@ -547,7 +557,12 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <EmptyState
+        v-if="filteredFaculty.length === 0"
+        :title="localeStore.isRtl ? 'لا يوجد أعضاء هيئة تدريس مطابقين' : 'No faculty members found'"
+        :description="localeStore.isRtl ? 'لم يتم العثور على باحثين أو أساتذة يطابقون استعلام البحث.' : 'No faculty members match the current search query.'"
+      />
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
           v-for="fac in filteredFaculty"
           :key="fac.id"
@@ -613,69 +628,62 @@
       @close="isFacultyModalOpen = false"
     >
       <form @submit.prevent="submitFacultyForm" class="space-y-4 text-start text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الاسم بالكامل (عربي)' : 'Full Name (Ar)' }} *</label>
-            <input v-model="facultyForm.name_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="أ.د. حسام عادل الشافعي" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Full Name (En) *</label>
-            <input v-model="facultyForm.name_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="Prof. Dr. Hossam Adel El-Shafei" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الدرجة الأكاديمية (عربي)' : 'Academic Rank (Ar)' }} *</label>
-            <input v-model="facultyForm.academic_title_ar" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="أستاذ ورئيس قسم الذكاء الاصطناعي" />
-          </div>
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">Academic Rank (En) *</label>
-            <input v-model="facultyForm.academic_title_en" type="text" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="Professor & Chair of AI Dept" />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'البريد الإلكتروني الجامعي' : 'University Email' }} *</label>
-            <input v-model="facultyForm.email" type="email" required class="w-full rounded-xl border border-slate-300 p-2.5 text-xs font-mono" placeholder="h.adel@university.edu.eg" />
-          </div>
-          
-          <!-- Faculty Avatar File Picker -->
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الصورة الشخصية لعضو هيئة التدريس' : 'Faculty Profile Photo' }}</label>
-            <div class="flex items-center gap-3">
-              <img
-                :src="facultyAvatarPreview || facultyForm.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'"
-                class="w-10 h-10 rounded-xl object-cover border border-slate-300 shrink-0"
-              />
-              <div class="flex-1 min-w-0">
-                <input
-                  ref="facultyAvatarInput"
-                  type="file"
-                  accept="image/*"
-                  class="hidden"
-                  @change="handleFacultyAvatarSelect"
-                />
-                <button
-                  type="button"
-                  class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-navy-950 font-bold text-[11px] cursor-pointer inline-flex items-center gap-1 border border-slate-300"
-                  @click="$refs.facultyAvatarInput.click()"
-                >
-                  <Upload class="w-3.5 h-3.5 text-gold-600" />
-                  <span>{{ localeStore.isRtl ? 'رفع صورة من جهازك' : 'Upload from Device' }}</span>
-                </button>
-                <div v-if="facultySelectedFile" class="text-[10px] text-emerald-700 font-mono mt-0.5 truncate">
-                  ✓ {{ facultySelectedFile.name }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">{{ localeStore.isRtl ? 'الاهتمامات البحثية' : 'Research Interests' }}</label>
-          <input v-model="facultyForm.research_interests_ar" type="text" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs" placeholder="التعلم العميق، الرؤية الحاسوبية، الروبوتات الطبية..." />
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <EnterpriseFormField
+            v-model="facultyForm.name_ar"
+            type="text"
+            :label="localeStore.isRtl ? 'الاسم بالكامل (عربي)' : 'Full Name (Ar)'"
+            required
+            col-span="6"
+            placeholder="أ.د. حسام عادل الشافعي"
+          />
+          <EnterpriseFormField
+            v-model="facultyForm.name_en"
+            type="text"
+            label="Full Name (En)"
+            required
+            col-span="6"
+            placeholder="Prof. Dr. Hossam Adel El-Shafei"
+          />
+          <EnterpriseFormField
+            v-model="facultyForm.academic_title_ar"
+            type="text"
+            :label="localeStore.isRtl ? 'الدرجة الأكاديمية (عربي)' : 'Academic Rank (Ar)'"
+            required
+            col-span="6"
+            placeholder="أستاذ ورئيس قسم الذكاء الاصطناعي"
+          />
+          <EnterpriseFormField
+            v-model="facultyForm.academic_title_en"
+            type="text"
+            label="Academic Rank (En)"
+            required
+            col-span="6"
+            placeholder="Professor & Chair of AI Dept"
+          />
+          <EnterpriseFormField
+            v-model="facultyForm.email"
+            type="email"
+            :label="localeStore.isRtl ? 'البريد الإلكتروني الجامعي' : 'University Email'"
+            required
+            col-span="6"
+            placeholder="h.adel@university.edu.eg"
+          />
+          <EnterpriseFormField
+            type="image"
+            :label="localeStore.isRtl ? 'الصورة الشخصية لعضو هيئة التدريس' : 'Faculty Profile Photo'"
+            col-span="6"
+            :preview-url="facultyAvatarPreview || facultyForm.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'"
+            :button-text="localeStore.isRtl ? 'رفع صورة من جهازك' : 'Upload from Device'"
+            @file-selected="handleFacultyAvatarSelect"
+          />
+          <EnterpriseFormField
+            v-model="facultyForm.research_interests_ar"
+            type="text"
+            :label="localeStore.isRtl ? 'الاهتمامات البحثية' : 'Research Interests'"
+            col-span="12"
+            placeholder="التعلم العميق، الرؤية الحاسوبية، الروبوتات الطبية..."
+          />
         </div>
       </form>
 
@@ -692,6 +700,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
 import Modal from '../../components/ui/Modal.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
+import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import {
   School,
   Building2,
