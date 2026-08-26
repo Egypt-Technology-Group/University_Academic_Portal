@@ -4,28 +4,26 @@ declare(strict_types=1);
 namespace App\Modules\AcademicStructure\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\AcademicStructure\Models\College;
-use App\Modules\AcademicStructure\Models\Department;
-use App\Modules\AcademicStructure\Models\FacultyProfile;
-use App\Modules\AcademicStructure\Models\Program;
 use App\Modules\AcademicStructure\Resources\CollegeResource;
 use App\Modules\AcademicStructure\Resources\FacultyResource;
 use App\Modules\AcademicStructure\Resources\ProgramResource;
+use App\Modules\AcademicStructure\Services\AcademicStructureService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AcademicStructureController extends Controller
 {
+    public function __construct(
+        protected AcademicStructureService $academicStructureService
+    ) {}
+
     /**
      * List all active colleges with department/program counts.
      */
     public function indexColleges(Request $request): AnonymousResourceCollection
     {
-        $colleges = College::where('is_active', true)
-            ->withCount(['departments', 'programs'])
-            ->orderBy('sort_order')
-            ->get();
+        $colleges = $this->academicStructureService->getColleges();
 
         return CollegeResource::collection($colleges);
     }
@@ -35,15 +33,11 @@ class AcademicStructureController extends Controller
      */
     public function indexDepartments(Request $request): JsonResponse
     {
-        $query = Department::with('college')->orderBy('sort_order');
-
-        if ($request->filled('college_id')) {
-            $query->where('college_id', $request->college_id);
-        }
+        $departments = $this->academicStructureService->getDepartments($request->all());
 
         return response()->json([
             'success' => true,
-            'data' => $query->get(),
+            'data' => $departments,
         ]);
     }
 
@@ -52,14 +46,7 @@ class AcademicStructureController extends Controller
      */
     public function getCollege(string $slug): CollegeResource
     {
-        $college = College::where('slug', $slug)
-            ->where('is_active', true)
-            ->with([
-                'departments' => fn($q) => $q->orderBy('sort_order'),
-                'departments.programs' => fn($q) => $q->where('is_active', true),
-                'facultyProfiles' => fn($q) => $q->with(['user', 'department'])->where('is_featured', true),
-            ])
-            ->firstOrFail();
+        $college = $this->academicStructureService->getCollege($slug);
 
         return new CollegeResource($college);
     }
@@ -69,34 +56,7 @@ class AcademicStructureController extends Controller
      */
     public function indexPrograms(Request $request): AnonymousResourceCollection
     {
-        $query = Program::where('is_active', true)->with(['department.college']);
-
-        if ($request->filled('college_id')) {
-            $query->whereHas('department', function ($q) use ($request) {
-                $q->where('college_id', $request->college_id);
-            });
-        }
-
-        if ($request->filled('department_id')) {
-            $query->where('department_id', $request->department_id);
-        }
-
-        if ($request->filled('degree_level')) {
-            $query->where('degree_level', $request->degree_level);
-        }
-
-        if ($request->filled('search') || $request->filled('q')) {
-            $search = (string) $request->input('search', $request->input('q'));
-            $query->where(function ($q) use ($search) {
-                $q->where('name->en', 'like', "%{$search}%")
-                    ->orWhere('name->ar', 'like', "%{$search}%")
-                    ->orWhere('slug', 'like', "%{$search}%")
-                    ->orWhere('degree_level', 'like', "%{$search}%");
-            });
-        }
-
-        $perPage = (int) $request->input('per_page', 15);
-        $programs = $request->boolean('all') ? $query->get() : $query->paginate($perPage);
+        $programs = $this->academicStructureService->getPrograms($request->all());
 
         return ProgramResource::collection($programs);
     }
@@ -106,10 +66,7 @@ class AcademicStructureController extends Controller
      */
     public function getProgram(string $slug): ProgramResource
     {
-        $program = Program::where('slug', $slug)
-            ->where('is_active', true)
-            ->with(['department.college', 'department.facultyProfiles.user'])
-            ->firstOrFail();
+        $program = $this->academicStructureService->getProgram($slug);
 
         return new ProgramResource($program);
     }
@@ -119,56 +76,7 @@ class AcademicStructureController extends Controller
      */
     public function indexFaculty(Request $request): AnonymousResourceCollection
     {
-        $query = FacultyProfile::with(['user', 'department.college']);
-
-        if ($request->filled('department_id')) {
-            $query->where('department_id', $request->department_id);
-        }
-
-        if ($request->filled('department')) {
-            $dept = $request->input('department');
-            $query->whereHas('department', function ($q) use ($dept) {
-                $q->where('slug', $dept)->orWhere('id', $dept);
-            });
-        }
-
-        if ($request->filled('college_id')) {
-            $query->whereHas('department', function ($q) use ($request) {
-                $q->where('college_id', $request->college_id);
-            });
-        }
-
-        if ($request->boolean('is_featured') || $request->boolean('featured')) {
-            $query->where('is_featured', true);
-        }
-
-        if ($request->filled('rank') || $request->filled('academic_title')) {
-            $rank = (string) $request->input('rank', $request->input('academic_title'));
-            $query->where(function ($q) use ($rank) {
-                $q->where('academic_title->en', 'like', "%{$rank}%")
-                    ->orWhere('academic_title->ar', 'like', "%{$rank}%");
-            });
-        }
-
-        if ($request->filled('search') || $request->filled('q')) {
-            $search = (string) $request->input('search', $request->input('q'));
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', function ($uq) use ($search) {
-                    $uq->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                })
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('academic_title->en', 'like', "%{$search}%")
-                    ->orWhere('academic_title->ar', 'like', "%{$search}%")
-                    ->orWhere('bio->en', 'like', "%{$search}%")
-                    ->orWhere('bio->ar', 'like', "%{$search}%")
-                    ->orWhere('research_interests->en', 'like', "%{$search}%")
-                    ->orWhere('research_interests->ar', 'like', "%{$search}%");
-            });
-        }
-
-        $perPage = (int) $request->input('per_page', 15);
-        $faculty = $request->boolean('all') ? $query->get() : $query->paginate($perPage);
+        $faculty = $this->academicStructureService->getFaculty($request->all());
 
         return FacultyResource::collection($faculty);
     }
