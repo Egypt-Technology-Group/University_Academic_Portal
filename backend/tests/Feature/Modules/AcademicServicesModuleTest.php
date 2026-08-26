@@ -7,11 +7,12 @@ use App\Core\ModuleManager;
 use App\Models\User;
 use App\Modules\AcademicServices\Models\ExamSchedule;
 use App\Modules\AcademicServices\Models\OfficialStatement;
-use App\Modules\AcademicServices\Models\StudentRecord;
 use App\Modules\AcademicServices\Models\StudentServiceRequest;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AcademicServicesModuleTest extends TestCase
@@ -155,5 +156,158 @@ class AcademicServicesModuleTest extends TestCase
             ]);
 
         $this->assertFalse($this->moduleManager->isEnabled('academic-services'));
+    }
+
+    public function test_student_service_request_lifecycle_and_crud(): void
+    {
+        // 1. Submit request via public endpoint
+        $submitResponse = $this->postJson('/api/v1/student-services/apply', [
+            'student_id_number' => 'STU-99001',
+            'student_name' => 'Sara Mahmoud',
+            'service_type' => 'enrollment_cert',
+            'purpose_ar' => 'تقديم للسفارة',
+            'purpose_en' => 'Embassy Submission',
+            'fee_amount' => 100.00,
+        ]);
+
+        $submitResponse->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        $requestId = $submitResponse->json('data.id');
+        $this->assertNotNull($requestId);
+        $this->assertDatabaseHas('student_service_requests', [
+            'id' => $requestId,
+            'student_id_number' => 'STU-99001',
+            'status' => 'pending',
+        ]);
+
+        // 2. Admin updates request status
+        $updateResponse = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->patchJson("/api/v1/admin/student-requests/{$requestId}/status", [
+                'status' => 'approved',
+                'admin_notes' => 'Verified and stamped.',
+                'handled_by' => 'Admin Officer',
+            ]);
+
+        $updateResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        $this->assertDatabaseHas('student_service_requests', [
+            'id' => $requestId,
+            'status' => 'approved',
+            'admin_notes' => 'Verified and stamped.',
+        ]);
+
+        // 3. Admin deletes request
+        $deleteResponse = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->deleteJson("/api/v1/admin/student-requests/{$requestId}");
+
+        $deleteResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        $this->assertDatabaseMissing('student_service_requests', ['id' => $requestId]);
+    }
+
+    public function test_official_statement_issuance_and_verification(): void
+    {
+        Storage::fake('public');
+
+        $file = UploadedFile::fake()->create('statement.pdf', 500, 'application/pdf');
+
+        $issueResponse = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->postJson('/api/v1/admin/official-statements/issue', [
+                'student_id_number' => 'STU-88221',
+                'student_name' => 'Omar Farooq',
+                'national_id' => '29901011234567',
+                'statement_type' => 'transcript',
+                'workflow_mode' => 'both',
+                'title_ar' => 'شهادة تخرج مؤقتة',
+                'title_en' => 'Provisional Graduation Certificate',
+                'recipient_entity_ar' => 'نقابة المهندسين',
+                'recipient_entity_en' => 'Engineers Syndicate',
+                'signatory_name' => 'Prof. Dr. Dean',
+                'signatory_title' => 'Dean of Faculty',
+                'valid_months' => 12,
+                'document' => $file,
+            ]);
+
+        $issueResponse->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        $certCode = $issueResponse->json('data.certificate_code');
+        $hash = $issueResponse->json('data.verification_hash');
+        $this->assertNotNull($certCode);
+
+        // Verification query
+        $verifyResponse = $this->getJson("/api/v1/verify-statement?code={$certCode}&hash=" . substr($hash, 0, 8));
+        $verifyResponse->assertStatus(200)
+            ->assertJson([
+                'valid' => true,
+                'is_revoked' => false,
+            ]);
+    }
+
+    public function test_exam_schedule_crud(): void
+    {
+        Storage::fake('public');
+
+        $file = UploadedFile::fake()->create('exam_timetable.pdf', 300, 'application/pdf');
+
+        // 1. Create exam schedule
+        $storeResponse = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->postJson('/api/v1/admin/exam-schedules', [
+                'course_code' => 'CS301',
+                'course_name_ar' => 'هندسة البرمجيات',
+                'course_name_en' => 'Software Engineering',
+                'exam_type' => 'final',
+                'workflow_mode' => 'both',
+                'exam_date' => '2026-06-15',
+                'start_time' => '10:00',
+                'end_time' => '13:00',
+                'hall_location_ar' => 'مدرج أ',
+                'hall_location_en' => 'Hall A',
+                'seating_capacity' => 120,
+                'timetable_document' => $file,
+            ]);
+
+        $storeResponse->assertStatus(201)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        $examId = $storeResponse->json('data.id');
+        $this->assertNotNull($examId);
+
+        // 2. Update exam schedule
+        $updateResponse = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->putJson("/api/v1/admin/exam-schedules/{$examId}", [
+                'seating_capacity' => 150,
+                'hall_location_en' => 'Main Hall 1',
+            ]);
+
+        $updateResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+            ]);
+
+        $this->assertDatabaseHas('exam_schedules', [
+            'id' => $examId,
+            'seating_capacity' => 150,
+        ]);
+
+        // 3. Delete exam schedule
+        $deleteResponse = $this->withHeader('Authorization', "Bearer {$this->adminToken}")
+            ->deleteJson("/api/v1/admin/exam-schedules/{$examId}");
+
+        $deleteResponse->assertStatus(200);
+        $this->assertDatabaseMissing('exam_schedules', ['id' => $examId]);
     }
 }
