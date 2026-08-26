@@ -3,13 +3,13 @@ import { useModulesStore } from '../stores/modules'
 
 // Public Views
 import HomeView from '../views/HomeView.vue'
-import CollegesView from '../views/CollegesView.vue'
-import CollegeDetailView from '../views/CollegeDetailView.vue'
-import ProgramsView from '../views/ProgramsView.vue'
-import ProgramDetailView from '../views/ProgramDetailView.vue'
+import CollegesView from '../modules/academic-structure/views/CollegesView.vue'
+import CollegeDetailView from '../modules/academic-structure/views/CollegeDetailView.vue'
+import ProgramsView from '../modules/academic-structure/views/ProgramsView.vue'
+import ProgramDetailView from '../modules/academic-structure/views/ProgramDetailView.vue'
 import AdmissionsView from '../views/AdmissionsView.vue'
 import ApplicationTrackView from '../views/ApplicationTrackView.vue'
-import FacultyDirectoryView from '../views/FacultyDirectoryView.vue'
+import FacultyDirectoryView from '../modules/academic-structure/views/FacultyDirectoryView.vue'
 import NewsView from '../views/NewsView.vue'
 import NewsDetailView from '../views/NewsDetailView.vue'
 import EventsView from '../views/EventsView.vue'
@@ -150,7 +150,7 @@ const routes = [
       {
         path: 'academic-structure',
         name: 'admin-academic-structure',
-        component: () => import('../views/admin/AdminAcademicStructureView.vue'),
+        component: () => import('../modules/academic-structure/views/AdminAcademicStructureView.vue'),
         meta: { title: 'Academic Structure & Programs Management', requiresAuth: true, module: 'academic-structure' },
       },
       {

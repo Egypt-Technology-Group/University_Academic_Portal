@@ -237,14 +237,15 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
-import Card from '../components/ui/Card.vue'
-import Modal from '../components/ui/Modal.vue'
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import { academicStructureApi } from '../services/academicStructureApi'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
+import Card from '../../../components/ui/Card.vue'
+import Modal from '../../../components/ui/Modal.vue'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner.vue'
 
 const route = useRoute()
 const localeStore = useLocaleStore()
@@ -266,7 +267,7 @@ const loadCollege = async () => {
   loading.value = true
   try {
     const slug = route.params.slug
-    const res = await api.getCollege(slug)
+    const res = await academicStructureApi.getCollege(slug)
     college.value = res
     departments.value = res.departments || []
     facultyList.value = res.faculty_profiles || []

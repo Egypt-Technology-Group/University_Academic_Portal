@@ -1,20 +1,21 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Http\Controllers\Api;
+namespace App\Modules\AcademicStructure\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CollegeResource;
-use App\Http\Resources\FacultyResource;
-use App\Http\Resources\ProgramResource;
-use App\Models\College;
-use App\Models\Department;
-use App\Models\FacultyProfile;
-use App\Models\Program;
+use App\Modules\AcademicStructure\Models\College;
+use App\Modules\AcademicStructure\Models\Department;
+use App\Modules\AcademicStructure\Models\FacultyProfile;
+use App\Modules\AcademicStructure\Models\Program;
+use App\Modules\AcademicStructure\Resources\CollegeResource;
+use App\Modules\AcademicStructure\Resources\FacultyResource;
+use App\Modules\AcademicStructure\Resources\ProgramResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-class AcademicController extends Controller
+class AcademicStructureController extends Controller
 {
     /**
      * List all active colleges with department/program counts.

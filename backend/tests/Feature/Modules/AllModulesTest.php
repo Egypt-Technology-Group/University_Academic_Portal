@@ -4,11 +4,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Modules;
 
 use App\Core\ModuleManager;
-use App\Models\College;
-use App\Models\Department;
-use App\Models\FacultyProfile;
-use App\Models\Program;
 use App\Models\User;
+use App\Modules\AcademicStructure\Models\College;
+use App\Modules\AcademicStructure\Models\Department;
+use App\Modules\AcademicStructure\Models\FacultyProfile;
+use App\Modules\AcademicStructure\Models\Program;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;

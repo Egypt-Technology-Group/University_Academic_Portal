@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\AcademicStructure\Models;
 
+use App\Models\Application;
+use App\Models\StudentRecord;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

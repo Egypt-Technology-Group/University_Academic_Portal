@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Modules\AcademicStructure\Resources\ProgramResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

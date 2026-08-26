@@ -10,7 +10,7 @@ use App\Models\DownloadDocument;
 use App\Models\Event;
 use App\Models\NewsArticle;
 use App\Models\NewsCategory;
-use App\Models\Program;
+use App\Modules\AcademicStructure\Models\Program;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 

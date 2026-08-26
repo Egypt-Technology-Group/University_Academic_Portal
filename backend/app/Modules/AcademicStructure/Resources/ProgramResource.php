@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Modules\AcademicStructure\Resources;
 
 use App\Http\Resources\Concerns\HandlesTranslations;
 use Illuminate\Http\Request;

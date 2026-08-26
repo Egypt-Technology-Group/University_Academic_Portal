@@ -245,15 +245,16 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
-import Card from '../components/ui/Card.vue'
-import Modal from '../components/ui/Modal.vue'
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
-import EmptyState from '../components/ui/EmptyState.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import { academicStructureApi } from '../services/academicStructureApi'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
+import Card from '../../../components/ui/Card.vue'
+import Modal from '../../../components/ui/Modal.vue'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
 
 const localeStore = useLocaleStore()
 
@@ -293,7 +294,7 @@ const filteredFaculty = computed(() => {
 
 onMounted(async () => {
   try {
-    facultyList.value = await api.getFaculty()
+    facultyList.value = await academicStructureApi.getFaculty()
   } catch (e) {
     console.error('Failed to load faculty directory:', e)
   } finally {

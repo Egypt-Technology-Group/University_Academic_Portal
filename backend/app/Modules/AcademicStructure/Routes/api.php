@@ -1,35 +1,35 @@
 <?php
 declare(strict_types=1);
 
-use App\Http\Controllers\Api\AcademicController;
-use App\Http\Controllers\Api\Admin\AdminCrudController;
+use App\Modules\AcademicStructure\Controllers\AcademicStructureController;
+use App\Modules\AcademicStructure\Controllers\AdminAcademicStructureController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->middleware('module.enabled:academic-structure')->group(function () {
     // Public Academic Structure endpoints
-    Route::get('/colleges', [AcademicController::class, 'indexColleges']);
-    Route::get('/colleges/{slug}', [AcademicController::class, 'getCollege']);
-    Route::get('/departments', [AcademicController::class, 'indexDepartments']);
-    Route::get('/programs', [AcademicController::class, 'indexPrograms']);
-    Route::get('/programs/{slug}', [AcademicController::class, 'getProgram']);
-    Route::get('/faculty', [AcademicController::class, 'indexFaculty']);
+    Route::get('/colleges', [AcademicStructureController::class, 'indexColleges']);
+    Route::get('/colleges/{slug}', [AcademicStructureController::class, 'getCollege']);
+    Route::get('/departments', [AcademicStructureController::class, 'indexDepartments']);
+    Route::get('/programs', [AcademicStructureController::class, 'indexPrograms']);
+    Route::get('/programs/{slug}', [AcademicStructureController::class, 'getProgram']);
+    Route::get('/faculty', [AcademicStructureController::class, 'indexFaculty']);
 
     // Admin Academic Structure CRUD Management
     Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
-        Route::post('/colleges', [AdminCrudController::class, 'storeCollege']);
-        Route::match(['put', 'patch'], '/colleges/{id}', [AdminCrudController::class, 'updateCollege']);
-        Route::delete('/colleges/{id}', [AdminCrudController::class, 'deleteCollege']);
+        Route::post('/colleges', [AdminAcademicStructureController::class, 'storeCollege']);
+        Route::match(['put', 'patch'], '/colleges/{id}', [AdminAcademicStructureController::class, 'updateCollege']);
+        Route::delete('/colleges/{id}', [AdminAcademicStructureController::class, 'deleteCollege']);
 
-        Route::post('/departments', [AdminCrudController::class, 'storeDepartment']);
-        Route::match(['put', 'patch'], '/departments/{id}', [AdminCrudController::class, 'updateDepartment']);
-        Route::delete('/departments/{id}', [AdminCrudController::class, 'deleteDepartment']);
+        Route::post('/departments', [AdminAcademicStructureController::class, 'storeDepartment']);
+        Route::match(['put', 'patch'], '/departments/{id}', [AdminAcademicStructureController::class, 'updateDepartment']);
+        Route::delete('/departments/{id}', [AdminAcademicStructureController::class, 'deleteDepartment']);
 
-        Route::post('/programs', [AdminCrudController::class, 'storeProgram']);
-        Route::match(['put', 'patch'], '/programs/{id}', [AdminCrudController::class, 'updateProgram']);
-        Route::delete('/programs/{id}', [AdminCrudController::class, 'deleteProgram']);
+        Route::post('/programs', [AdminAcademicStructureController::class, 'storeProgram']);
+        Route::match(['put', 'patch'], '/programs/{id}', [AdminAcademicStructureController::class, 'updateProgram']);
+        Route::delete('/programs/{id}', [AdminAcademicStructureController::class, 'deleteProgram']);
 
-        Route::post('/faculty', [AdminCrudController::class, 'storeFaculty']);
-        Route::match(['put', 'patch'], '/faculty/{id}', [AdminCrudController::class, 'updateFaculty']);
-        Route::delete('/faculty/{id}', [AdminCrudController::class, 'deleteFaculty']);
+        Route::post('/faculty', [AdminAcademicStructureController::class, 'storeFaculty']);
+        Route::match(['put', 'patch'], '/faculty/{id}', [AdminAcademicStructureController::class, 'updateFaculty']);
+        Route::delete('/faculty/{id}', [AdminAcademicStructureController::class, 'deleteFaculty']);
     });
 });

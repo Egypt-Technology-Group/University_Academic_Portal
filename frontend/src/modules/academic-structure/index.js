@@ -5,6 +5,8 @@
  */
 
 import { KNOWN_MODULE_IDS } from '../../core/modules/types.js'
+import { academicStructureRoutes } from './routes.js'
+import { academicStructureApi } from './services/academicStructureApi.js'
 
 export const AcademicStructureModule = {
   id: KNOWN_MODULE_IDS.ACADEMIC_STRUCTURE,
@@ -19,6 +21,8 @@ export const AcademicStructureModule = {
   version: '1.0.0',
   dependencies: [],
   ownedTables: ['colleges', 'departments', 'programs', 'courses', 'study_plans', 'faculty'],
+  routes: academicStructureRoutes,
+  api: academicStructureApi,
   publicRoutes: [
     { path: '/colleges', name: 'colleges' },
     { path: '/colleges/:slug', name: 'college-detail' },
@@ -52,3 +56,4 @@ export const AcademicStructureModule = {
 }
 
 export default AcademicStructureModule
+export { academicStructureApi, academicStructureRoutes }

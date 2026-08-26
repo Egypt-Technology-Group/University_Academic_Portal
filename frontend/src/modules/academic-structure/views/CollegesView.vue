@@ -87,14 +87,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
-import Card from '../components/ui/Card.vue'
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
-import ErrorState from '../components/ui/ErrorState.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import { academicStructureApi } from '../services/academicStructureApi'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
+import Card from '../../../components/ui/Card.vue'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner.vue'
+import ErrorState from '../../../components/ui/ErrorState.vue'
 
 const localeStore = useLocaleStore()
 const colleges = ref([])
@@ -105,7 +106,7 @@ const loadCollegesData = async () => {
   loading.value = true
   error.value = ''
   try {
-    colleges.value = await api.getColleges()
+    colleges.value = await academicStructureApi.getColleges()
   } catch (e) {
     error.value = e.message || (localeStore.isRtl ? 'تعذر جلب بيانات الكليات والمعاهد من الخادم.' : 'Failed to load colleges and institutes.')
   } finally {

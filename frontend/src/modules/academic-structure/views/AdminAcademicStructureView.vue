@@ -789,14 +789,15 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useLocaleStore } from '../../stores/locale'
-import { api, getTranslated } from '../../services/api'
-import Modal from '../../components/ui/Modal.vue'
-import EmptyState from '../../components/ui/EmptyState.vue'
-import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
-import HybridDocumentWorkflow from '../../components/ui/HybridDocumentWorkflow.vue'
-import { useDialog } from '../../composables/useDialog'
-import { useToast } from '../../composables/useToast'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import { academicStructureApi as api } from '../services/academicStructureApi'
+import Modal from '../../../components/ui/Modal.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
+import EnterpriseFormField from '../../../components/ui/EnterpriseFormField.vue'
+import HybridDocumentWorkflow from '../../../components/ui/HybridDocumentWorkflow.vue'
+import { useDialog } from '../../../composables/useDialog'
+import { useToast } from '../../../composables/useToast'
 import {
   School,
   Building2,

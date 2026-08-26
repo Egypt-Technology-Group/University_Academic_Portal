@@ -233,13 +233,14 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
-import Card from '../components/ui/Card.vue'
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import { academicStructureApi } from '../services/academicStructureApi'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
+import Card from '../../../components/ui/Card.vue'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner.vue'
 
 const route = useRoute()
 const localeStore = useLocaleStore()
@@ -251,7 +252,7 @@ const loadProgram = async () => {
   loading.value = true
   try {
     const slug = route.params.slug
-    const res = await api.getProgram(slug)
+    const res = await academicStructureApi.getProgram(slug)
     program.value = res
   } catch (e) {
     console.error('Failed to load program detail:', e)

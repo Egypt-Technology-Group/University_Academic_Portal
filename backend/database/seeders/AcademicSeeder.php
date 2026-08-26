@@ -3,13 +3,13 @@
 namespace Database\Seeders;
 
 use App\Models\AcademicTerm;
-use App\Models\College;
 use App\Models\CourseResult;
-use App\Models\Department;
-use App\Models\FacultyProfile;
-use App\Models\Program;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Modules\AcademicStructure\Models\College;
+use App\Modules\AcademicStructure\Models\Department;
+use App\Modules\AcademicStructure\Models\FacultyProfile;
+use App\Modules\AcademicStructure\Models\Program;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 

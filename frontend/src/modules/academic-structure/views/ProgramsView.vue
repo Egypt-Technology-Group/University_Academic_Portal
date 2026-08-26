@@ -135,14 +135,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
-import Card from '../components/ui/Card.vue'
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
-import ErrorState from '../components/ui/ErrorState.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import { academicStructureApi } from '../services/academicStructureApi'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
+import Card from '../../../components/ui/Card.vue'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner.vue'
+import ErrorState from '../../../components/ui/ErrorState.vue'
 
 const localeStore = useLocaleStore()
 const programs = ref([])
@@ -187,8 +188,8 @@ const loadProgramsData = async () => {
   error.value = ''
   try {
     const [pData, cData] = await Promise.all([
-      api.getPrograms(),
-      api.getColleges(),
+      academicStructureApi.getPrograms(),
+      academicStructureApi.getColleges(),
     ])
     programs.value = pData || []
     colleges.value = cData || []
