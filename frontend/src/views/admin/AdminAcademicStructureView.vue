@@ -1025,29 +1025,7 @@ const handleDeleteFaculty = async (id) => {
   }
 }
 
-const sampleDepartments = ref([
-  {
-    id: 1,
-    college_id: 1,
-    name: { ar: 'قسم علوم الحاسب ونظم المعلومات', en: 'Computer Science & Information Systems' },
-    head_name: { ar: 'أ.د. عمرو عبد السلام', en: 'Prof. Dr. Amr Abdelsalam' },
-    description: { ar: 'يغطي مسارات الخوارزميات وهياكل البيانات وتطوير البرمجيات المتقدمة.', en: 'Covers algorithms, data structures, and advanced software engineering.' }
-  },
-  {
-    id: 2,
-    college_id: 1,
-    name: { ar: 'قسم الذكاء الاصطناعي والروبوتات', en: 'Artificial Intelligence & Robotics' },
-    head_name: { ar: 'أ.د. شريف زكريا', en: 'Prof. Dr. Sherif Zakaria' },
-    description: { ar: 'متخصص في التعلم العميق، ومعالجة اللغات الطبيعية، والنظم المستقلة.', en: 'Specialized in deep learning, NLP, and autonomous intelligent systems.' }
-  },
-  {
-    id: 3,
-    college_id: 2,
-    name: { ar: 'قسم الصيدلانيات والتكنولوجيا الصيدلية', en: 'Pharmaceutics & Pharmaceutical Technology' },
-    head_name: { ar: 'أ.د. سحر عبد الحميد', en: 'Prof. Dr. Sahar Abdelhamid' },
-    description: { ar: 'تصميم وتطوير الأشكال الصيدلية وأنظمة إيصال الدواء المستهدفة.', en: 'Design and delivery of targeted dosage forms and novel therapeutics.' }
-  }
-])
+const sampleDepartments = ref([])
 
 const isCollegeModalOpen = ref(false)
 const isEditingCollege = ref(false)
@@ -1104,6 +1082,8 @@ const loadData = async () => {
   try {
     const cols = await api.getColleges()
     collegesList.value = cols || []
+    const depts = await api.getDepartments()
+    sampleDepartments.value = depts || []
     const progs = await api.getPrograms()
     programsList.value = progs || []
     const facs = await api.getFaculty()

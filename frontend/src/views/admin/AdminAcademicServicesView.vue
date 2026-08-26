@@ -1042,23 +1042,23 @@ const handleExamFileRemoved = () => {
 }
 
 const isCurriculumUploadModalOpen = ref(false)
-const masterStudyPlanFileUrl = ref('/storage/curriculum_plans/Master_Curriculum_Matrix_2026.pdf')
-const masterStudyPlanFileName = ref('Master_Curriculum_Matrix_2026.pdf')
+const masterStudyPlanFileUrl = ref('')
+const masterStudyPlanFileName = ref('')
 
 const curriculumPlanMeta = reactive({
-  program_name_ar: 'بكالوريوس الذكاء الاصطناعي وهندسة البرمجيات',
-  program_name_en: 'B.Sc. in Artificial Intelligence & Software Engineering',
-  total_credits: 136,
+  program_name_ar: '',
+  program_name_en: '',
+  total_credits: 132,
   degree_level: 'bachelor',
-  effective_year: '2025/2026'
+  effective_year: ''
 })
 
 const curriculumWorkflowModel = reactive({
   structuredData: {},
   file: null,
-  fileUrl: '/storage/curriculum_plans/Master_Curriculum_Matrix_2026.pdf',
-  fileName: 'Master_Curriculum_Matrix_2026.pdf',
-  mode: 'both'
+  fileUrl: '',
+  fileName: '',
+  mode: 'structured'
 })
 
 const handleCurriculumFileSelected = (file) => {
@@ -1120,11 +1120,11 @@ const examForm = reactive({
   exam_date: new Date().toISOString().slice(0, 10),
   start_time: '09:00',
   end_time: '12:00',
-  hall_location_ar: 'مدرج الدكتور مجدي يعقوب (مبنى أ)',
-  hall_location_en: 'Magdi Yacoub Auditorium (Hall A)',
-  chief_invigilator_ar: 'أ.د. عصام النجار',
-  chief_invigilator_en: 'Prof. Dr. Essam El-Naggar',
-  seating_capacity: 120
+  hall_location_ar: '',
+  hall_location_en: '',
+  chief_invigilator_ar: '',
+  chief_invigilator_en: '',
+  seating_capacity: 100
 })
 
 const isNewRequestModalOpen = ref(false)
@@ -1146,17 +1146,7 @@ const courseForm = reactive({
   level: 1
 })
 
-const studyPlansCourses = ref([
-  { id: 101, level: 1, code: 'CS101', name: { ar: 'مقدمة في علوم الحاسب والبرمجة', en: 'Intro to Computer Science & Programming' }, credits: 3 },
-  { id: 102, level: 1, code: 'MATH101', name: { ar: 'التفاضل والتكامل والهندسة التحليلية', en: 'Calculus & Analytical Geometry' }, credits: 3 },
-  { id: 103, level: 1, code: 'PHYS101', name: { ar: 'الفيزياء العامة وتطبيقاتها الهندسية', en: 'General Physics & Engineering Applications' }, credits: 3 },
-  { id: 201, level: 2, code: 'CS201', name: { ar: 'هياكل البيانات والتحليل الخوارزمي', en: 'Data Structures & Algorithmic Analysis' }, credits: 3 },
-  { id: 202, level: 2, code: 'MATH202', name: { ar: 'الرياضيات المتقطعة ونظرية المخططات', en: 'Discrete Mathematics & Graph Theory' }, credits: 3 },
-  { id: 301, level: 3, code: 'AI301', name: { ar: 'أسس الذكاء الاصطناعي والتعلم الآلي', en: 'Foundations of AI & Machine Learning' }, credits: 3 },
-  { id: 302, level: 3, code: 'CS302', name: { ar: 'تصميم نظم قواعد البيانات الموزعة', en: 'Distributed Database Systems Design' }, credits: 3 },
-  { id: 401, level: 4, code: 'AI401', name: { ar: 'مشروع التخرج المتقدم (الجزء الأول)', en: 'Senior Capstone Project I' }, credits: 4 },
-  { id: 402, level: 4, code: 'SEC402', name: { ar: 'أمن الفضاء السيبراني واختبار الاختراق', en: 'Cybersecurity & Penetration Testing' }, credits: 3 }
-])
+const studyPlansCourses = ref([])
 
 const getLevelCourses = (lvl) => {
   return studyPlansCourses.value.filter((c) => c.level === lvl)
@@ -1164,27 +1154,17 @@ const getLevelCourses = (lvl) => {
 
 const isStatementModalOpen = ref(false)
 const statementForm = reactive({
-  student_id_number: '20241001',
-  student_name: 'Youssef Ahmed Hassan',
-  national_id: '30405150102233',
+  student_id_number: '',
+  student_name: '',
+  national_id: '',
   statement_type: 'official_enrollment',
-  title_ar: 'إفادة قيد رسمية معتمدة لدرجة البكالوريوس',
-  title_en: 'Official Certificate of Enrollment',
-  recipient_entity_ar: 'إلى من يهمه الأمر',
-  recipient_entity_en: 'To Whom It May Concern'
+  title_ar: '',
+  title_en: '',
+  recipient_entity_ar: '',
+  recipient_entity_en: ''
 })
 
-const sampleStatements = ref([
-  {
-    certificate_code: 'CERT-2025-EG892144',
-    student_name: 'Youssef Ahmed Hassan',
-    student_id_number: '20241001',
-    title: { ar: 'إفادة قيد رسمية معتمدة لدرجة البكالوريوس', en: 'Official Certificate of Enrollment (B.Sc. AI)' },
-    recipient_entity: { ar: 'إلى من يهمه الأمر / نقابة المهندسين', en: 'To Whom It May Concern / Syndicate' },
-    signatory_name: 'Prof. Dr. Ahmed Mansour',
-    issue_date: '2026-08-20'
-  }
-])
+const sampleStatements = ref([])
 
 const filteredRequests = computed(() => {
   let list = [...requestsList.value]
@@ -1226,6 +1206,8 @@ const loadData = async () => {
     requestsList.value = reqs || []
     const exams = await api.getExamSchedules()
     examSchedulesList.value = exams || []
+    const stmts = await api.getOfficialStatements()
+    sampleStatements.value = stmts || []
   } catch (err) {
     console.error(err)
   }
@@ -1285,11 +1267,11 @@ const openNewExamModal = () => {
   examForm.exam_date = new Date().toISOString().slice(0, 10)
   examForm.start_time = '09:00'
   examForm.end_time = '12:00'
-  examForm.hall_location_ar = 'مدرج الدكتور مجدي يعقوب (مبنى أ)'
-  examForm.hall_location_en = 'Magdi Yacoub Auditorium (Hall A)'
-  examForm.chief_invigilator_ar = 'أ.د. عصام النجار'
-  examForm.chief_invigilator_en = 'Prof. Dr. Essam El-Naggar'
-  examForm.seating_capacity = 120
+  examForm.hall_location_ar = ''
+  examForm.hall_location_en = ''
+  examForm.chief_invigilator_ar = ''
+  examForm.chief_invigilator_en = ''
+  examForm.seating_capacity = 100
 
   examWorkflowModel.file = null
   examWorkflowModel.fileUrl = ''
@@ -1309,11 +1291,11 @@ const openEditExamModal = (exam) => {
   examForm.exam_date = exam.exam_date || new Date().toISOString().slice(0, 10)
   examForm.start_time = exam.start_time ? exam.start_time.slice(0, 5) : '09:00'
   examForm.end_time = exam.end_time ? exam.end_time.slice(0, 5) : '12:00'
-  examForm.hall_location_ar = exam.hall_location?.ar || exam.hall_location || 'مدرج الدكتور مجدي يعقوب (مبنى أ)'
-  examForm.hall_location_en = exam.hall_location?.en || exam.hall_location || 'Magdi Yacoub Auditorium (Hall A)'
-  examForm.chief_invigilator_ar = exam.chief_invigilator?.ar || exam.chief_invigilator || 'أ.د. عصام النجار'
-  examForm.chief_invigilator_en = exam.chief_invigilator?.en || exam.chief_invigilator || 'Prof. Dr. Essam El-Naggar'
-  examForm.seating_capacity = exam.seating_capacity || 120
+  examForm.hall_location_ar = exam.hall_location?.ar || exam.hall_location || ''
+  examForm.hall_location_en = exam.hall_location?.en || exam.hall_location || ''
+  examForm.chief_invigilator_ar = exam.chief_invigilator?.ar || exam.chief_invigilator || ''
+  examForm.chief_invigilator_en = exam.chief_invigilator?.en || exam.chief_invigilator || ''
+  examForm.seating_capacity = exam.seating_capacity || 100
 
   examWorkflowModel.file = null
   examWorkflowModel.fileUrl = exam.timetable_document_path || ''

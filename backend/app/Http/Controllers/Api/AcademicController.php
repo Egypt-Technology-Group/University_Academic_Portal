@@ -7,6 +7,7 @@ use App\Http\Resources\CollegeResource;
 use App\Http\Resources\FacultyResource;
 use App\Http\Resources\ProgramResource;
 use App\Models\College;
+use App\Models\Department;
 use App\Models\FacultyProfile;
 use App\Models\Program;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +27,23 @@ class AcademicController extends Controller
             ->get();
 
         return CollegeResource::collection($colleges);
+    }
+
+    /**
+     * List departments filterable by college_id.
+     */
+    public function indexDepartments(Request $request): JsonResponse
+    {
+        $query = Department::with('college')->orderBy('sort_order');
+
+        if ($request->filled('college_id')) {
+            $query->where('college_id', $request->college_id);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $query->get(),
+        ]);
     }
 
     /**

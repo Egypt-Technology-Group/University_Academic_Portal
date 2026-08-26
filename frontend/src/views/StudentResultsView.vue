@@ -45,34 +45,6 @@
         </div>
       </form>
 
-      <!-- Quick sample IDs helper -->
-      <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 pt-1">
-        <span>{{ localeStore.isRtl ? 'أرقام أكاديمية تجريبية:' : 'Sample student IDs:' }}</span>
-        <button
-          type="button"
-          class="font-mono text-navy-900 font-bold underline cursor-pointer"
-          @click="fillId('20241001')"
-        >
-          20241001 (AI)
-        </button>
-        <span>•</span>
-        <button
-          type="button"
-          class="font-mono text-navy-900 font-bold underline cursor-pointer"
-          @click="fillId('20241002')"
-        >
-          20241002 (Cyber)
-        </button>
-        <span>•</span>
-        <button
-          type="button"
-          class="font-mono text-navy-900 font-bold underline cursor-pointer"
-          @click="fillId('20242001')"
-        >
-          20242001 (Mechatronics)
-        </button>
-      </div>
-
       <div v-if="errorMessage" class="p-4 bg-red-50 text-red-700 text-xs rounded-xl font-bold border border-red-200">
         ⚠️ {{ errorMessage }}
       </div>

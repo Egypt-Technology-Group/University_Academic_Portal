@@ -195,17 +195,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Modal from './Modal.vue'
 import { useLocaleStore } from '../../stores/locale'
-import { getTranslated } from '../../services/api'
-import {
-  mockColleges,
-  mockPrograms,
-  mockFaculty,
-  mockNews,
-  mockDocuments,
-} from '../../services/mockData'
+import { api, getTranslated } from '../../services/api'
 
 defineProps({
   modelValue: {
@@ -218,6 +211,31 @@ const emit = defineEmits(['update:modelValue'])
 const localeStore = useLocaleStore()
 const searchQuery = ref('')
 const searchInput = ref(null)
+
+const collegesList = ref([])
+const programsList = ref([])
+const facultyList = ref([])
+const newsList = ref([])
+const docsList = ref([])
+
+onMounted(async () => {
+  try {
+    const [c, p, f, n, d] = await Promise.all([
+      api.getColleges(),
+      api.getPrograms(),
+      api.getFaculty(),
+      api.getNews(),
+      api.getDocuments(),
+    ])
+    collegesList.value = c || []
+    programsList.value = p || []
+    facultyList.value = f || []
+    newsList.value = n || []
+    docsList.value = d || []
+  } catch (err) {
+    console.error('SearchModal data load error:', err)
+  }
+})
 
 const close = () => {
   emit('update:modelValue', false)
@@ -238,30 +256,30 @@ const matchText = (field, q) => {
 const filteredColleges = computed(() => {
   if (!searchQuery.value) return []
   const q = searchQuery.value.toLowerCase().trim()
-  return mockColleges.filter((c) => matchText(c.name, q) || matchText(c.about, q)).slice(0, 3)
+  return collegesList.value.filter((c) => matchText(c.name, q) || matchText(c.about, q)).slice(0, 3)
 })
 
 const filteredPrograms = computed(() => {
   if (!searchQuery.value) return []
   const q = searchQuery.value.toLowerCase().trim()
-  return mockPrograms.filter((p) => matchText(p.name, q) || matchText(p.overview, q)).slice(0, 4)
+  return programsList.value.filter((p) => matchText(p.name, q) || matchText(p.overview, q)).slice(0, 4)
 })
 
 const filteredFaculty = computed(() => {
   if (!searchQuery.value) return []
   const q = searchQuery.value.toLowerCase().trim()
-  return mockFaculty.filter((f) => f.name.toLowerCase().includes(q) || matchText(f.academic_title, q)).slice(0, 3)
+  return facultyList.value.filter((f) => (f.name && f.name.toLowerCase().includes(q)) || matchText(f.academic_title, q)).slice(0, 3)
 })
 
 const filteredNews = computed(() => {
   if (!searchQuery.value) return []
   const q = searchQuery.value.toLowerCase().trim()
-  return mockNews.filter((n) => matchText(n.title, q) || matchText(n.excerpt, q)).slice(0, 3)
+  return newsList.value.filter((n) => matchText(n.title, q) || matchText(n.excerpt, q)).slice(0, 3)
 })
 
 const filteredDocs = computed(() => {
   if (!searchQuery.value) return []
   const q = searchQuery.value.toLowerCase().trim()
-  return mockDocuments.filter((d) => matchText(d.title, q)).slice(0, 3)
+  return docsList.value.filter((d) => matchText(d.title, q)).slice(0, 3)
 })
 </script>

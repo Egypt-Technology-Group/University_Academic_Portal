@@ -38,13 +38,13 @@
     </div>
 
     <EmptyState
-      v-else-if="events.length === 0"
+      v-else-if="filteredEvents.length === 0"
       :title="$t('events.noEvents')"
     />
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <Card
-        v-for="event in events"
+        v-for="event in filteredEvents"
         :key="event.id"
         padding="none"
         class="group flex flex-col justify-between overflow-hidden"
@@ -182,6 +182,17 @@ const filters = computed(() => [
   { id: 'all', label: t('events.all') },
   { id: 'past', label: t('events.past') },
 ])
+
+const filteredEvents = computed(() => {
+  const now = new Date()
+  if (activeFilter.value === 'upcoming') {
+    return events.value.filter((e) => new Date(e.start_time) >= now)
+  }
+  if (activeFilter.value === 'past') {
+    return events.value.filter((e) => new Date(e.start_time) < now)
+  }
+  return events.value
+})
 
 const openEventModal = (ev) => {
   selectedEvent.value = ev

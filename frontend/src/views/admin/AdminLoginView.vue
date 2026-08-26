@@ -57,48 +57,6 @@
           </div>
         </div>
 
-        <!-- Quick-Fill Credential Chips -->
-        <div class="mb-6 bg-navy-950/60 border border-navy-800/80 rounded-2xl p-3.5">
-          <div class="text-[11px] font-bold uppercase tracking-wider text-gold-400/90 mb-2.5 flex items-center gap-1.5">
-            <Sparkles class="w-3.5 h-3.5 text-gold-400" />
-            <span>{{ $t('admin.login.quickFillTitle') }}</span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <button
-              type="button"
-              class="flex items-center gap-2.5 p-2 rounded-xl bg-navy-900/90 hover:bg-navy-800 text-start border border-navy-700/60 hover:border-gold-500/50 transition-all text-xs group"
-              @click="quickFill('admin@university.edu.eg', 'admin123')"
-            >
-              <div class="w-7 h-7 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105">
-                👑
-              </div>
-              <div class="truncate">
-                <div class="font-bold text-white group-hover:text-gold-300 truncate">
-                  {{ $t('admin.roles.superAdmin') }}
-                </div>
-                <div class="text-[10px] text-slate-400 truncate">admin@university.edu.eg</div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              class="flex items-center gap-2.5 p-2 rounded-xl bg-navy-900/90 hover:bg-navy-800 text-start border border-navy-700/60 hover:border-emerald-500/50 transition-all text-xs group"
-              @click="quickFill('admissions@university.edu.eg', 'admissions123')"
-            >
-              <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105">
-                📋
-              </div>
-              <div class="truncate">
-                <div class="font-bold text-white group-hover:text-emerald-300 truncate">
-                  {{ $t('admin.roles.admissionsOfficer') }}
-                </div>
-                <div class="text-[10px] text-slate-400 truncate">admissions@university.edu.eg</div>
-              </div>
-            </button>
-          </div>
-        </div>
-
         <!-- Login Form -->
         <form @submit.prevent="handleSubmit" class="space-y-4">
           <!-- Email Field -->

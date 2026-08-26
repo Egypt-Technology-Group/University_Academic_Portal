@@ -100,6 +100,24 @@ export const api = {
     }
   },
 
+  // Departments
+  async getDepartments(params = {}) {
+    try {
+      const response = await apiClient.get('/departments', { params })
+      return response.data.data || response.data
+    } catch (e) {
+      console.warn('API /departments fallback:', e.message)
+      let list = []
+      mockColleges.forEach((c) => {
+        if (c.departments) list.push(...c.departments)
+      })
+      if (params.college_id) {
+        list = list.filter((d) => d.college_id === Number(params.college_id))
+      }
+      return list
+    }
+  },
+
   // Programs
   async getPrograms(params = {}) {
     try {
@@ -1182,6 +1200,15 @@ export const api = {
         status: 'pending',
         created_at: new Date().toISOString()
       }
+    }
+  },
+
+  async getOfficialStatements(params = {}) {
+    try {
+      const response = await apiClient.get('/admin/official-statements', { params })
+      return response.data.data || response.data
+    } catch (e) {
+      return []
     }
   },
 

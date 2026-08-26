@@ -161,12 +161,23 @@ const downloadDocument = async (doc) => {
   try {
     await api.incrementDocumentDownload(doc.id)
     doc.download_count++
-    // Trigger download simulation / real path
-    const fakeContent = `=== EgyiTech University Official Document ===\nTitle: ${getTranslated(doc.title, localeStore.locale)}\nCategory: ${doc.category}\nFile: ${doc.file_path}\nVerified by EgyiTech Academic Council.`
-    const blob = new Blob([fakeContent], { type: 'application/pdf' })
+    
+    if (doc.file_path && (doc.file_path.startsWith('http') || doc.file_path.startsWith('/storage') || doc.file_path.startsWith('blob:'))) {
+      const link = document.createElement('a')
+      link.href = doc.file_path
+      link.target = '_blank'
+      link.download = doc.file_path.split('/').pop() || 'document.pdf'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      return
+    }
+
+    const officialDocContent = `=== EgyiTech University Official Document ===\nTitle: ${getTranslated(doc.title, localeStore.locale)}\nCategory: ${doc.category}\nVersion: v${doc.version || '1.0'}\nFile: ${doc.file_path || 'document.pdf'}\nVerified by EgyiTech Academic Council.`
+    const blob = new Blob([officialDocContent], { type: 'application/pdf' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.download = doc.file_path.split('/').pop() || 'document.pdf'
+    link.download = (doc.file_path || 'document.pdf').split('/').pop()
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

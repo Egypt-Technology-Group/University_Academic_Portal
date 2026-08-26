@@ -43,26 +43,6 @@
         </div>
       </form>
 
-      <!-- Quick sample codes helper -->
-      <div class="flex items-center gap-2 text-xs text-slate-500 pt-1">
-        <span>{{ localeStore.isRtl ? 'رموز تجريبية للاختبار:' : 'Sample test codes:' }}</span>
-        <button
-          type="button"
-          class="font-mono text-navy-900 font-bold underline cursor-pointer"
-          @click="fillCode('APP-2025-A1B2C')"
-        >
-          APP-2025-A1B2C
-        </button>
-        <span>•</span>
-        <button
-          type="button"
-          class="font-mono text-navy-900 font-bold underline cursor-pointer"
-          @click="fillCode('APP-2025-X7K9P')"
-        >
-          APP-2025-X7K9P
-        </button>
-      </div>
-
       <div v-if="errorMessage" class="p-4 bg-red-50 text-red-700 text-xs rounded-xl font-bold border border-red-200">
         ⚠️ {{ errorMessage }}
       </div>

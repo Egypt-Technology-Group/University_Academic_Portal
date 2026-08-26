@@ -118,6 +118,33 @@ class AcademicServicesController extends Controller
     }
 
     /**
+     * List all issued official statements & certificates (Admin).
+     */
+    public function indexStatements(Request $request): JsonResponse
+    {
+        $query = OfficialStatement::with('program.department')->latest();
+
+        if ($request->filled('student_id')) {
+            $query->where('student_id_number', $request->student_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('certificate_code', 'like', "%{$search}%")
+                    ->orWhere('student_name', 'like', "%{$search}%")
+                    ->orWhere('student_id_number', 'like', "%{$search}%")
+                    ->orWhere('national_id', 'like', "%{$search}%");
+            });
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $query->get(),
+        ]);
+    }
+
+    /**
      * Issue an official verifiable statement / certificate (Supports 3 Modes: structured, file_only, both).
      */
     public function issueStatement(Request $request): JsonResponse

@@ -70,7 +70,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/student-requests', [AcademicServicesController::class, 'indexRequests']);
             Route::post('/student-requests', [AcademicServicesController::class, 'submitRequest']);
             Route::patch('/student-requests/{id}/status', [AcademicServicesController::class, 'updateRequestStatus']);
-            Route::delete('/student-requests/{id}', [AcademicServicesController::class, 'deleteRequest']);
+            Route::get('/official-statements', [AcademicServicesController::class, 'indexStatements']);
             Route::post('/official-statements/issue', [AcademicServicesController::class, 'issueStatement']);
             Route::get('/exam-schedules', [AcademicServicesController::class, 'indexExamSchedules']);
             Route::post('/exam-schedules', [AcademicServicesController::class, 'storeExamSchedule']);
@@ -82,6 +82,7 @@ Route::prefix('v1')->group(function () {
     // Public Academic endpoints
     Route::get('/colleges', [AcademicController::class, 'indexColleges']);
     Route::get('/colleges/{slug}', [AcademicController::class, 'getCollege']);
+    Route::get('/departments', [AcademicController::class, 'indexDepartments']);
     Route::get('/programs', [AcademicController::class, 'indexPrograms']);
     Route::get('/programs/{slug}', [AcademicController::class, 'getProgram']);
     Route::get('/faculty', [AcademicController::class, 'indexFaculty']);
