@@ -28,6 +28,7 @@ class DomainModelTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->installTestLicense(autoEnable: true);
         $this->seed(DatabaseSeeder::class);
     }
 

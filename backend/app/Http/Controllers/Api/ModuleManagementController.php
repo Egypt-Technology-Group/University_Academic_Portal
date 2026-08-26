@@ -47,6 +47,7 @@ class ModuleManagementController extends Controller
                 'version' => $module->getVersion(),
                 'dependencies' => $module->getDependencies(),
                 'owned_tables' => $module->getOwnedTables(),
+                'is_entitled' => $this->moduleManager->getEntitlementManager()->isModuleEntitled($id),
                 'is_enabled' => $isEnabled,
                 'can_enable' => $canEnable['can_enable'],
                 'can_disable' => $canDisable['can_disable'],

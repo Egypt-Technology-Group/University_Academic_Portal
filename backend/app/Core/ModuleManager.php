@@ -344,6 +344,19 @@ class ModuleManager
     }
 
     /**
+     * Flush in-memory cached state without deleting persisted database values.
+     */
+    public function flushMemoryCache(): void
+    {
+        $this->enabledModuleIds = null;
+        $this->entitlementManager->resetCache();
+        try {
+            Cache::forget(config('modules.cache_key', 'app_modules_enabled'));
+        } catch (\Throwable $e) {
+        }
+    }
+
+    /**
      * Reset enabled state, cache, and DB persistence without removing registered modules.
      */
     public function resetEnabledState(): void
@@ -372,6 +385,14 @@ class ModuleManager
             $this->modules = [];
         }
         $this->resetEnabledState();
+    }
+
+    /**
+     * Get the entitlement manager instance.
+     */
+    public function getEntitlementManager(): EntitlementManager
+    {
+        return $this->entitlementManager;
     }
 
     /**

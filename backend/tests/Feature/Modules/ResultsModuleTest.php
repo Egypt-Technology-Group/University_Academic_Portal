@@ -27,6 +27,7 @@ class ResultsModuleTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->moduleManager = $this->app->make(ModuleManager::class);
+        $this->installTestLicense(['academic-structure', 'academic-services', 'results']);
         $this->moduleManager->enable('academic-structure');
         $this->moduleManager->enable('academic-services');
         $this->moduleManager->enable('results');

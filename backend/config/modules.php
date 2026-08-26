@@ -24,18 +24,11 @@ return [
     | Default Enabled Modules
     |--------------------------------------------------------------------------
     |
-    | Initial list of module IDs that are enabled by default on fresh install.
+    | Initial list of module IDs enabled on fresh install. By default, no
+    | module is active until cryptographically licensed by the vendor.
     |
     */
-    'default_enabled' => [
-        'academic-structure',
-        'admissions',
-        'academic-services',
-        'cms',
-        'events',
-        'documents',
-        'results',
-    ],
+    'default_enabled' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -46,6 +39,16 @@ return [
     |
     */
     'cache_key' => env('MODULES_CACHE_KEY', 'app_modules_enabled'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Vendor Signing Key
+    |--------------------------------------------------------------------------
+    |
+    | Master secret used to sign and verify entitlement packages.
+    |
+    */
+    'vendor_signing_key' => env('VENDOR_SIGNING_KEY', 'egyitech_vendor_root_master_signing_key_2026_x99'),
 
     /*
     |--------------------------------------------------------------------------

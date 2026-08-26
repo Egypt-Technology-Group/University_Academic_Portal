@@ -27,6 +27,7 @@ class EventsModuleTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->moduleManager = $this->app->make(ModuleManager::class);
+        $this->installTestLicense(['events']);
         $this->moduleManager->enable('events');
 
         $this->adminUser = User::where('email', 'admin@university.edu.eg')->first();

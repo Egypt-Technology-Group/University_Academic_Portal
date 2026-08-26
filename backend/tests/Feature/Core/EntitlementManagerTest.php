@@ -141,4 +141,19 @@ class EntitlementManagerTest extends TestCase
         $this->assertFalse($this->entitlementManager->isModuleEntitled('results'));
         $this->assertFalse($this->entitlementManager->isModuleEntitled('documents'));
     }
+
+    public function test_without_any_installed_license_all_modules_are_strictly_unentitled(): void
+    {
+        $this->entitlementManager->reset();
+
+        $modules = ['academic-structure', 'admissions', 'academic-services', 'cms', 'events', 'documents', 'results'];
+        foreach ($modules as $mod) {
+            $this->assertFalse(
+                $this->entitlementManager->isModuleEntitled($mod),
+                "Module [{$mod}] must be strictly unentitled when no vendor license is installed."
+            );
+        }
+
+        $this->assertNull($this->entitlementManager->getActiveEntitlement());
+    }
 }

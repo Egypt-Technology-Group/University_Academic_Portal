@@ -107,6 +107,7 @@ class ModuleManagerTest extends TestCase
 
         $this->validator = new DependencyValidator();
         $this->manager = new ModuleManager($this->validator, $this->app);
+        $this->installTestLicense(['academic-structure', 'admissions', 'student-portal', 'analytics', 'scholarships']);
     }
 
     public function test_module_can_be_registered_and_retrieved(): void

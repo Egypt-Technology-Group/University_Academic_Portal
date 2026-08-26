@@ -1,0 +1,22 @@
+{
+    "payload": {
+        "client_id": "egyitech_portal_2026",
+        "client_name": "Egypt Technology Group Client Portal",
+        "tier": "enterprise",
+        "licensed_modules": [
+            "academic-structure",
+            "admissions",
+            "academic-services",
+            "cms",
+            "events",
+            "documents",
+            "results"
+        ],
+        "issued_at": "2026-08-26T23:07:23Z",
+        "valid_until": "2027-08-26T23:07:23Z",
+        "nonce": "a871ef8ae2d2fec7166842b5a78e5ebc"
+    },
+    "signature": "429c4e933b5ee10c7615bbfa9fea1f491b5875cd2a9fbd5c86faffc0f1d79a77",
+    "algorithm": "HMAC-SHA256",
+    "signed_at": "2026-08-26T23:07:23.351962Z"
+}

@@ -68,17 +68,9 @@ class EntitledModuleManagerTest extends TestCase
         $this->entitlementManager->applySignedPackage($package);
 
         // Attacker directly modifies enabled_modules in database SiteSetting to include 'results'
-        SiteSetting::updateOrCreate(
-            ['key' => 'enabled_modules'],
-            [
-                'value' => json_encode(['academic-structure', 'results', 'admissions']),
-                'group' => 'system',
-                'type' => 'json',
-                'is_public' => false,
-            ]
-        );
+        SiteSetting::set('enabled_modules', ['academic-structure', 'results', 'admissions'], 'system', false);
 
-        $this->moduleManager->resetEnabledState();
+        $this->moduleManager->flushMemoryCache();
 
         // results is in DB enabled_modules, BUT not entitled by cryptographic license
         $this->assertFalse($this->moduleManager->isEnabled('results'));
@@ -107,5 +99,28 @@ class EntitledModuleManagerTest extends TestCase
 
         // Accessing results endpoint returns 404 (route isolated and concealed)
         $this->getJson('/api/v1/results/inquiry')->assertStatus(404);
+    }
+
+    public function test_without_license_all_modules_are_disabled_and_cannot_be_enabled(): void
+    {
+        $this->entitlementManager->reset();
+        $this->moduleManager->resetEnabledState();
+
+        $modules = ['academic-structure', 'admissions', 'academic-services', 'cms', 'events', 'documents', 'results'];
+        foreach ($modules as $mod) {
+            $this->assertFalse(
+                $this->moduleManager->isEnabled($mod),
+                "Module [{$mod}] must be disabled without license."
+            );
+
+            $validation = $this->moduleManager->canEnable($mod);
+            $this->assertFalse(
+                $validation['can_enable'],
+                "Module [{$mod}] must NOT be eligible for enable without license."
+            );
+            $this->assertEquals('UNENTITLED_MODULE', $validation['error_code']);
+        }
+
+        $this->assertEmpty($this->moduleManager->getEnabledIds());
     }
 }

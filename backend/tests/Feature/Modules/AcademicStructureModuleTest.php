@@ -30,6 +30,7 @@ class AcademicStructureModuleTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $this->moduleManager = $this->app->make(ModuleManager::class);
+        $this->installTestLicense(['academic-structure', 'admissions']);
 
         // Ensure both modules are enabled by default for tests
         $this->moduleManager->enable('academic-structure');

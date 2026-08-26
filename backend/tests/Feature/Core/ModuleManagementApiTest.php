@@ -55,6 +55,8 @@ class ModuleManagementApiTest extends TestCase
         $this->moduleManager = $this->app->make(ModuleManager::class);
         $this->moduleManager->reset();
 
+        $this->installTestLicense(['academic-structure', 'admissions', 'student-portal']);
+
         $this->moduleManager->register(new ApiTestAcademicModule());
         $this->moduleManager->register(new ApiTestAdmissionsModule());
         $this->moduleManager->register(new ApiTestStudentPortalModule());

@@ -41,6 +41,7 @@ class AllModulesTest extends TestCase
             'documents',
             'results',
         ];
+        $this->installTestLicense($allModules);
         foreach ($allModules as $mod) {
             $this->moduleManager->enable($mod);
         }

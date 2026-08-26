@@ -38,6 +38,7 @@ class ModuleMiddlewareTest extends TestCase
 
         $this->moduleManager = $this->app->make(ModuleManager::class);
         $this->moduleManager->reset();
+        $this->installTestLicense(['academic-structure', 'admissions']);
 
         $this->moduleManager->register(new MiddlewareAcademicModule());
         $this->moduleManager->register(new MiddlewareAdmissionsModule());

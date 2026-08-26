@@ -138,15 +138,32 @@ $options = getopt('', [
     'days::',
     'output::',
     'signing-key::',
+    'revoke',
+    'apply',
     'help',
 ]);
+
+if (isset($options['revoke'])) {
+    $entitlementManager = app(\App\Core\Security\EntitlementManager::class);
+    $entitlementManager->reset();
+    $moduleManager = app(\App\Core\ModuleManager::class);
+    $moduleManager->resetEnabledState();
+
+    echo "\n\033[1;32m================================================================\033[0m\n";
+    echo "\033[1;32m  ✔ ACTIVE VENDOR LICENSE SUCCESSFULLY REVOKED & REMOVED        \033[0m\n";
+    echo "\033[1;32m================================================================\033[0m\n";
+    echo "  - Database certificate in site_settings removed.\n";
+    echo "  - Entitlement cache flushed.\n";
+    echo "  - Portal reset to unlicensed state.\n\n";
+    exit(0);
+}
 
 if (isset($options['help'])) {
     echo <<<HELP
 \033[1;33mEgypt Technology Group - License Generator CLI\033[0m
 
 Options:
-  --client-id=STRING      Unique client slug/ID (default: egyitech_client_portal)
+  --client-id=STRING      Unique client slug/ID (default: egyitech_portal_YYYY)
   --client-name=STRING    Human-readable client/university name
   --tier=STRING           Subscription tier: starter | standard | enterprise (default: enterprise)
   --modules=LIST          Comma-separated list of licensed module IDs
@@ -154,11 +171,14 @@ Options:
   --days=NUMBER           Validity period in days from now (default: 365)
   --output=FILE           Path to save the JSON license file
   --signing-key=STRING    Override vendor master signing key
+  --apply                 Immediately apply the generated license to the database
+  --revoke                Revoke/Reject the active license and reset database
   --help                  Show this help message
 
 Examples:
-  php generate-license.php --all --tier=enterprise --days=730 --output=client_license.json
+  php generate-license.php --all --tier=enterprise --days=730 --apply
   php generate-license.php --client-name="Mansoura University" --modules=academic-structure,admissions,cms
+  php generate-license.php --revoke
 
 HELP;
     exit(0);
@@ -280,7 +300,23 @@ if ($outputPath) {
     echo "\033[1;32m✔ License certificate saved to: {$outputPath}\033[0m\n";
 }
 
-echo "\n\033[1;36mInstructions to Apply:\033[0m\n";
-echo " 1. Navigate to: \033[1;34mhttp://localhost:5173/admin/modules\033[0m in your browser.\n";
-echo " 2. Click the \033[1;33m'Apply Vendor License Certificate'\033[0m button in the top banner.\n";
-echo " 3. Copy & paste the JSON block above and click \033[1;32m'Verify & Apply License'\033[0m.\n\n";
+if (isset($options['apply'])) {
+    $entitlementManager = app(\App\Core\Security\EntitlementManager::class);
+    $applied = $entitlementManager->applySignedPackage($signedPackage);
+    if ($applied) {
+        $moduleManager = app(\App\Core\ModuleManager::class);
+        foreach ($payload['licensed_modules'] as $mod) {
+            try {
+                $moduleManager->enable($mod);
+            } catch (\Throwable $e) {
+            }
+        }
+        echo "\n\033[1;32m✔ License certificate successfully applied and modules activated in database!\033[0m\n";
+    }
+} else {
+    echo "\n\033[1;36mInstructions to Apply:\033[0m\n";
+    echo " 1. Navigate to: \033[1;34mhttp://localhost:5173/admin/modules\033[0m in your browser.\n";
+    echo " 2. Click the \033[1;33m'Apply Vendor License Certificate'\033[0m button in the top banner.\n";
+    echo " 3. Copy & paste the JSON block above and click \033[1;32m'Verify & Apply License'\033[0m.\n";
+    echo " (Or pass --apply to this CLI command to activate immediately)\n\n";
+}

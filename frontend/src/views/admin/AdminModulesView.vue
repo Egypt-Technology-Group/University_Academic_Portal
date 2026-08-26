@@ -775,8 +775,8 @@ const isApplyingLicense = ref(false)
 const licenseVerificationResult = ref(null)
 
 const isModuleEntitled = (modId) => {
-  if (!entitlementState.value?.entitlement) {
-    return true // Evaluation mode
+  if (!entitlementState.value?.entitlement || !entitlementState.value.entitlement.licensed_modules) {
+    return false // STRICT: Unlicensed if no verified vendor license is installed
   }
   const licensed = (entitlementState.value.entitlement.licensed_modules || []).map((m) =>
     m.replace(/_/g, '-').toLowerCase()
