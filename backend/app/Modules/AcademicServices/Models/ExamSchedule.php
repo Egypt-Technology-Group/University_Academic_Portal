@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\AcademicServices\Models;
 
+use App\Models\AcademicTerm;
 use App\Modules\AcademicStructure\Models\Program;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

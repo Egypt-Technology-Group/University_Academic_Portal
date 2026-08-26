@@ -156,7 +156,7 @@ const routes = [
       {
         path: 'academic-services',
         name: 'admin-academic-services',
-        component: () => import('../views/admin/AdminAcademicServicesView.vue'),
+        component: () => import('../modules/academic-services/views/AdminAcademicServicesView.vue'),
         meta: { title: 'Academic & Student Services', requiresAuth: true, module: 'academic-services' },
       },
       {

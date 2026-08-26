@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\AcademicTerm;
 use App\Models\CourseResult;
-use App\Models\StudentRecord;
+use App\Modules\AcademicServices\Models\StudentRecord;
 use App\Models\User;
 use App\Modules\AcademicStructure\Models\College;
 use App\Modules\AcademicStructure\Models\Department;

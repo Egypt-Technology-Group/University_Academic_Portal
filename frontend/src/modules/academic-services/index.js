@@ -5,6 +5,8 @@
  */
 
 import { KNOWN_MODULE_IDS } from '../../core/modules/types.js'
+import academicServicesRoutes from './routes.js'
+import academicServicesApi from './services/academicServicesApi.js'
 
 export const AcademicServicesModule = {
   id: KNOWN_MODULE_IDS.ACADEMIC_SERVICES,
@@ -18,7 +20,9 @@ export const AcademicServicesModule = {
   },
   version: '1.0.0',
   dependencies: [KNOWN_MODULE_IDS.ACADEMIC_STRUCTURE],
-  ownedTables: ['student_requests', 'official_statements', 'exam_schedules'],
+  ownedTables: ['student_records', 'student_service_requests', 'official_statements', 'exam_schedules'],
+  routes: academicServicesRoutes,
+  api: academicServicesApi,
   publicRoutes: [],
   adminRoutes: [
     { path: '/admin/academic-services', name: 'admin-academic-services' },
@@ -41,4 +45,5 @@ export const AcademicServicesModule = {
   },
 }
 
+export { academicServicesRoutes, academicServicesApi }
 export default AcademicServicesModule

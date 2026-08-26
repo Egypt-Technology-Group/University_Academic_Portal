@@ -7,6 +7,9 @@ use App\Models\DownloadDocument;
 use App\Models\Event;
 use App\Models\NewsArticle;
 use App\Models\NewsCategory;
+use App\Modules\AcademicServices\Models\ExamSchedule;
+use App\Modules\AcademicServices\Models\OfficialStatement;
+use App\Modules\AcademicServices\Models\StudentServiceRequest;
 use App\Modules\AcademicStructure\Models\Program;
 use App\Modules\Admissions\Models\AdmissionCycle;
 use App\Modules\Admissions\Models\Application;
@@ -647,7 +650,7 @@ class ContentAndAdmissionsSeeder extends Seeder
         }
 
         // 6. Electronic Student Requests
-        \App\Models\StudentServiceRequest::create([
+        StudentServiceRequest::create([
             'request_number' => 'REQ-2025-0001',
             'student_id_number' => '20241001',
             'student_name' => 'Youssef Ahmed Hassan',
@@ -665,7 +668,7 @@ class ContentAndAdmissionsSeeder extends Seeder
             'completed_at' => now()->subDays(2),
         ]);
 
-        \App\Models\StudentServiceRequest::create([
+        StudentServiceRequest::create([
             'request_number' => 'REQ-2025-0002',
             'student_id_number' => '20242002',
             'student_name' => 'Nourhan Mahmoud Aly',
@@ -680,10 +683,11 @@ class ContentAndAdmissionsSeeder extends Seeder
             'handled_by' => 'Registrar Officer',
             'fee_amount' => 100.00,
             'is_fee_paid' => true,
+            'completed_at' => null,
         ]);
 
         // 7. Verifiable Official Statements & Certificates
-        \App\Models\OfficialStatement::create([
+        OfficialStatement::create([
             'certificate_code' => 'CERT-2025-EG892144',
             'student_id_number' => '20241001',
             'student_name' => 'Youssef Ahmed Hassan',
@@ -708,7 +712,7 @@ class ContentAndAdmissionsSeeder extends Seeder
         ]);
 
         // 8. Exam Schedules & Proctors
-        \App\Models\ExamSchedule::create([
+        ExamSchedule::create([
             'program_id' => $aiProgram?->id ?? 1,
             'academic_term_id' => 1,
             'course_code' => 'CS301',
@@ -732,7 +736,7 @@ class ContentAndAdmissionsSeeder extends Seeder
             'seating_capacity' => 120,
         ]);
 
-        \App\Models\ExamSchedule::create([
+        ExamSchedule::create([
             'program_id' => $pharmaProgram?->id ?? 2,
             'academic_term_id' => 1,
             'course_code' => 'PH402',

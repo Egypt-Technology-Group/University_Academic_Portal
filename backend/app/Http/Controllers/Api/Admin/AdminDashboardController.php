@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DownloadDocument;
 use App\Models\Event;
 use App\Models\NewsArticle;
-use App\Models\StudentRecord;
+use App\Modules\AcademicServices\Models\StudentRecord;
 use App\Modules\AcademicStructure\Models\College;
 use App\Modules\AcademicStructure\Models\FacultyProfile;
 use App\Modules\AcademicStructure\Models\Program;

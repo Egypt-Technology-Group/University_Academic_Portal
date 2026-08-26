@@ -8,7 +8,7 @@ use App\Models\DownloadDocument;
 use App\Models\Event;
 use App\Models\NewsArticle;
 use App\Models\NewsCategory;
-use App\Models\StudentRecord;
+use App\Modules\AcademicServices\Models\StudentRecord;
 use App\Modules\AcademicStructure\Models\College;
 use App\Modules\AcademicStructure\Models\Department;
 use App\Modules\AcademicStructure\Models\FacultyProfile;

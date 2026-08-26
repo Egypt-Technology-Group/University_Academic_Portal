@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Modules\AcademicServices\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
-use App\Models\ExamSchedule;
-use App\Models\OfficialStatement;
-use App\Models\StudentRecord;
-use App\Models\StudentServiceRequest;
-use App\Modules\AcademicStructure\Models\Program;
+use App\Modules\AcademicServices\Models\ExamSchedule;
+use App\Modules\AcademicServices\Models\OfficialStatement;
+use App\Modules\AcademicServices\Models\StudentServiceRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-class AcademicServicesController extends Controller
+class AdminAcademicServicesController extends Controller
 {
     /**
      * List all electronic service requests (with filters).
@@ -65,7 +63,7 @@ class AcademicServicesController extends Controller
         ]);
 
         $count = StudentServiceRequest::count() + 1;
-        $requestNum = 'REQ-' . date('Y') . '-' . str_pad($count, 5, '0', STR_PAD_LEFT);
+        $requestNum = 'REQ-' . date('Y') . '-' . str_pad((string) $count, 5, '0', STR_PAD_LEFT);
 
         $req = StudentServiceRequest::create([
             'request_number' => $requestNum,
@@ -90,7 +88,7 @@ class AcademicServicesController extends Controller
     }
 
     /**
-     * Update status and workflow notes for an electronic request (Admin).
+     * Update status and workflow notes for an electronic request.
      */
     public function updateRequestStatus(Request $request, int $id): JsonResponse
     {
@@ -119,7 +117,21 @@ class AcademicServicesController extends Controller
     }
 
     /**
-     * List all issued official statements & certificates (Admin).
+     * Delete an electronic service request.
+     */
+    public function deleteRequest(int $id): JsonResponse
+    {
+        $req = StudentServiceRequest::findOrFail($id);
+        $req->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Service request deleted successfully.',
+        ]);
+    }
+
+    /**
+     * List all issued official statements & certificates.
      */
     public function indexStatements(Request $request): JsonResponse
     {
@@ -245,39 +257,7 @@ class AcademicServicesController extends Controller
     }
 
     /**
-     * Verify official statement by certificate_code and optional hash.
-     */
-    public function verifyStatement(Request $request): JsonResponse
-    {
-        $code = $request->input('code', $request->input('certificate_code'));
-        $hash = $request->input('hash');
-
-        $query = OfficialStatement::with('program.department')
-            ->where('certificate_code', $code);
-
-        if ($hash) {
-            $query->where('verification_hash', 'like', "{$hash}%");
-        }
-
-        $statement = $query->first();
-
-        if (!$statement) {
-            return response()->json([
-                'valid' => false,
-                'message' => 'Certificate not found or verification hash mismatch.',
-            ], 404);
-        }
-
-        return response()->json([
-            'valid' => !$statement->is_revoked && ($statement->valid_until === null || $statement->valid_until->isFuture()),
-            'is_revoked' => $statement->is_revoked,
-            'is_expired' => $statement->valid_until && $statement->valid_until->isPast(),
-            'statement' => $statement,
-        ]);
-    }
-
-    /**
-     * List all exam schedules (Public & Admin).
+     * List all exam schedules (Admin).
      */
     public function indexExamSchedules(Request $request): JsonResponse
     {
@@ -307,7 +287,7 @@ class AcademicServicesController extends Controller
     }
 
     /**
-     * Store or update exam schedule with halls and proctors (Admin - Supports 3 Modes).
+     * Store exam schedule with halls and proctors (Admin - Supports 3 Modes).
      */
     public function storeExamSchedule(Request $request): JsonResponse
     {
@@ -385,20 +365,6 @@ class AcademicServicesController extends Controller
             'message' => 'Exam timetable entry published successfully.',
             'data' => $schedule->load(['program', 'academicTerm']),
         ], 201);
-    }
-
-    /**
-     * Delete an electronic service request (Admin).
-     */
-    public function deleteRequest(int $id): JsonResponse
-    {
-        $req = StudentServiceRequest::findOrFail($id);
-        $req->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Service request deleted successfully.',
-        ]);
     }
 
     /**
