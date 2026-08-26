@@ -23,10 +23,21 @@ class ModuleServiceProvider extends ServiceProvider
             return new DependencyValidator();
         });
 
+        $this->app->singleton(\App\Core\Security\VendorKeyProvider::class, function () {
+            return new \App\Core\Security\VendorKeyProvider();
+        });
+
+        $this->app->singleton(\App\Core\Security\EntitlementManager::class, function ($app) {
+            return new \App\Core\Security\EntitlementManager(
+                $app->make(\App\Core\Security\VendorKeyProvider::class)
+            );
+        });
+
         $this->app->singleton(ModuleManager::class, function ($app) {
             return new ModuleManager(
                 $app->make(DependencyValidator::class),
-                $app
+                $app,
+                $app->make(\App\Core\Security\EntitlementManager::class)
             );
         });
 
@@ -60,9 +71,9 @@ class ModuleServiceProvider extends ServiceProvider
             }
         }
 
-        // Boot enabled modules if configured
-        if (config('modules.auto_boot', true)) {
-            $moduleManager->bootEnabledModules();
+        // Register routes for all modules; EnsureModuleEnabled dynamically enforces entitlement/enablement per request
+        foreach ($moduleManager->all() as $module) {
+            $module->boot();
         }
     }
 }
