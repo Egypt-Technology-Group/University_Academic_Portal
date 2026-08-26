@@ -14,3 +14,4 @@ Task 5: complete (commit dd13a4e, review pending)
 
 Task 5: complete (commit dd13a4e, review clean)
 Task 6: complete (commit d8d385b, review pending)
+Task 6: complete (commits d8d385b..4456478, review clean)

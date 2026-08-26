@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Admissions module route definitions
  */
 export const admissionsRoutes = {

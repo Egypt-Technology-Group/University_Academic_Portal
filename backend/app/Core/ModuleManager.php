@@ -322,7 +322,7 @@ class ModuleManager
     }
 
     /**
-     * Reset in-memory state and cache (useful in tests).
+     * Reset in-memory state, cache, and DB persistence (useful in tests).
      */
     public function reset(): void
     {
@@ -331,6 +331,12 @@ class ModuleManager
         $this->bootedModules = [];
         try {
             Cache::forget(config('modules.cache_key', 'app_modules_enabled'));
+        } catch (\Throwable $e) {
+        }
+        try {
+            if (class_exists(SiteSetting::class) && Schema::hasTable('site_settings')) {
+                SiteSetting::where('key', 'enabled_modules')->delete();
+            }
         } catch (\Throwable $e) {
         }
     }

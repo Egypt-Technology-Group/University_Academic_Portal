@@ -1,4 +1,4 @@
-﻿import { ref } from 'vue'
+import { ref } from 'vue'
 import { useToast } from './useToast'
 import { useLocaleStore } from '../stores/locale'
 import { normalizeError } from '../utils/errorHandler'

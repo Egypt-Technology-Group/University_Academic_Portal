@@ -971,6 +971,70 @@
         </button>
       </template>
     </Modal>
+
+    <!-- MODAL: ADD / EDIT COURSE -->
+    <Modal
+      v-model="isCourseModalOpen"
+      :title="isEditingCourse ? (localeStore.isRtl ? 'تعديل بيانات المقرر' : 'Edit Course') : (localeStore.isRtl ? 'إضافة مقرر جديد للخطة' : 'Add New Course to Plan')"
+      size="md"
+      @close="isCourseModalOpen = false"
+    >
+      <form @submit.prevent="submitCourseForm" class="space-y-4 text-start text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <EnterpriseFormField
+            v-model="courseForm.code"
+            type="text"
+            :label="localeStore.isRtl ? 'كود المقرر' : 'Course Code'"
+            required
+            col-span="6"
+            placeholder="CS101"
+          />
+          <EnterpriseFormField
+            v-model="courseForm.credits"
+            type="number"
+            :label="localeStore.isRtl ? 'الساعات المعتمدة' : 'Credit Hours'"
+            required
+            col-span="6"
+            placeholder="3"
+          />
+          <EnterpriseFormField
+            v-model="courseForm.name_ar"
+            type="text"
+            :label="localeStore.isRtl ? 'اسم المقرر (بالعربية)' : 'Course Name (Arabic)'"
+            required
+            col-span="12"
+            placeholder="مقدمة في علوم الحاسب"
+          />
+          <EnterpriseFormField
+            v-model="courseForm.name_en"
+            type="text"
+            :label="localeStore.isRtl ? 'اسم المقرر (بالإنجليزية)' : 'Course Name (English)'"
+            col-span="12"
+            placeholder="Introduction to Computer Science"
+          />
+          <EnterpriseFormField
+            v-model="courseForm.level"
+            type="select"
+            :label="localeStore.isRtl ? 'المستوى الأكاديمي' : 'Academic Level'"
+            required
+            col-span="12"
+            :options="[
+              { label: localeStore.isRtl ? 'المستوى الأول (Level 1)' : 'Level 1', value: 1 },
+              { label: localeStore.isRtl ? 'المستوى الثاني (Level 2)' : 'Level 2', value: 2 },
+              { label: localeStore.isRtl ? 'المستوى الثالث (Level 3)' : 'Level 3', value: 3 },
+              { label: localeStore.isRtl ? 'المستوى الرابع (Level 4)' : 'Level 4', value: 4 }
+            ]"
+          />
+        </div>
+      </form>
+
+      <template #footer>
+        <button type="button" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200" @click="isCourseModalOpen = false">{{ $t('common.cancel') }}</button>
+        <button type="button" class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md" @click="submitCourseForm">
+          {{ isEditingCourse ? (localeStore.isRtl ? 'حفظ التعديلات' : 'Save Changes') : (localeStore.isRtl ? 'إضافة المقرر' : 'Add Course') }}
+        </button>
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -997,6 +1061,7 @@ import {
   Award,
   Printer,
   Download,
+  Upload,
   Plus,
   Edit3,
   Trash2
@@ -1153,6 +1218,28 @@ const courseForm = reactive({
   credits: 3,
   level: 1
 })
+
+const studyPlansCourses = ref([
+  { id: 1, code: 'CS101', name: { ar: 'مقدمة في علوم الحاسب', en: 'Introduction to Computer Science' }, credits: 3, level: 1 },
+  { id: 2, code: 'MATH101', name: { ar: 'تفاضل وتكامل 1', en: 'Calculus I' }, credits: 3, level: 1 },
+  { id: 3, code: 'PHYS101', name: { ar: 'فيزياء عامة', en: 'General Physics' }, credits: 4, level: 1 },
+  { id: 4, code: 'ENG101', name: { ar: 'لغة إنجليزية أكاديمية 1', en: 'Academic English I' }, credits: 2, level: 1 },
+  { id: 5, code: 'CS102', name: { ar: 'البرمجة المهيكلة', en: 'Structured Programming' }, credits: 3, level: 1 },
+  { id: 6, code: 'CS201', name: { ar: 'هياكل البيانات والخوارزميات', en: 'Data Structures & Algorithms' }, credits: 3, level: 2 },
+  { id: 7, code: 'MATH201', name: { ar: 'جبر خطي وإحصاء', en: 'Linear Algebra & Statistics' }, credits: 3, level: 2 },
+  { id: 8, code: 'CS202', name: { ar: 'تصميم قواعد البيانات', en: 'Database Design & SQL' }, credits: 3, level: 2 },
+  { id: 9, code: 'CS203', name: { ar: 'أنظمة التشغيل', en: 'Operating Systems' }, credits: 3, level: 2 },
+  { id: 10, code: 'CS301', name: { ar: 'هندسة البرمجيات وتصميم النظم', en: 'Software Engineering' }, credits: 3, level: 3 },
+  { id: 11, code: 'CS302', name: { ar: 'شبكات الحاسب والأمن السيبراني', en: 'Computer Networks & Security' }, credits: 3, level: 3 },
+  { id: 12, code: 'AI301', name: { ar: 'أساسيات الذكاء الاصطناعي', en: 'Fundamentals of AI' }, credits: 3, level: 3 },
+  { id: 13, code: 'CS401', name: { ar: 'مشروع التخرج 1', en: 'Graduation Project I' }, credits: 3, level: 4 },
+  { id: 14, code: 'AI402', name: { ar: 'تعلم الآلة والأنظمة الذكية', en: 'Machine Learning & Smart Systems' }, credits: 3, level: 4 },
+  { id: 15, code: 'CS402', name: { ar: 'مشروع التخرج 2', en: 'Graduation Project II' }, credits: 3, level: 4 }
+])
+
+const getLevelCourses = (level) => {
+  return studyPlansCourses.value.filter((c) => Number(c.level) === Number(level))
+}
 
 const isStatementModalOpen = ref(false)
 const statementForm = reactive({

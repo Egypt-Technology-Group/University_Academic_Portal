@@ -309,4 +309,66 @@ class ModuleManagerTest extends TestCase
         $this->assertInstanceOf(ModuleManager::class, $manager1);
         $this->assertSame($manager1, $manager2);
     }
+
+    public function test_persistence_reloads_from_database_when_cache_is_cold(): void
+    {
+        $academic = new TestAcademicModule();
+        $admissions = new TestAdmissionsModule();
+
+        $this->manager->register($academic);
+        $this->manager->register($admissions);
+        $this->manager->enable('academic-structure');
+        $this->manager->enable('admissions');
+
+        // Verify state is stored in DB
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'enabled_modules',
+        ]);
+        $dbData = \App\Models\SiteSetting::get('enabled_modules');
+        $this->assertContains('academic-structure', $dbData);
+        $this->assertContains('admissions', $dbData);
+
+        // Cold cache simulation
+        Cache::flush();
+
+        $coldManager = new ModuleManager($this->validator, $this->app);
+        $coldAcademic = new TestAcademicModule();
+        $coldAdmissions = new TestAdmissionsModule();
+        $coldManager->register($coldAcademic);
+        $coldManager->register($coldAdmissions);
+
+        $this->assertTrue($coldAcademic->isEnabled());
+        $this->assertTrue($coldAdmissions->isEnabled());
+        $this->assertEquals(['academic-structure', 'admissions'], $coldManager->getEnabledIds());
+    }
+
+    public function test_disable_updates_both_cache_and_database_persistence(): void
+    {
+        $academic = new TestAcademicModule();
+        $admissions = new TestAdmissionsModule();
+
+        $this->manager->register($academic);
+        $this->manager->register($admissions);
+        $this->manager->enable('academic-structure');
+        $this->manager->enable('admissions');
+
+        // Disable admissions
+        $this->manager->disable('admissions');
+
+        $dbData = \App\Models\SiteSetting::get('enabled_modules');
+        $this->assertContains('academic-structure', $dbData);
+        $this->assertNotContains('admissions', $dbData);
+
+        // Cold cache simulation
+        Cache::flush();
+        $freshManager = new ModuleManager($this->validator, $this->app);
+        $freshAcademic = new TestAcademicModule();
+        $freshAdmissions = new TestAdmissionsModule();
+        $freshManager->register($freshAcademic);
+        $freshManager->register($freshAdmissions);
+
+        $this->assertTrue($freshAcademic->isEnabled());
+        $this->assertFalse($freshAdmissions->isEnabled());
+        $this->assertEquals(['academic-structure'], $freshManager->getEnabledIds());
+    }
 }

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Unified Frontend Error Normalization & Handling Utility
  */
 

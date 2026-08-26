@@ -26,10 +26,38 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     currentUser: (state) => state.user,
-    userRole: (state) => state.user?.role || 'guest',
-    isSuperAdmin: (state) => state.user?.role === 'super_admin',
-    isAdmissionsOfficer: (state) =>
-      state.user?.role === 'admissions_officer' || state.user?.role === 'super_admin',
+    userRole: (state) => {
+      if (!state.user) return 'guest'
+      if (state.user.role) return state.user.role
+      if (Array.isArray(state.user.roles) && state.user.roles.length > 0) {
+        return state.user.roles[0]
+      }
+      return 'guest'
+    },
+    isSuperAdmin: (state) => {
+      if (!state.user) return false
+      const role = state.user.role
+      const roles = Array.isArray(state.user.roles) ? state.user.roles : []
+      return (
+        role === 'super_admin' ||
+        role === 'super-admin' ||
+        roles.includes('super-admin') ||
+        roles.includes('super_admin')
+      )
+    },
+    isAdmissionsOfficer: (state) => {
+      if (!state.user) return false
+      const role = state.user.role
+      const roles = Array.isArray(state.user.roles) ? state.user.roles : []
+      return (
+        role === 'admissions_officer' ||
+        role === 'admissions-officer' ||
+        roles.includes('admissions-officer') ||
+        roles.includes('admissions_officer') ||
+        roles.includes('super-admin') ||
+        role === 'super-admin'
+      )
+    },
     userName: (state) => state.user?.name || 'Administrator',
     userEmail: (state) => state.user?.email || '',
     userAvatar: (state) =>
@@ -70,13 +98,14 @@ export const useAuthStore = defineStore('auth', {
       try {
         const userData = await api.getAuthUser()
         if (userData) {
-          this.user = userData
-          localStorage.setItem('egyitech_auth_user', JSON.stringify(userData))
+          const userObj = userData.user || userData.data || userData
+          this.user = userObj
+          localStorage.setItem('egyitech_auth_user', JSON.stringify(userObj))
         }
         return this.user
       } catch (err) {
         console.warn('Failed to fetch authenticated user session:', err)
-        if (err.response?.status === 401) {
+        if (err.status === 401 || err.response?.status === 401) {
           this.logout()
         }
         return null

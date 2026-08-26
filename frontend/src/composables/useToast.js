@@ -1,4 +1,4 @@
-﻿import { useToastStore } from '../stores/toast'
+import { useToastStore } from '../stores/toast'
 
 export const useToast = () => {
   const store = useToastStore()

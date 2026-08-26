@@ -241,19 +241,28 @@
 
             <!-- Activation Toggle Switch -->
             <div class="flex flex-col items-end gap-1.5 shrink-0">
-              <label class="relative inline-flex items-center cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  class="sr-only peer"
-                  :checked="mod.is_enabled"
-                  :disabled="togglingId === mod.id || isRefreshing"
-                  @change="handleToggleClick(mod)"
-                />
-                <div
-                  class="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 peer-checked:bg-emerald-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-sm"
-                  :class="{ 'opacity-50 cursor-not-allowed': togglingId === mod.id || isRefreshing }"
-                ></div>
-              </label>
+              <button
+                type="button"
+                role="switch"
+                :aria-checked="mod.is_enabled"
+                :disabled="togglingId === mod.id || isRefreshing"
+                @click="handleToggleClick(mod)"
+                class="relative inline-flex h-6 w-12 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 select-none cursor-pointer"
+                :class="[
+                  mod.is_enabled ? 'bg-emerald-600' : 'bg-slate-300',
+                  (togglingId === mod.id || isRefreshing) ? 'opacity-50 cursor-not-allowed' : ''
+                ]"
+              >
+                <span class="sr-only">{{ resolveLocalizedName(mod) }}</span>
+                <span
+                  class="inline-block h-5 w-5 rounded-full bg-white transition-transform duration-200 shadow-sm transform"
+                  :class="[
+                    localeStore.isRtl
+                      ? (mod.is_enabled ? '-translate-x-6 mr-0.5' : 'translate-x-0 mr-0.5')
+                      : (mod.is_enabled ? 'translate-x-6 ml-0.5' : 'translate-x-0 ml-0.5')
+                  ]"
+                ></span>
+              </button>
 
               <!-- Loading spinner or text indicator -->
               <div class="text-[11px] font-bold flex items-center gap-1">

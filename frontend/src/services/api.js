@@ -43,10 +43,13 @@ apiClient.interceptors.response.use(
     const normalized = normalizeError(error, currentLocale)
 
     if (normalized.status === 401) {
-      localStorage.removeItem('egyitech_auth_token')
-      localStorage.removeItem('egyitech_auth_user')
-      if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
-        window.location.href = '/admin/login'
+      const url = error.config?.url || ''
+      if (!url.includes('/auth/login')) {
+        localStorage.removeItem('egyitech_auth_token')
+        localStorage.removeItem('egyitech_auth_user')
+        if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
+          window.location.href = '/admin/login'
+        }
       }
     }
     return Promise.reject(normalized)
@@ -83,7 +86,7 @@ const coreApi = {
 
   async getAuthUser() {
     const response = await apiClient.get('/auth/me')
-    return response.data.data || response.data
+    return response.data?.user || response.data?.data || response.data
   },
 
   async logout() {

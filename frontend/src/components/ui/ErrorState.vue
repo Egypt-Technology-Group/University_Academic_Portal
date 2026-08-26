@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div
     class="flex flex-col items-center justify-center text-center p-8 sm:p-12 rounded-3xl bg-white border border-slate-200/80 shadow-xs max-w-lg mx-auto space-y-4 animate-fade-in"
     role="alert"

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Admissions & Enrollment Micro-Module
  *
  * Online applications, submission tracking, applicant review queue, and credential verification.

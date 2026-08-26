@@ -214,4 +214,145 @@ class ModuleManagementApiTest extends TestCase
                 'error' => 'module_not_found',
             ]);
     }
+
+    public function test_module_enable_persists_across_subsequent_get_requests_and_refreshes(): void
+    {
+        // 1. Initially all modules disabled
+        $this->assertFalse($this->moduleManager->isEnabled('academic-structure'));
+        $initialResp = $this->getJson('/api/v1/modules');
+        $initialResp->assertStatus(200);
+        $academicData = collect($initialResp->json('data'))->firstWhere('id', 'academic-structure');
+        $this->assertFalse($academicData['is_enabled']);
+
+        // 2. Enable academic-structure via PATCH toggle
+        $enableResp = $this->patchJson('/api/v1/modules/academic-structure/toggle', ['enabled' => true]);
+        $enableResp->assertStatus(200)
+            ->assertJson([
+                'message' => 'Module [academic-structure] has been enabled successfully.',
+                'data' => [
+                    'id' => 'academic-structure',
+                    'is_enabled' => true,
+                ],
+            ]);
+
+        // 3. Immediately perform subsequent GET /api/v1/modules (simulates frontend refresh/re-fetch)
+        $refreshResp = $this->getJson('/api/v1/modules');
+        $refreshResp->assertStatus(200);
+        $refreshedAcademic = collect($refreshResp->json('data'))->firstWhere('id', 'academic-structure');
+        $this->assertTrue($refreshedAcademic['is_enabled'], 'Module must remain enabled after subsequent GET request / refresh');
+        $this->assertEquals(1, $refreshResp->json('meta.enabled_count'));
+
+        // 4. Verify DB SiteSetting contains academic-structure
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'enabled_modules',
+        ]);
+        $storedSetting = \App\Models\SiteSetting::get('enabled_modules');
+        $this->assertIsArray($storedSetting);
+        $this->assertContains('academic-structure', $storedSetting);
+    }
+
+    public function test_module_enable_persists_when_cache_is_flushed_via_database_layer(): void
+    {
+        // 1. Enable base module and dependent module
+        $this->patchJson('/api/v1/modules/academic-structure/toggle', ['enabled' => true])->assertStatus(200);
+        $this->patchJson('/api/v1/modules/admissions/toggle', ['enabled' => true])->assertStatus(200);
+
+        // 2. Wipe memory cache completely
+        Cache::flush();
+
+        // 3. Re-instantiate ModuleManager from container (simulating brand new HTTP request lifecycle)
+        $freshManager = new ModuleManager(new \App\Core\DependencyValidator(), $this->app);
+        $freshAcademic = new ApiTestAcademicModule();
+        $freshAdmissions = new ApiTestAdmissionsModule();
+        $freshManager->register($freshAcademic);
+        $freshManager->register($freshAdmissions);
+
+        $this->assertTrue($freshAcademic->isEnabled(), 'Module state must reload as enabled from Database SiteSetting when Cache is cold');
+        $this->assertTrue($freshAdmissions->isEnabled(), 'Dependent module must reload as enabled from Database SiteSetting');
+        $this->assertContains('academic-structure', $freshManager->getEnabledIds());
+        $this->assertContains('admissions', $freshManager->getEnabledIds());
+
+        // 4. Overwrite singleton in container and check API response
+        $this->app->instance(ModuleManager::class, $freshManager);
+        $getResp = $this->getJson('/api/v1/modules');
+        $getResp->assertStatus(200);
+        $modules = collect($getResp->json('data'));
+        $this->assertTrue($modules->firstWhere('id', 'academic-structure')['is_enabled']);
+        $this->assertTrue($modules->firstWhere('id', 'admissions')['is_enabled']);
+        $this->assertEquals(2, $getResp->json('meta.enabled_count'));
+    }
+
+    public function test_module_disable_persists_across_subsequent_requests_and_refreshes(): void
+    {
+        // 1. Enable both modules
+        $this->patchJson('/api/v1/modules/academic-structure/toggle', ['enabled' => true])->assertStatus(200);
+        $this->patchJson('/api/v1/modules/admissions/toggle', ['enabled' => true])->assertStatus(200);
+
+        // 2. Disable dependent module
+        $disableResp = $this->patchJson('/api/v1/modules/admissions/toggle', ['enabled' => false]);
+        $disableResp->assertStatus(200)
+            ->assertJson([
+                'message' => 'Module [admissions] has been disabled successfully.',
+                'data' => [
+                    'id' => 'admissions',
+                    'is_enabled' => false,
+                ],
+            ]);
+
+        // 3. Subsequent GET request
+        $getResp = $this->getJson('/api/v1/modules');
+        $getResp->assertStatus(200);
+        $modules = collect($getResp->json('data'));
+        $this->assertTrue($modules->firstWhere('id', 'academic-structure')['is_enabled']);
+        $this->assertFalse($modules->firstWhere('id', 'admissions')['is_enabled']);
+        $this->assertEquals(1, $getResp->json('meta.enabled_count'));
+
+        // 4. Verify DB SiteSetting
+        $storedSetting = \App\Models\SiteSetting::get('enabled_modules');
+        $this->assertContains('academic-structure', $storedSetting);
+        $this->assertNotContains('admissions', $storedSetting);
+    }
+
+    public function test_rejected_disable_attempt_does_not_corrupt_enabled_persistence(): void
+    {
+        // 1. Enable academic-structure and admissions
+        $this->patchJson('/api/v1/modules/academic-structure/toggle', ['enabled' => true])->assertStatus(200);
+        $this->patchJson('/api/v1/modules/admissions/toggle', ['enabled' => true])->assertStatus(200);
+
+        // 2. Attempt to disable academic-structure (blocked by active dependent admissions)
+        $failResp = $this->patchJson('/api/v1/modules/academic-structure/toggle', ['enabled' => false]);
+        $failResp->assertStatus(409)
+            ->assertJson(['error' => 'dependency_conflict']);
+
+        // 3. Subsequent GET request must confirm academic-structure remains enabled
+        $getResp = $this->getJson('/api/v1/modules');
+        $getResp->assertStatus(200);
+        $modules = collect($getResp->json('data'));
+        $this->assertTrue($modules->firstWhere('id', 'academic-structure')['is_enabled']);
+        $this->assertTrue($modules->firstWhere('id', 'admissions')['is_enabled']);
+    }
+
+    public function test_multi_module_dependency_chain_persistence_and_lifecycle(): void
+    {
+        // Chain: student-portal depends on academic-structure
+        // Try enabling student-portal without academic-structure -> 409
+        $this->patchJson('/api/v1/modules/student-portal/toggle', ['enabled' => true])
+            ->assertStatus(409);
+
+        // Enable academic-structure
+        $this->patchJson('/api/v1/modules/academic-structure/toggle', ['enabled' => true])
+            ->assertStatus(200);
+
+        // Now enabling student-portal succeeds
+        $this->patchJson('/api/v1/modules/student-portal/toggle', ['enabled' => true])
+            ->assertStatus(200);
+
+        // Subsequent GET request
+        $getResp = $this->getJson('/api/v1/modules');
+        $modules = collect($getResp->json('data'));
+        $this->assertTrue($modules->firstWhere('id', 'academic-structure')['is_enabled']);
+        $this->assertTrue($modules->firstWhere('id', 'student-portal')['is_enabled']);
+        $this->assertFalse($modules->firstWhere('id', 'admissions')['is_enabled']);
+        $this->assertEquals(2, $getResp->json('meta.enabled_count'));
+    }
 }
