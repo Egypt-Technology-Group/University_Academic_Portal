@@ -173,6 +173,12 @@ const routes = [
         component: AdminSettingsView,
         meta: { title: 'Site Customization & Settings', requiresAuth: true },
       },
+      {
+        path: 'audit-trail',
+        name: 'admin-audit-trail',
+        component: () => import('../views/admin/AdminAuditTrailView.vue'),
+        meta: { title: 'Enterprise Audit Trail & Compliance Log', requiresAuth: true },
+      },
     ],
   },
 

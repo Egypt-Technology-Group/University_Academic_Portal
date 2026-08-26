@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\ExamSchedule;
 use App\Models\OfficialStatement;
 use App\Models\Program;
@@ -222,6 +223,19 @@ class AcademicServicesController extends Controller
             'valid_until' => now()->addMonths($validated['valid_months'] ?? 6),
             'is_revoked' => false,
         ]);
+
+        // Audit Trail Recording
+        AuditLog::record(
+            action: 'create',
+            auditable: $statement,
+            oldValues: null,
+            newValues: ['certificate_code' => $certCode, 'student_id' => $studentId, 'student_name' => $studentName, 'workflow_mode' => $workflowMode],
+            module: 'services',
+            descriptionAr: "إصدار وتوثيق شهادة/إفادة رسمية جديدة بكود ({$certCode}) للطالب: {$studentName}",
+            descriptionEn: "Issued and sealed official credential ({$certCode}) for student: {$studentName}",
+            severity: 'notice',
+            status: 'success'
+        );
 
         return response()->json([
             'success' => true,

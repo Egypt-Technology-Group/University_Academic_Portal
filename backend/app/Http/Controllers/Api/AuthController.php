@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,6 +46,19 @@ class AuthController extends Controller
         }
 
         if (!$user || !$passwordMatches) {
+            // Log security event for failed login attempt
+            AuditLog::record(
+                action: 'login_failed',
+                auditable: 'Auth::Login',
+                oldValues: null,
+                newValues: ['attempted_email' => $email],
+                module: 'auth',
+                descriptionAr: "محاولة تسجيل دخول فاشلة للبريد: {$email}",
+                descriptionEn: "Failed authentication attempt for: {$email}",
+                severity: 'warning',
+                status: 'failed'
+            );
+
             return response()->json([
                 'message' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
                 'errors' => [
@@ -55,6 +69,19 @@ class AuthController extends Controller
 
         // Generate Sanctum token
         $token = $user->createToken('admin-auth-token')->plainTextToken;
+
+        // Log successful login
+        AuditLog::record(
+            action: 'login',
+            auditable: $user,
+            oldValues: null,
+            newValues: ['token_name' => 'admin-auth-token', 'email' => $user->email],
+            module: 'auth',
+            descriptionAr: "تم تسجيل الدخول بنجاح للمستخدم: {$user->name}",
+            descriptionEn: "User {$user->name} authenticated successfully",
+            severity: 'info',
+            status: 'success'
+        );
 
         return response()->json([
             'success' => true,
@@ -94,6 +121,21 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if ($user) {
+            AuditLog::record(
+                action: 'logout',
+                auditable: $user,
+                oldValues: null,
+                newValues: ['user_id' => $user->id],
+                module: 'auth',
+                descriptionAr: "تم إنهاء جلسة وتسجيل خروج المستخدم: {$user->name}",
+                descriptionEn: "User {$user->name} signed out and revoked access token",
+                severity: 'info',
+                status: 'success'
+            );
+        }
+
         $request->user()->currentAccessToken()?->delete();
 
         return response()->json([

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ApplicationResource;
 use App\Models\AdmissionCycle;
 use App\Models\Application;
+use App\Models\AuditLog;
 use App\Models\College;
 use App\Models\DownloadDocument;
 use App\Models\Event;
@@ -152,6 +153,19 @@ class AdminDashboardController extends Controller
             details: $validated['decision_reason'] ?? $validated['notes'] ?? "Transitioned from {$oldStatus} to {$newStatus}"
         );
 
+        // System-wide Audit Log recording
+        AuditLog::record(
+            action: 'status_change',
+            auditable: $application,
+            oldValues: ['status' => $oldStatus, 'stage' => $application->getOriginal('stage')],
+            newValues: ['status' => $newStatus, 'stage' => $application->stage, 'decision_reason' => $application->decision_reason],
+            module: 'admissions',
+            descriptionAr: "تحديث حالة طلب الالتحاق ({$application->application_number}) إلى: {$newStatus}",
+            descriptionEn: "Updated application ({$application->application_number}) status to: {$newStatus}",
+            severity: $newStatus === 'accepted' ? 'notice' : 'info',
+            status: 'success'
+        );
+
         // Automated notification log
         if ($newStatus === 'accepted') {
             $application->logCommunication('email', 'Official Acceptance & Enrollment Offer', "Congratulations {$application->first_name}! You have been accepted to {$application->program?->name}.");
@@ -178,11 +192,11 @@ class AdminDashboardController extends Controller
 
         $application = Application::with('documents')->findOrFail($applicationId);
         $document = $application->documents()->findOrFail($documentId);
-
-        $currentUser = $request->user()?->name ?? 'Admissions Officer';
+        $oldDocStatus = $document->verification_status;
+        $currentUser = $request->user()?->name ?? 'Admissions Committee';
 
         $document->verification_status = $validated['verification_status'];
-        if (array_key_exists('is_original_verified', $validated)) {
+        if (isset($validated['is_original_verified'])) {
             $document->is_original_verified = (bool) $validated['is_original_verified'];
         }
         if (array_key_exists('rejection_reason', $validated)) {
@@ -201,6 +215,19 @@ class AdminDashboardController extends Controller
             action: "document_{$document->verification_status}",
             actor: $currentUser,
             details: $document->rejection_reason ?? $document->reviewer_notes ?? "Original verified: " . ($document->is_original_verified ? 'Yes' : 'No')
+        );
+
+        // System Audit Trail recording
+        AuditLog::record(
+            action: 'verify',
+            auditable: $application,
+            oldValues: ['document_id' => $documentId, 'status' => $oldDocStatus],
+            newValues: ['document_id' => $documentId, 'status' => $document->verification_status, 'rejection_reason' => $document->rejection_reason],
+            module: 'admissions',
+            descriptionAr: "تدقيق مستند ({$document->document_type}) لطلب الالتحاق ({$application->application_number}) إلى حالة: {$document->verification_status}",
+            descriptionEn: "Audited document ({$document->document_type}) for app ({$application->application_number}) as: {$document->verification_status}",
+            severity: 'info',
+            status: 'success'
         );
 
         return response()->json([

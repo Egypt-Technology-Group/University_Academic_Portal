@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AcademicController;
 use App\Http\Controllers\Api\AcademicServicesController;
 use App\Http\Controllers\Api\Admin\AdminCrudController;
 use App\Http\Controllers\Api\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\Admin\AuditLogController;
 use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContentController;
@@ -76,6 +77,12 @@ Route::prefix('v1')->group(function () {
             Route::post('/exam-schedules', [AcademicServicesController::class, 'storeExamSchedule']);
             Route::match(['put', 'patch'], '/exam-schedules/{id}', [AcademicServicesController::class, 'updateExamSchedule']);
             Route::delete('/exam-schedules/{id}', [AcademicServicesController::class, 'deleteExamSchedule']);
+
+            // Enterprise Audit Trail & Compliance Log Endpoints
+            Route::get('/audit-logs', [AuditLogController::class, 'index']);
+            Route::get('/audit-logs/integrity', [AuditLogController::class, 'verifyIntegrity']);
+            Route::get('/audit-logs/export', [AuditLogController::class, 'export']);
+            Route::get('/audit-logs/{id}', [AuditLogController::class, 'show']);
         });
     });
 

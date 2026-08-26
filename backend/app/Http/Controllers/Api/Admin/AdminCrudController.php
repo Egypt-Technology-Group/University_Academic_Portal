@@ -11,6 +11,7 @@ use App\Http\Resources\FacultyResource;
 use App\Http\Resources\NewsResource;
 use App\Http\Resources\ProgramResource;
 use App\Models\Announcement;
+use App\Models\AuditLog;
 use App\Models\College;
 use App\Models\Department;
 use App\Models\DownloadDocument;
@@ -55,6 +56,18 @@ class AdminCrudController extends Controller
             'views_count' => 0,
         ]);
 
+        AuditLog::record(
+            action: 'create',
+            auditable: $article,
+            oldValues: null,
+            newValues: ['title_ar' => $validated['title_ar'], 'title_en' => $validated['title_en'], 'category_id' => $validated['category_id']],
+            module: 'cms',
+            descriptionAr: "نشر خبر صحفي جديد: {$validated['title_ar']}",
+            descriptionEn: "Published new news article: {$validated['title_en']}",
+            severity: 'info',
+            status: 'success'
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'News article published successfully.',
@@ -65,6 +78,7 @@ class AdminCrudController extends Controller
     public function updateNews(Request $request, int $id): JsonResponse
     {
         $article = NewsArticle::findOrFail($id);
+        $oldValues = $article->only(['title', 'excerpt', 'category_id', 'is_featured']);
 
         $validated = $request->validate([
             'category_id' => 'sometimes|nullable|integer',
@@ -90,6 +104,18 @@ class AdminCrudController extends Controller
 
         $article->save();
 
+        AuditLog::record(
+            action: 'update',
+            auditable: $article,
+            oldValues: $oldValues,
+            newValues: $article->only(['title', 'excerpt', 'category_id', 'is_featured']),
+            module: 'cms',
+            descriptionAr: "تحديث وتعديل بيانات الخبر: {$article->title}",
+            descriptionEn: "Updated news article: {$article->title}",
+            severity: 'info',
+            status: 'success'
+        );
+
         return response()->json([
             'success' => true,
             'message' => 'News article updated successfully.',
@@ -100,7 +126,20 @@ class AdminCrudController extends Controller
     public function deleteNews(int $id): JsonResponse
     {
         $article = NewsArticle::findOrFail($id);
+        $title = $article->title;
         $article->delete();
+
+        AuditLog::record(
+            action: 'delete',
+            auditable: 'App\Models\NewsArticle',
+            oldValues: ['id' => $id, 'title' => $title],
+            newValues: null,
+            module: 'cms',
+            descriptionAr: "حذف الخبر الصحفي: {$title}",
+            descriptionEn: "Deleted news article: {$title}",
+            severity: 'warning',
+            status: 'success'
+        );
 
         return response()->json([
             'success' => true,

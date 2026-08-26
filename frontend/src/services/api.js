@@ -1605,6 +1605,30 @@ export const api = {
       if (idx !== -1) mockFaculty.splice(idx, 1)
       return { success: true }
     }
+  },
+
+  // ----------------------------------------------------
+  // Enterprise Audit Trail & Compliance Log Endpoints
+  // ----------------------------------------------------
+  async getAuditLogs(params = {}) {
+    const response = await apiClient.get('/admin/audit-logs', { params })
+    return response.data
+  },
+
+  async getAuditLog(id) {
+    const response = await apiClient.get(`/admin/audit-logs/${id}`)
+    return response.data.data || response.data
+  },
+
+  async verifyAuditIntegrity(params = {}) {
+    const response = await apiClient.get('/admin/audit-logs/integrity', { params })
+    return response.data
+  },
+
+  getAuditExportUrl(params = {}) {
+    const query = new URLSearchParams(params).toString()
+    const baseUrl = apiClient.defaults.baseURL || 'http://localhost:8000/api/v1'
+    return `${baseUrl}/admin/audit-logs/export${query ? '?' + query : ''}`
   }
 }
 
