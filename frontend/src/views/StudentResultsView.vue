@@ -348,11 +348,11 @@
         <div class="text-xs text-slate-500 font-bold animate-pulse">{{ $t('common.loading') }}</div>
       </div>
 
-      <div v-else-if="studentRequestsList.length === 0" class="text-center py-12 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-        <p class="text-xs sm:text-sm text-slate-600 font-bold">
-          {{ localeStore.isRtl ? 'لا توجد طلبات إلكترونية مسجلة لهذا الرقم الأكاديمي حالياً.' : 'No electronic requests found for this student ID.' }}
-        </p>
-      </div>
+      <EmptyState
+        v-else-if="studentRequestsList.length === 0"
+        :title="localeStore.isRtl ? 'لا توجد طلبات إلكترونية مسجلة لهذا الطالب' : 'No electronic requests found'"
+        :description="localeStore.isRtl ? 'يمكنك تقديم طلب جديد عبر بوابة شؤون الطلاب للحصول على شهادات القيد وكشوف الدرجات.' : 'You can submit service requests through the academic affairs portal.'"
+      />
 
       <div v-else class="space-y-3">
         <div
@@ -393,6 +393,7 @@ import { formatStandardDate } from '../utils/dateFormat'
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
 import Badge from '../components/ui/Badge.vue'
 import Button from '../components/ui/Button.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()

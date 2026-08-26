@@ -34,27 +34,11 @@
     </div>
 
     <!-- Status Tabs / Counters -->
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-      <button
-        v-for="statusTab in statusTabs"
-        :key="statusTab.key"
-        type="button"
-        :class="[
-          'p-3.5 rounded-2xl border text-start transition-all cursor-pointer',
-          activeStatusFilter === statusTab.key
-            ? 'bg-navy-950 text-white border-navy-950 shadow-md ring-2 ring-navy-950/20'
-            : 'bg-white text-slate-700 border-slate-200/80 hover:bg-slate-50'
-        ]"
-        @click="activeStatusFilter = statusTab.key"
-      >
-        <div class="text-xs font-semibold text-slate-400" :class="{ 'text-slate-300': activeStatusFilter === statusTab.key }">
-          {{ statusTab.label }}
-        </div>
-        <div class="text-xl font-black font-mono mt-1" :class="{ 'text-gold-400': activeStatusFilter === statusTab.key, 'text-navy-950': activeStatusFilter !== statusTab.key }">
-          {{ statusCounts[statusTab.key] || 0 }}
-        </div>
-      </button>
-    </div>
+    <StatusFilterTabs
+      v-model="activeStatusFilter"
+      :status-tabs="statusTabs"
+      :status-counts="statusCounts"
+    />
 
     <!-- Search & Filters Toolbar -->
     <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-center gap-3">
@@ -112,13 +96,11 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="filteredApplications.length === 0" class="py-16 text-center text-slate-500">
-        <Inbox class="w-12 h-12 text-slate-300 mx-auto mb-3" />
-        <div class="text-sm font-bold text-navy-950">{{ $t('admin.admissions.noApplicationsFound') }}</div>
-        <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-          {{ $t('admin.admissions.noApplicationsFoundDesc') }}
-        </p>
-      </div>
+      <EmptyState
+        v-else-if="filteredApplications.length === 0"
+        :title="$t('admin.admissions.noApplicationsFound')"
+        :description="$t('admin.admissions.noApplicationsFoundDesc')"
+      />
 
       <!-- Table -->
       <div v-else class="overflow-x-auto">
@@ -604,24 +586,7 @@
               <Clock class="w-3.5 h-3.5 text-gold-500" />
               <span>{{ localeStore.isRtl ? 'سجل العمليات والقرارات السابقة' : 'Application Decision History' }}</span>
             </h4>
-            <div class="space-y-2 max-h-36 overflow-y-auto pr-1">
-              <div
-                v-for="(event, eIdx) in activeApp.timeline"
-                :key="eIdx"
-                class="text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-start justify-between gap-3"
-              >
-                <div>
-                  <div class="font-bold text-navy-950 flex items-center gap-1.5">
-                    <span>{{ event.title }}</span>
-                    <span class="text-[10px] text-slate-400 font-normal">({{ event.actor }})</span>
-                  </div>
-                  <div v-if="event.details" class="text-[11px] text-slate-600 mt-0.5">{{ event.details }}</div>
-                </div>
-                <div class="text-[10px] text-slate-400 whitespace-nowrap font-mono">
-                  {{ formatStandardDateTime(event.timestamp, localeStore.locale) }}
-                </div>
-              </div>
-            </div>
+            <AuditTimeline :timeline="activeApp.timeline" />
           </div>
         </div>
       </div>
@@ -825,6 +790,9 @@ import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
 import { formatStandardDate, formatStandardDateTime } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
+import StatusFilterTabs from '../../components/ui/StatusFilterTabs.vue'
+import AuditTimeline from '../../components/ui/AuditTimeline.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
 import {
   Search,
   X,

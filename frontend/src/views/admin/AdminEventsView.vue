@@ -56,10 +56,10 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="filteredEvents.length === 0" class="py-16 text-center text-slate-500">
-        <CalendarX class="w-12 h-12 text-slate-300 mx-auto mb-3" />
-        <div class="text-sm font-bold text-navy-950">{{ $t('admin.events.noEventsFound') }}</div>
-      </div>
+      <EmptyState
+        v-else-if="filteredEvents.length === 0"
+        :title="$t('admin.events.noEventsFound')"
+      />
 
       <!-- Events List Table -->
       <div v-else class="overflow-x-auto">
@@ -321,6 +321,7 @@ import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
 import { formatStandardDate, formatTimeRange } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
 import {
   Plus,
   Search,

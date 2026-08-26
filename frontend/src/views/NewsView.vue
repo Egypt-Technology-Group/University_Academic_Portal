@@ -55,12 +55,10 @@
       <LoadingSpinner size="lg" :label="$t('common.loading')" />
     </div>
 
-    <div v-else-if="filteredNews.length === 0" class="text-center py-16 bg-white rounded-2xl border border-slate-200 space-y-3">
-      <svg class="w-12 h-12 text-slate-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-      </svg>
-      <p class="text-slate-600 font-semibold">{{ $t('news.noNewsFound') }}</p>
-    </div>
+    <EmptyState
+      v-else-if="filteredNews.length === 0"
+      :title="$t('news.noNewsFound')"
+    />
 
     <div v-else class="space-y-10">
       <!-- News Grid -->
@@ -137,6 +135,7 @@ import Badge from '../components/ui/Badge.vue'
 import Card from '../components/ui/Card.vue'
 import Pagination from '../components/ui/Pagination.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()

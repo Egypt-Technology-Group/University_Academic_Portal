@@ -148,7 +148,12 @@
 
       <!-- Requests Table -->
       <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div class="overflow-x-auto">
+        <EmptyState
+          v-if="filteredRequests.length === 0"
+          :title="localeStore.isRtl ? 'لا توجد طلبات إلكترونية مطابقة' : 'No service requests found'"
+          :description="localeStore.isRtl ? 'لم يتم تقديم أي طلبات طلابية تطابق الفلترة المحددة حالياً.' : 'No student requests currently match the selected criteria.'"
+        />
+        <div v-else class="overflow-x-auto">
           <table class="w-full text-start text-xs border-collapse">
             <thead>
               <tr class="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
@@ -289,7 +294,12 @@
     <!-- TAB 3: EXAM SCHEDULES & HALL INVIGILATION -->
     <div v-if="activeTab === 'exams'" class="space-y-4">
       <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div class="overflow-x-auto">
+        <EmptyState
+          v-if="examSchedulesList.length === 0"
+          :title="localeStore.isRtl ? 'لا توجد جداول امتحانات معلنة' : 'No exam schedules posted'"
+          :description="localeStore.isRtl ? 'استخدم زر إضافة موعد امتحان بالأعلى لإدراج مقرر وقاعة ولجنة مراقبة.' : 'Click schedule exam button above to assign courses and halls.'"
+        />
+        <div v-else class="overflow-x-auto">
           <table class="w-full text-start text-xs border-collapse">
             <thead>
               <tr class="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
@@ -661,6 +671,7 @@ import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
 import { formatStandardDate, formatStandardTime, formatTimeRange } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
 import {
   GraduationCap,
   FileText,

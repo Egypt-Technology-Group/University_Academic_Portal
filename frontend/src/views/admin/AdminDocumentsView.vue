@@ -103,13 +103,11 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="filteredDocuments.length === 0" class="py-16 text-center text-slate-500">
-        <FileX class="w-12 h-12 text-slate-300 mx-auto mb-3" />
-        <div class="text-sm font-bold text-navy-950">{{ $t('admin.documents.noDocsFound') }}</div>
-        <p class="text-xs text-slate-400 mt-1">
-          {{ localeStore.isRtl ? 'لا توجد لوائح أو مستندات تطابق الفلاتر المحددة حالياً.' : 'No regulations or files match the current query.' }}
-        </p>
-      </div>
+      <EmptyState
+        v-else-if="filteredDocuments.length === 0"
+        :title="$t('admin.documents.noDocsFound')"
+        :description="localeStore.isRtl ? 'لا توجد لوائح أو مستندات تطابق الفلاتر المحددة حالياً.' : 'No regulations or files match the current query.'"
+      />
 
       <!-- Documents Table -->
       <div v-else class="overflow-x-auto">
@@ -518,6 +516,7 @@ import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
 import Modal from '../../components/ui/Modal.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
 import {
   Upload,
   Search,

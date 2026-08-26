@@ -37,12 +37,10 @@
       <LoadingSpinner size="lg" :label="$t('common.loading')" />
     </div>
 
-    <div v-else-if="events.length === 0" class="text-center py-16 bg-white rounded-2xl border border-slate-200 space-y-3">
-      <svg class="w-12 h-12 text-slate-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-      <p class="text-slate-600 font-semibold">{{ $t('events.noEvents') }}</p>
-    </div>
+    <EmptyState
+      v-else-if="events.length === 0"
+      :title="$t('events.noEvents')"
+    />
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <Card
@@ -163,6 +161,7 @@ import Button from '../components/ui/Button.vue'
 import Card from '../components/ui/Card.vue'
 import Modal from '../components/ui/Modal.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
+import EmptyState from '../components/ui/EmptyState.vue'
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()

@@ -96,7 +96,12 @@
 
       <!-- News Table -->
       <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div class="overflow-x-auto">
+        <EmptyState
+          v-if="filteredNews.length === 0"
+          :title="localeStore.isRtl ? 'لا توجد أخبار صحفية منشورة' : 'No news articles found'"
+          :description="localeStore.isRtl ? 'استخدم زر إضافة خبر جديد بالأعلى لنشر مقال إخباري جديد على البوابة.' : 'Use the action button above to publish your first news article.'"
+        />
+        <div v-else class="overflow-x-auto">
           <table class="w-full text-start text-xs border-collapse">
             <thead>
               <tr class="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
@@ -113,20 +118,20 @@
                 :key="article.id"
                 class="hover:bg-slate-50/80 transition-colors"
               >
-                <!-- Thumbnail & Title -->
+                <!-- Article Title & Image -->
                 <td class="py-3.5 px-4">
-                  <div class="flex items-center gap-3.5">
+                  <div class="flex items-center gap-3">
                     <img
                       :src="article.featured_image"
                       :alt="getTranslated(article.title, localeStore.locale)"
-                      class="w-14 h-10 rounded-lg object-cover border border-slate-200 shrink-0"
+                      class="w-12 h-12 rounded-xl object-cover ring-1 ring-slate-200 shrink-0"
                     />
                     <div class="max-w-md">
                       <div class="font-bold text-navy-950 text-sm line-clamp-1">
                         {{ getTranslated(article.title, localeStore.locale) }}
                       </div>
                       <div class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">
-                        {{ getTranslated(article.summary, localeStore.locale) }}
+                        {{ getTranslated(article.excerpt, localeStore.locale) }}
                       </div>
                     </div>
                   </div>
@@ -134,18 +139,18 @@
 
                 <!-- Category -->
                 <td class="py-3.5 px-4">
-                  <span class="inline-block px-2.5 py-1 rounded-md text-[11px] font-bold bg-navy-50 text-navy-900 border border-navy-100">
-                    {{ getTranslated(article.category?.name, localeStore.locale) }}
+                  <span class="inline-block text-[11px] font-bold text-navy-800 bg-navy-50 px-2 py-0.5 rounded border border-navy-100">
+                    {{ getTranslated(article.category?.name, localeStore.locale) || $t('admin.cms.catAcademic') }}
                   </span>
                 </td>
 
-                <!-- Views -->
-                <td class="py-3.5 px-4 text-center font-mono text-slate-600 font-bold">
-                  {{ article.views_count || 142 }}
+                <!-- Views Count -->
+                <td class="py-3.5 px-4 text-center font-mono text-slate-600">
+                  {{ Number(article.views_count || 0).toLocaleString() }}
                 </td>
 
                 <!-- Date -->
-                <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
+                <td class="py-3.5 px-4 font-mono text-slate-500 whitespace-nowrap">
                   {{ formatDate(article.published_at) }}
                 </td>
 
@@ -189,7 +194,12 @@
 
     <!-- TAB 2: ANNOUNCEMENTS -->
     <div v-else class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <EmptyState
+        v-if="announcementsList.length === 0"
+        :title="localeStore.isRtl ? 'لا توجد تنويهات أو إعلانات إدارية' : 'No announcements posted'"
+        :description="localeStore.isRtl ? 'استخدم زر إصدار تعميم جديد لنشر تنبيه عاجل للطلاب وأعضاء هيئة التدريس.' : 'Post urgent alerts to students or faculty members.'"
+      />
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
           v-for="item in announcementsList"
           :key="item.id"
@@ -510,6 +520,7 @@ import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
 import { formatStandardDate } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
+import EmptyState from '../../components/ui/EmptyState.vue'
 import {
   Newspaper,
   Megaphone,
