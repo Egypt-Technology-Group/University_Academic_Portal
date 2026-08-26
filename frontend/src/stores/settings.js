@@ -15,7 +15,7 @@ export const useSettingsStore = defineStore('settings', {
     }
 
     return {
-      settings: cached || defaultSettings,
+      settings: cached || { ...defaultSettings },
       isLoading: false,
       isSaving: false,
       error: null,
@@ -24,77 +24,75 @@ export const useSettingsStore = defineStore('settings', {
   },
 
   getters: {
-    // Branding & Identity
-    siteIdentity: (state) => state.settings.site_identity || defaultSettings.site_identity,
+    // Branding & Identity (Backend-sourced)
+    siteIdentity: (state) => state.settings.site_identity || {},
     siteName: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.site_identity?.name, locale) || 'جامعة إيجي تك للتكنولوجيا والعلوم التطبيقية',
+      getTranslated(state.settings.site_identity?.name, locale),
     siteShortName: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.site_identity?.short_name, locale) || 'إيجي تك',
+      getTranslated(state.settings.site_identity?.short_name, locale),
     siteSlogan: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.site_identity?.slogan, locale) || '',
+      getTranslated(state.settings.site_identity?.slogan, locale),
     siteLogoUrl: (state) => state.settings.site_identity?.logo_url || '',
     siteFaviconUrl: (state) => state.settings.site_identity?.favicon_url || '',
 
-    // Theme & Visual Identity
+    // Theme & Visual Identity (Bootstrap/Backend-customizable)
     themeColors: (state) => state.settings.theme_colors || defaultSettings.theme_colors,
     primaryColor: (state) => state.settings.theme_colors?.primary_color || '#0A2540',
     secondaryGold: (state) => state.settings.theme_colors?.secondary_gold || '#C59B27',
     accentEmerald: (state) => state.settings.theme_colors?.accent_emerald || '#059669',
     headerStyle: (state) => state.settings.theme_colors?.header_style || 'classic',
 
-    // President Message & Leadership
-    presidentMessage: (state) => state.settings.president_message || defaultSettings.president_message,
+    // President Message & Leadership (Backend-sourced)
+    presidentMessage: (state) => state.settings.president_message || {},
     presidentName: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.president_message?.name, locale) || 'أ.د. عصام النجار',
+      getTranslated(state.settings.president_message?.name, locale),
     presidentTitle: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.president_message?.title, locale) || 'رئيس الجامعة',
-    presidentAvatar: (state) =>
-      state.settings.president_message?.avatar_url ||
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+      getTranslated(state.settings.president_message?.title, locale),
+    presidentAvatar: (state) => state.settings.president_message?.avatar_url || '',
     presidentQuote: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.president_message?.quote, locale) || '',
+      getTranslated(state.settings.president_message?.quote, locale),
     presidentFullMessage: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.president_message?.message, locale) || '',
+      getTranslated(state.settings.president_message?.message, locale),
 
-    // Hero Slider
-    heroSlider: (state) => state.settings.hero_slider?.slides || defaultSettings.hero_slider.slides,
+    // Hero Slider (Backend-sourced)
+    heroSlider: (state) => state.settings.hero_slider?.slides || [],
 
-    // Contact Information
-    contactInfo: (state) => state.settings.contact_info || defaultSettings.contact_info,
-    hotline: (state) => state.settings.contact_info?.hotline || '19850',
-    phone: (state) => state.settings.contact_info?.phone || '+20 2 2456 7890',
-    email: (state) => state.settings.contact_info?.email || 'info@egyitech.edu.eg',
-    admissionsEmail: (state) => state.settings.contact_info?.admissions_email || 'admissions@university.edu.eg',
+    // Contact Information (Backend-sourced)
+    contactInfo: (state) => state.settings.contact_info || {},
+    hotline: (state) => state.settings.contact_info?.hotline || '',
+    phone: (state) => state.settings.contact_info?.phone || '',
+    email: (state) => state.settings.contact_info?.email || '',
+    admissionsEmail: (state) => state.settings.contact_info?.admissions_email || '',
     address: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.contact_info?.address, locale) || '',
+      getTranslated(state.settings.contact_info?.address, locale),
     workingHours: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.contact_info?.working_hours, locale) || '',
+      getTranslated(state.settings.contact_info?.working_hours, locale),
 
-    // Social Channels
-    socialLinks: (state) => state.settings.social_links || defaultSettings.social_links,
+    // Social Channels (Backend-sourced)
+    socialLinks: (state) => state.settings.social_links || {},
 
-    // Footer
-    footerInfo: (state) => state.settings.footer_info || defaultSettings.footer_info,
+    // Footer (Backend-sourced)
+    footerInfo: (state) => state.settings.footer_info || {},
     footerAbout: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.footer_info?.about_text, locale) || '',
+      getTranslated(state.settings.footer_info?.about_text, locale),
     footerCopyright: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.footer_info?.copyright_text, locale) || '',
+      getTranslated(state.settings.footer_info?.copyright_text, locale),
 
-    // Top Urgent Announcement Bar
-    topAnnouncement: (state) => state.settings.top_announcement_bar || defaultSettings.top_announcement_bar,
+    // Top Urgent Announcement Bar (Backend-sourced)
+    topAnnouncement: (state) => state.settings.top_announcement_bar || {},
     isTopAnnouncementActive: (state) => Boolean(state.settings.top_announcement_bar?.is_enabled),
     topAnnouncementText: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.top_announcement_bar?.text, locale) || '',
+      getTranslated(state.settings.top_announcement_bar?.text, locale),
     topAnnouncementLink: (state) => state.settings.top_announcement_bar?.link_url || '/admissions',
 
-    // Site Statistics & Counters
-    siteStatistics: (state) => state.settings.site_statistics || defaultSettings.site_statistics,
+    // Site Statistics & Counters (Backend-sourced)
+    siteStatistics: (state) => state.settings.site_statistics || { title: { ar: '', en: '' }, subtitle: { ar: '', en: '' }, items: [] },
     statisticsTitle: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.site_statistics?.title, locale) || '',
+      getTranslated(state.settings.site_statistics?.title, locale),
     statisticsSubtitle: (state) => (locale = 'ar') =>
-      getTranslated(state.settings.site_statistics?.subtitle, locale) || '',
+      getTranslated(state.settings.site_statistics?.subtitle, locale),
     activeStatisticsItems: (state) => {
-      const stats = state.settings.site_statistics?.items || defaultSettings.site_statistics.items
+      const stats = state.settings.site_statistics?.items || []
       return [...stats]
         .filter((item) => item.is_active !== false)
         .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
@@ -120,7 +118,7 @@ export const useSettingsStore = defineStore('settings', {
         }
         return this.settings
       } catch (err) {
-        console.warn('Could not fetch remote site settings, using default/cached:', err.message)
+        console.warn('Could not fetch remote site settings:', err.message)
         return this.settings
       } finally {
         this.isLoading = false
@@ -206,32 +204,24 @@ export const useSettingsStore = defineStore('settings', {
         return true
       } catch (err) {
         console.warn(`Failed to update setting ${key}:`, err.message)
-        this.settings[key] = value
-        localStorage.setItem('egyitech_site_settings', JSON.stringify(this.settings))
-        this.applyThemeToCssVariables()
-        return true
+        throw err
       } finally {
         this.isSaving = false
       }
     },
 
     /**
-     * Reset all site settings to factory seed defaults.
+     * Reset all site settings to factory seed defaults via Backend.
      */
     async resetSettings() {
       this.isSaving = true
       try {
         await api.resetAdminSettings()
-        this.settings = { ...defaultSettings }
-        localStorage.setItem('egyitech_site_settings', JSON.stringify(this.settings))
-        this.applyThemeToCssVariables()
+        await this.fetchAdminSettings()
         return true
       } catch (err) {
-        console.warn('Reset API failed, resetting local store:', err.message)
-        this.settings = { ...defaultSettings }
-        localStorage.setItem('egyitech_site_settings', JSON.stringify(this.settings))
-        this.applyThemeToCssVariables()
-        return true
+        console.warn('Reset API failed:', err.message)
+        throw err
       } finally {
         this.isSaving = false
       }
@@ -304,8 +294,10 @@ export const useSettingsStore = defineStore('settings', {
         social_links: 'social',
         footer_info: 'footer',
         top_announcement_bar: 'general',
+        site_statistics: 'statistics',
       }
       return groupMap[key] || 'general'
     },
   },
 })
+

@@ -1045,15 +1045,83 @@ const tabs = computed(() => [
 
 // Local Form Reactive State cloned from settings store
 const form = reactive({
-  site_identity: JSON.parse(JSON.stringify(settingsStore.siteIdentity)),
-  theme_colors: JSON.parse(JSON.stringify(settingsStore.themeColors)),
-  president_message: JSON.parse(JSON.stringify(settingsStore.presidentMessage)),
-  hero_slider: JSON.parse(JSON.stringify(settingsStore.settings.hero_slider || { slides: [] })),
-  contact_info: JSON.parse(JSON.stringify(settingsStore.contactInfo)),
-  social_links: JSON.parse(JSON.stringify(settingsStore.socialLinks)),
-  footer_info: JSON.parse(JSON.stringify(settingsStore.footerInfo)),
-  top_announcement_bar: JSON.parse(JSON.stringify(settingsStore.topAnnouncement)),
-  site_statistics: JSON.parse(JSON.stringify(settingsStore.siteStatistics || { title: { ar: '', en: '' }, subtitle: { ar: '', en: '' }, items: [] })),
+  site_identity: {
+    name: { ar: '', en: '' },
+    short_name: { ar: '', en: '' },
+    slogan: { ar: '', en: '' },
+    motto: { ar: '', en: '' },
+    logo_url: '',
+    favicon_url: '',
+    established_year: '',
+    ...JSON.parse(JSON.stringify(settingsStore.siteIdentity || {}))
+  },
+  theme_colors: {
+    primary_color: '#0A2540',
+    primary_hover: '#0F3460',
+    secondary_gold: '#C59B27',
+    secondary_gold_light: '#D4AF37',
+    accent_emerald: '#059669',
+    background_slate: '#F8FAFC',
+    dark_surface: '#091E33',
+    font_family_ar: 'Cairo',
+    font_family_en: 'Inter',
+    header_style: 'classic',
+    ...JSON.parse(JSON.stringify(settingsStore.themeColors || {}))
+  },
+  president_message: {
+    name: { ar: '', en: '' },
+    title: { ar: '', en: '' },
+    avatar_url: '',
+    quote: { ar: '', en: '' },
+    message: { ar: '', en: '' },
+    signature_url: '',
+    ...JSON.parse(JSON.stringify(settingsStore.presidentMessage || {}))
+  },
+  hero_slider: {
+    slides: [],
+    ...JSON.parse(JSON.stringify(settingsStore.settings.hero_slider || { slides: [] }))
+  },
+  contact_info: {
+    hotline: '',
+    phone: '',
+    phone_secondary: '',
+    email: '',
+    admissions_email: '',
+    support_email: '',
+    address: { ar: '', en: '' },
+    working_hours: { ar: '', en: '' },
+    google_maps_embed_url: '',
+    ...JSON.parse(JSON.stringify(settingsStore.contactInfo || {}))
+  },
+  social_links: {
+    facebook: '',
+    twitter: '',
+    linkedin: '',
+    youtube: '',
+    instagram: '',
+    telegram: '',
+    ...JSON.parse(JSON.stringify(settingsStore.socialLinks || {}))
+  },
+  footer_info: {
+    about_text: { ar: '', en: '' },
+    accreditation_text: { ar: '', en: '' },
+    iso_text: { ar: '', en: '' },
+    copyright_text: { ar: '', en: '' },
+    ...JSON.parse(JSON.stringify(settingsStore.footerInfo || {}))
+  },
+  top_announcement_bar: {
+    is_enabled: false,
+    text: { ar: '', en: '' },
+    link_url: '',
+    badge: { ar: '', en: '' },
+    ...JSON.parse(JSON.stringify(settingsStore.topAnnouncement || {}))
+  },
+  site_statistics: {
+    title: { ar: '', en: '' },
+    subtitle: { ar: '', en: '' },
+    items: [],
+    ...JSON.parse(JSON.stringify(settingsStore.siteStatistics || { title: { ar: '', en: '' }, subtitle: { ar: '', en: '' }, items: [] }))
+  },
 })
 
 const applyPreset = (primary, secondary, accent) => {
