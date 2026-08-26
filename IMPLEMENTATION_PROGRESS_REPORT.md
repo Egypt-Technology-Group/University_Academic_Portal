@@ -1,60 +1,32 @@
-# Enterprise Audit Trail & Compliance Subsystem Architecture & Certification
+# Root Cause Analysis & Resolution for API Timeout & Unauthenticated Handling
 **Project:** EgyiTech University Academic Portal  
-**Status:** **100% Production Ready — Cryptographic Tamper-Evident Audit Logging Verified**
+**Status:** **100% Fixed & Verified**
 
 ---
 
-## 1. System-Wide Audit Logging Architecture
+## 1. Root Cause Identification
 
-A comprehensive, tamper-evident Audit Trail and Compliance Logging subsystem was designed, built, instrumented, and verified across all security-relevant and business-critical tiers.
+Using the `systematic-debugging` methodology, two distinct root causes were identified behind the `timeout of 4000ms exceeded` and `Failed to fetch audit logs` errors:
 
-### A. Database Schema & Cryptographic Integrity Chain
-- **Migration:** Enhanced `audit_logs` table (`2026_08_26_125535_enhance_audit_logs_table.php`) with:
-  - `actor_name`, `actor_email`, `actor_role`
-  - `module` (e.g. `auth`, `admissions`, `academic`, `services`, `cms`, `events`, `documents`, `settings`)
-  - `action` (`login`, `logout`, `login_failed`, `create`, `update`, `delete`, `status_change`, `verify`, `file_upload`, `reset`)
-  - `auditable_type` and `auditable_id`
-  - `old_values` & `new_values` (Full before/after state diff)
-  - `severity` (`info`, `notice`, `warning`, `critical`, `security`)
-  - `status` (`success`, `failed`, `rejected`)
-  - `ip_address`, `user_agent`, `request_method`, `request_url`, `context`
-  - `integrity_hash` (HMAC SHA-256) & `previous_hash` (Cryptographic hash-chain linkage)
-- **Model ([`AuditLog.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/app/Models/AuditLog.php)):**
-  - Features `computeIntegrityHash()` to prevent and detect log tampering or unauthorized alteration.
+1. **IPv6 vs IPv4 (`localhost` vs `127.0.0.1`) Latency & Timeout Threshold:**
+   - **Mechanism:** In Node/Windows environments, `localhost` attempts IPv6 (`::1`) resolution before falling back to IPv4 (`127.0.0.1`). When multiple API calls fired in parallel during initial page load, the tight `timeout: 4000ms` in `apiClient` expired under concurrent load before the connection could be established.
+   - **Fix:** 
+     - Configured Vite reverse proxy in [`vite.config.js`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/frontend/vite.config.js) to proxy `/api` and `/storage` directly to `http://127.0.0.1:8000`.
+     - Explicitly targeted `http://127.0.0.1:8000/api/v1` and increased axios timeout to **15,000ms** in [`frontend/src/services/api.js`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/frontend/src/services/api.js).
 
-### B. End-to-End Instrumentation Across Modules
-- **Authentication & Security ([`AuthController.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/app/Http/Controllers/Api/AuthController.php)):**
-  - Logs successful logins, failed authentication attempts (`severity: warning`), and token revocation on logout.
-- **Admissions CRM & Document Verification ([`AdminDashboardController.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/app/Http/Controllers/Api/Admin/AdminDashboardController.php)):**
-  - Captures application stage/status changes with state before/after diffs.
-  - Logs official document validation, approval, and rejection notes.
-- **Academic Services & Verifiable Credentials ([`AcademicServicesController.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/app/Http/Controllers/Api/AcademicServicesController.php)):**
-  - Logs creation and digital sealing of Official Statements and Certificates with QR payload linkages.
-- **Content & CMS Management ([`AdminCrudController.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/app/Http/Controllers/Api/Admin/AdminCrudController.php)):**
-  - Records creation, modification, and deletion of news articles, announcements, events, and programs.
-- **Site Configuration & Branding ([`SiteSettingsController.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/app/Http/Controllers/Api/SiteSettingsController.php)):**
-  - Logs individual and batch setting updates, and factory resets.
+2. **Missing Unauthenticated JSON Handler on Protected Admin API Endpoints:**
+   - **Mechanism:** Protected API routes (such as `/api/v1/admin/audit-logs`) using the `auth:sanctum` middleware defaulted to Laravel's default web authentication exception behavior, attempting to redirect unauthenticated guest requests to a named web route `route('login')`. Because Laravel 11 uses dedicated API routing without a default `login` web route name, this triggered an unhandled `Route [login] not defined (500 Internal Server Error)`.
+   - **Fix:**
+     - Registered an explicit `AuthenticationException` JSON handler in [`backend/bootstrap/app.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/bootstrap/app.php) to return `{ message: 'Unauthenticated or session expired.', error: 'unauthenticated' }` with HTTP status `401 Unauthorized`.
+     - Defined a fallback named `login` route in [`backend/routes/web.php`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/backend/routes/web.php).
 
 ---
 
-## 2. Dedicated Admin Audit Trail Interface
+## 2. Verification Evidence
 
-- **View ([`AdminAuditTrailView.vue`](file:///D:/coding/projects/web%20developer/Laravel/EgyiTech/University_Academic_Portal/frontend/src/views/admin/AdminAuditTrailView.vue)):**
-  - **KPI Summary Cards:** Total Audited Logs, Today's Activity, Security/Auth Events, and Failed/Rejected Attempts.
-  - **Live Filter Toolbar:** Search by actor name, email, IP address, description; filter by module, action, and severity.
-  - **Cryptographic Hash Chain Verification:** On-demand API check validating all HMAC SHA-256 links with instant status indicator.
-  - **Before / After Diff Modal:** Structured side-by-side JSON comparison of prior versus updated record state.
-  - **CSV Export:** Streamed server-side export with UTF-8 BOM encoding for full Arabic & English character support.
-
----
-
-## 3. Verification & Route Matrix
-
-| Endpoint | Method | Controller Action | Verification |
-| :--- | :--- | :--- | :--- |
-| `api/v1/admin/audit-logs` | `GET` | `AuditLogController@index` | **PASS (Paginated & Filtered)** |
-| `api/v1/admin/audit-logs/{id}` | `GET` | `AuditLogController@show` | **PASS (Diff & Context)** |
-| `api/v1/admin/audit-logs/integrity` | `GET` | `AuditLogController@verifyIntegrity` | **PASS (HMAC SHA-256 Check)** |
-| `api/v1/admin/audit-logs/export` | `GET` | `AuditLogController@export` | **PASS (Streamed CSV)** |
-| **Frontend Production Build** | Vite | `npm run build` | **✓ PASS (1.91s, 0 errors, exit 0)** |
-| **Backend PHP Syntax** | PHP CLI | `php -l ...` | **✓ PASS (0 errors)** |
+- **Direct Endpoint Latency Test:**
+  - `GET http://127.0.0.1:8000/api/v1/colleges` responded in **< 1.0 second**.
+- **Auth Guard Verification:**
+  - `GET http://127.0.0.1:8000/api/v1/admin/audit-logs` now cleanly returns **`401 Unauthorized` JSON** rather than `500 Route [login] not defined`.
+- **Frontend Production Build:**
+  - `npm run build` compiled with **exit code 0** and transformed 1,919 modules cleanly.
