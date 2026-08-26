@@ -1,11 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\AcademicController;
 use App\Http\Controllers\Api\AcademicServicesController;
 use App\Http\Controllers\Api\Admin\AdminCrudController;
-use App\Http\Controllers\Api\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\Admin\AuditLogController;
-use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\ModuleManagementController;
@@ -30,11 +27,7 @@ Route::prefix('v1')->group(function () {
 
         // Admin Management Endpoints
         Route::prefix('admin')->group(function () {
-            Route::get('/stats', [AdminDashboardController::class, 'stats']);
-            Route::get('/applications', [AdminDashboardController::class, 'applications']);
-            Route::match(['patch', 'put'], '/applications/{id}/status', [AdminDashboardController::class, 'updateApplicationStatus']);
-            Route::post('/applications/{id}/documents/{documentId}/verify', [AdminDashboardController::class, 'verifyDocument']);
-            Route::post('/applications/{id}/request-missing-docs', [AdminDashboardController::class, 'requestMissingDocuments']);
+            Route::get('/stats', [\App\Http\Controllers\Api\Admin\AdminDashboardController::class, 'stats']);
 
             // Site Customization & Dynamic Settings
             Route::get('/settings', [SiteSettingsController::class, 'index']);
@@ -55,24 +48,6 @@ Route::prefix('v1')->group(function () {
             Route::post('/documents', [AdminCrudController::class, 'storeDocument']);
             Route::match(['put', 'patch'], '/documents/{id}', [AdminCrudController::class, 'updateDocument']);
 
-            // Academic Structure CRUD Management (Colleges, Departments, Programs)
-            Route::post('/colleges', [AdminCrudController::class, 'storeCollege']);
-            Route::match(['put', 'patch'], '/colleges/{id}', [AdminCrudController::class, 'updateCollege']);
-            Route::delete('/colleges/{id}', [AdminCrudController::class, 'deleteCollege']);
-
-            Route::post('/departments', [AdminCrudController::class, 'storeDepartment']);
-            Route::match(['put', 'patch'], '/departments/{id}', [AdminCrudController::class, 'updateDepartment']);
-            Route::delete('/departments/{id}', [AdminCrudController::class, 'deleteDepartment']);
-
-            Route::post('/programs', [AdminCrudController::class, 'storeProgram']);
-            Route::match(['put', 'patch'], '/programs/{id}', [AdminCrudController::class, 'updateProgram']);
-            Route::delete('/programs/{id}', [AdminCrudController::class, 'deleteProgram']);
-
-            // Faculty & Researchers CRUD Management
-            Route::post('/faculty', [AdminCrudController::class, 'storeFaculty']);
-            Route::match(['put', 'patch'], '/faculty/{id}', [AdminCrudController::class, 'updateFaculty']);
-            Route::delete('/faculty/{id}', [AdminCrudController::class, 'deleteFaculty']);
-
             // Academic & Student Services Management (Admin)
             Route::get('/student-requests', [AcademicServicesController::class, 'indexRequests']);
             Route::post('/student-requests', [AcademicServicesController::class, 'submitRequest']);
@@ -92,14 +67,6 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-    // Public Academic endpoints
-    Route::get('/colleges', [AcademicController::class, 'indexColleges']);
-    Route::get('/colleges/{slug}', [AcademicController::class, 'getCollege']);
-    Route::get('/departments', [AcademicController::class, 'indexDepartments']);
-    Route::get('/programs', [AcademicController::class, 'indexPrograms']);
-    Route::get('/programs/{slug}', [AcademicController::class, 'getProgram']);
-    Route::get('/faculty', [AcademicController::class, 'indexFaculty']);
-
     // Public Content endpoints
     Route::get('/news', [ContentController::class, 'news']);
     Route::get('/news/{slug}', [ContentController::class, 'getNews']);
@@ -115,14 +82,6 @@ Route::prefix('v1')->group(function () {
     Route::get('/student-services/requests', [AcademicServicesController::class, 'indexRequests']);
     Route::get('/verify-statement', [AcademicServicesController::class, 'verifyStatement']);
     Route::post('/verify-statement', [AcademicServicesController::class, 'verifyStatement']);
-
-    // Public Admission endpoints
-    Route::middleware('throttle:admissions')->group(function () {
-        Route::get('/admissions/active-cycle', [AdmissionController::class, 'activeCycle']);
-        Route::post('/admissions/apply', [AdmissionController::class, 'submitApplication']);
-        Route::get('/admissions/track', [AdmissionController::class, 'trackApplication']);
-        Route::post('/admissions/track', [AdmissionController::class, 'trackApplication']);
-    });
 
     // Public Student Portal endpoints
     Route::middleware('throttle:student-portal')->group(function () {

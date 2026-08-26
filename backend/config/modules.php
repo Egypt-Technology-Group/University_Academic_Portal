@@ -10,7 +10,8 @@ return [
     |
     */
     'modules' => [
-        // Module classes will be registered here or auto-discovered
+        \App\Modules\AcademicStructure\AcademicStructureModule::class,
+        \App\Modules\Admissions\AdmissionsModule::class,
     ],
 
     /*
