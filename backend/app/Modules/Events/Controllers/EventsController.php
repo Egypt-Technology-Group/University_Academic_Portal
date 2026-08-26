@@ -5,31 +5,25 @@ namespace App\Modules\Events\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Events\Models\Event;
+use App\Modules\Events\Requests\RegisterEventAttendeeRequest;
 use App\Modules\Events\Resources\EventResource;
+use App\Modules\Events\Services\EventsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class EventsController extends Controller
 {
+    public function __construct(
+        protected readonly EventsService $eventsService
+    ) {}
+
     /**
      * List events (upcoming or past).
      */
     public function events(Request $request): AnonymousResourceCollection
     {
-        $query = Event::query();
-
-        if ($request->input('filter') === 'past' || $request->boolean('past')) {
-            $query->where('end_time', '<', now())->orderBy('start_time', 'desc');
-        } elseif ($request->input('filter') === 'all' || $request->boolean('all')) {
-            $query->orderBy('start_time', 'asc');
-        } else {
-            // Default: upcoming events
-            $query->where('end_time', '>=', now())->orderBy('start_time', 'asc');
-        }
-
-        $perPage = (int) $request->input('per_page', 15);
-        $events = $request->boolean('paginate') ? $query->paginate($perPage) : $query->get();
+        $events = $this->eventsService->getEvents($request->all());
 
         return EventResource::collection($events);
     }
@@ -37,22 +31,10 @@ class EventsController extends Controller
     /**
      * Register an attendee for an academic event.
      */
-    public function registerForEvent(Request $request, int $id): JsonResponse
+    public function registerForEvent(RegisterEventAttendeeRequest $request, int $id): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:30',
-        ]);
-
         $event = Event::findOrFail($id);
-
-        $attendee = $event->attendees()->create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'status' => 'registered',
-        ]);
+        $attendee = $this->eventsService->registerAttendee($event, $request->validated());
 
         return response()->json([
             'success' => true,
