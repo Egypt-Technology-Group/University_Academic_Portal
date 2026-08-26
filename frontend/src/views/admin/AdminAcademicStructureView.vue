@@ -796,6 +796,7 @@ import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import HybridDocumentWorkflow from '../../components/ui/HybridDocumentWorkflow.vue'
 import { useDialog } from '../../composables/useDialog'
+import { useToast } from '../../composables/useToast'
 import {
   School,
   Building2,
@@ -815,6 +816,7 @@ import {
 
 const localeStore = useLocaleStore()
 const dialog = useDialog()
+const toast = useToast()
 const activeTab = ref('colleges')
 
 const programWorkflowModel = reactive({
@@ -1010,17 +1012,24 @@ const submitFacultyForm = async () => {
           ...updated,
         }
       }
+      toast.success(
+        localeStore.isRtl ? 'تم تحديث بيانات عضو هيئة التدريس بنجاح.' : 'Faculty member profile updated successfully.',
+        localeStore.isRtl ? 'تم التحديث' : 'Profile Updated'
+      )
     } else {
       const created = await api.createFaculty(payload)
       facultyList.value.unshift(created)
+      toast.success(
+        localeStore.isRtl ? 'تمت إضافة عضو هيئة التدريس بنجاح.' : 'Faculty member added successfully.',
+        localeStore.isRtl ? 'تمت الإضافة' : 'Faculty Added'
+      )
     }
     isFacultyModalOpen.value = false
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
-      message: localeStore.isRtl ? 'تعذر حفظ بيانات عضو هيئة التدريس، يرجى المحاولة لاحقاً.' : 'Failed to save faculty profile, please try again.',
-      variant: 'danger',
-    })
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ بيانات عضو هيئة التدريس، يرجى المحاولة لاحقاً.' : 'Failed to save faculty profile, please try again.',
+      localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving'
+    )
   }
 }
 
@@ -1036,6 +1045,10 @@ const handleDeleteFaculty = async (id) => {
   if (confirmed) {
     await api.deleteFaculty(id)
     facultyList.value = facultyList.value.filter((f) => f.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف الملف الأكاديمي لعضو هيئة التدريس.' : 'Faculty profile deleted.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 
@@ -1138,13 +1151,28 @@ const openEditCollegeModal = (col) => {
 }
 
 const submitCollegeForm = async () => {
-  if (isEditingCollege.value) {
-    await api.updateCollege(editingCollegeId.value, { ...collegeForm })
-  } else {
-    const created = await api.createCollege({ ...collegeForm })
-    collegesList.value.unshift(created)
+  try {
+    if (isEditingCollege.value) {
+      await api.updateCollege(editingCollegeId.value, { ...collegeForm })
+      toast.success(
+        localeStore.isRtl ? 'تم تحديث بيانات الكلية بنجاح.' : 'College updated successfully.',
+        localeStore.isRtl ? 'تم التحديث' : 'College Updated'
+      )
+    } else {
+      const created = await api.createCollege({ ...collegeForm })
+      collegesList.value.unshift(created)
+      toast.success(
+        localeStore.isRtl ? 'تمت إضافة الكلية الجديدة بنجاح.' : 'New college added successfully.',
+        localeStore.isRtl ? 'تمت الإضافة' : 'College Added'
+      )
+    }
+    isCollegeModalOpen.value = false
+  } catch (err) {
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ بيانات الكلية.' : 'Failed to save college.',
+      localeStore.isRtl ? 'خطأ' : 'Error'
+    )
   }
-  isCollegeModalOpen.value = false
 }
 
 const handleDeleteCollege = async (id) => {
@@ -1159,6 +1187,10 @@ const handleDeleteCollege = async (id) => {
   if (confirmed) {
     await api.deleteCollege(id)
     collegesList.value = collegesList.value.filter((c) => c.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف الكلية.' : 'College deleted.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 
@@ -1202,20 +1234,35 @@ const openEditDepartmentModal = (dept) => {
 }
 
 const submitDepartmentForm = async () => {
-  if (isEditingDepartment.value) {
-    await api.updateDepartment(editingDepartmentId.value, { ...departmentForm })
-    const idx = sampleDepartments.value.findIndex((d) => d.id === editingDepartmentId.value)
-    if (idx !== -1) {
-      sampleDepartments.value[idx].college_id = departmentForm.college_id
-      sampleDepartments.value[idx].name = { ar: departmentForm.name_ar, en: departmentForm.name_en }
-      sampleDepartments.value[idx].head_name = { ar: departmentForm.head_name_ar, en: departmentForm.head_name_en }
-      sampleDepartments.value[idx].description = { ar: departmentForm.description_ar, en: departmentForm.description_en }
+  try {
+    if (isEditingDepartment.value) {
+      await api.updateDepartment(editingDepartmentId.value, { ...departmentForm })
+      const idx = sampleDepartments.value.findIndex((d) => d.id === editingDepartmentId.value)
+      if (idx !== -1) {
+        sampleDepartments.value[idx].college_id = departmentForm.college_id
+        sampleDepartments.value[idx].name = { ar: departmentForm.name_ar, en: departmentForm.name_en }
+        sampleDepartments.value[idx].head_name = { ar: departmentForm.head_name_ar, en: departmentForm.head_name_en }
+        sampleDepartments.value[idx].description = { ar: departmentForm.description_ar, en: departmentForm.description_en }
+      }
+      toast.success(
+        localeStore.isRtl ? 'تم تحديث بيانات القسم العلمي بنجاح.' : 'Department updated successfully.',
+        localeStore.isRtl ? 'تم التحديث' : 'Department Updated'
+      )
+    } else {
+      const created = await api.createDepartment({ ...departmentForm })
+      sampleDepartments.value.unshift(created)
+      toast.success(
+        localeStore.isRtl ? 'تمت إضافة القسم العلمي بنجاح.' : 'Department created successfully.',
+        localeStore.isRtl ? 'تمت الإضافة' : 'Department Added'
+      )
     }
-  } else {
-    const created = await api.createDepartment({ ...departmentForm })
-    sampleDepartments.value.unshift(created)
+    isDepartmentModalOpen.value = false
+  } catch (err) {
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ القسم العلمي.' : 'Failed to save department.',
+      localeStore.isRtl ? 'خطأ' : 'Error'
+    )
   }
-  isDepartmentModalOpen.value = false
 }
 
 const handleDeleteDepartment = async (id) => {
@@ -1230,6 +1277,10 @@ const handleDeleteDepartment = async (id) => {
   if (confirmed) {
     await api.deleteDepartment(id)
     sampleDepartments.value = sampleDepartments.value.filter((d) => d.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف القسم العلمي.' : 'Department deleted.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 
@@ -1305,17 +1356,24 @@ const submitProgramForm = async () => {
           ...updated,
         }
       }
+      toast.success(
+        localeStore.isRtl ? 'تم تحديث بيانات البرنامج الأكاديمي بنجاح.' : 'Degree program updated successfully.',
+        localeStore.isRtl ? 'تم التحديث' : 'Program Updated'
+      )
     } else {
       const created = await api.createProgram(payload)
       programsList.value.unshift(created)
+      toast.success(
+        localeStore.isRtl ? 'تم اعتماد البرنامج الأكاديمي الجديد بنجاح.' : 'Degree program registered successfully.',
+        localeStore.isRtl ? 'تم الاعتماد' : 'Program Created'
+      )
     }
     isProgramModalOpen.value = false
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
-      message: localeStore.isRtl ? 'تعذر حفظ البرنامج الأكاديمي، يرجى المحاولة لاحقاً.' : 'Failed to save academic program, please try again.',
-      variant: 'danger',
-    })
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ البرنامج الأكاديمي، يرجى المحاولة لاحقاً.' : 'Failed to save academic program, please try again.',
+      localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving'
+    )
   }
 }
 
@@ -1331,6 +1389,10 @@ const handleDeleteProgram = async (id) => {
   if (confirmed) {
     await api.deleteProgram(id)
     programsList.value = programsList.value.filter((p) => p.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف البرنامج الأكاديمي.' : 'Academic program deleted.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 

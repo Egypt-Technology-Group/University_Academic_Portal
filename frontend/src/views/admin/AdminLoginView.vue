@@ -153,6 +153,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useLocaleStore } from '../../stores/locale'
 import Button from '../../components/ui/Button.vue'
+import { useToast } from '../../composables/useToast'
 import {
   Mail,
   Lock,
@@ -169,6 +170,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const localeStore = useLocaleStore()
+const toast = useToast()
 
 const showPassword = ref(false)
 const isLoading = ref(false)
@@ -190,10 +192,17 @@ const handleSubmit = async () => {
       remember: form.remember,
     })
 
+    toast.success(
+      localeStore.isRtl ? 'مرحباً بك في لوحة الإدارة الأكاديمية.' : 'Welcome back to the Academic Admin Portal.',
+      localeStore.isRtl ? 'تم تسجيل الدخول' : 'Logged In'
+    )
+
     const redirectPath = route.query.redirect || '/admin/dashboard'
     router.push(redirectPath)
   } catch (err) {
-    errorMessage.value = authStore.error || err.message || (localeStore.isRtl ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' : 'Invalid email or password.')
+    const msg = authStore.error || err.message || (localeStore.isRtl ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' : 'Invalid email or password.')
+    errorMessage.value = msg
+    toast.error(msg, localeStore.isRtl ? 'فشل تسجيل الدخول' : 'Login Failed')
   } finally {
     isLoading.value = false
   }

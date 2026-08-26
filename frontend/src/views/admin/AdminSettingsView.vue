@@ -978,6 +978,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useSettingsStore } from '../../stores/settings'
 import { useLocaleStore } from '../../stores/locale'
 import { useDialog } from '../../composables/useDialog'
+import { useToast } from '../../composables/useToast'
 import {
   Palette,
   Building2,
@@ -1000,6 +1001,7 @@ import {
 const settingsStore = useSettingsStore()
 const localeStore = useLocaleStore()
 const dialog = useDialog()
+const toast = useToast()
 
 const activeTab = ref('branding')
 const isSaving = ref(false)
@@ -1215,11 +1217,19 @@ const saveAllSettings = async () => {
   try {
     await settingsStore.saveSettings(form)
     saveSuccess.value = true
+    toast.success(
+      localeStore.isRtl ? 'تم حفظ وتطبيق كافة إعدادات النظام بنجاح.' : 'All system settings have been saved and applied successfully.',
+      localeStore.isRtl ? 'تم الحفظ' : 'Settings Saved'
+    )
     setTimeout(() => {
       saveSuccess.value = false
     }, 4000)
   } catch (e) {
     console.error('Failed to save settings:', e)
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ إعدادات النظام، يرجى المحاولة مرة أخرى.' : 'Failed to save settings. Please try again.',
+      localeStore.isRtl ? 'خطأ في الحفظ' : 'Save Error'
+    )
   } finally {
     isSaving.value = false
   }
@@ -1250,18 +1260,16 @@ const confirmResetDefaults = async () => {
         top_announcement_bar: JSON.parse(JSON.stringify(settingsStore.topAnnouncement)),
         site_statistics: JSON.parse(JSON.stringify(settingsStore.siteStatistics)),
       })
-      await dialog.alert({
-        title: localeStore.isRtl ? 'تمت الاستعادة' : 'Reset Complete',
-        message: localeStore.isRtl ? 'تمت استعادة الإعدادات الافتراضية بنجاح.' : 'Site settings have been reset to factory defaults successfully.',
-        variant: 'success',
-      })
+      toast.success(
+        localeStore.isRtl ? 'تمت استعادة الإعدادات الافتراضية للنظام بنجاح.' : 'Site settings have been reset to factory defaults successfully.',
+        localeStore.isRtl ? 'تمت الاستعادة' : 'Reset Complete'
+      )
     } catch (e) {
       console.error('Failed to reset settings:', e)
-      await dialog.alert({
-        title: localeStore.isRtl ? 'خطأ' : 'Error',
-        message: localeStore.isRtl ? 'حدث خطأ أثناء استعادة الإعدادات الافتراضية.' : 'Failed to reset settings to defaults.',
-        variant: 'danger',
-      })
+      toast.error(
+        localeStore.isRtl ? 'حدث خطأ أثناء استعادة الإعدادات الافتراضية.' : 'Failed to reset settings to defaults.',
+        localeStore.isRtl ? 'خطأ' : 'Error'
+      )
     } finally {
       isResetting.value = false
     }

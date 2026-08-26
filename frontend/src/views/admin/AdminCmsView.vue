@@ -446,6 +446,7 @@ import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import { useDialog } from '../../composables/useDialog'
+import { useToast } from '../../composables/useToast'
 import {
   Newspaper,
   Megaphone,
@@ -463,6 +464,7 @@ import {
 const { t } = useI18n()
 const localeStore = useLocaleStore()
 const dialog = useDialog()
+const toast = useToast()
 
 const activeTab = ref('news')
 const newsList = ref([])
@@ -641,11 +643,10 @@ const openEditAnnouncementModal = (item) => {
 
 const submitNewsForm = async () => {
   if (!newsForm.title_ar || !newsForm.content_ar) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
-      message: localeStore.isRtl ? 'يرجى إدخال عنوان ومحتوى الخبر باللغة العربية على الأقل.' : 'Please enter news title and content.',
-      variant: 'warning',
-    })
+    toast.warning(
+      localeStore.isRtl ? 'يرجى إدخال عنوان ومحتوى الخبر باللغة العربية على الأقل.' : 'Please enter news title and content.',
+      localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields'
+    )
     return
   }
 
@@ -665,27 +666,33 @@ const submitNewsForm = async () => {
           ...updated,
         }
       }
+      toast.success(
+        localeStore.isRtl ? 'تم تحديث الخبر بنجاح.' : 'News article updated successfully.',
+        localeStore.isRtl ? 'تم التحديث' : 'Article Updated'
+      )
     } else {
       const created = await api.createNews({ ...newsForm })
       newsList.value.unshift(created)
+      toast.success(
+        localeStore.isRtl ? 'تم نشر المقال الخبري بنجاح.' : 'News article published successfully.',
+        localeStore.isRtl ? 'تم النشر' : 'Article Published'
+      )
     }
     isNewsModalOpen.value = false
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
-      message: localeStore.isRtl ? 'تعذر حفظ المقال الخبري، يرجى المحاولة لاحقاً.' : 'Failed to save news article.',
-      variant: 'danger',
-    })
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ المقال الخبري، يرجى المحاولة لاحقاً.' : 'Failed to save news article.',
+      localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving'
+    )
   }
 }
 
 const submitAnnouncementForm = async () => {
   if (!announcementForm.title_ar || !announcementForm.content_ar) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
-      message: localeStore.isRtl ? 'يرجى إدخال عنوان ونص الإعلان للمتابعة.' : 'Please enter announcement title and content.',
-      variant: 'warning',
-    })
+    toast.warning(
+      localeStore.isRtl ? 'يرجى إدخال عنوان ونص الإعلان للمتابعة.' : 'Please enter announcement title and content.',
+      localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields'
+    )
     return
   }
 
@@ -703,17 +710,24 @@ const submitAnnouncementForm = async () => {
           ...updated,
         }
       }
+      toast.success(
+        localeStore.isRtl ? 'تم تعديل الإعلان بنجاح.' : 'Announcement updated successfully.',
+        localeStore.isRtl ? 'تم التعديل' : 'Announcement Updated'
+      )
     } else {
       const created = await api.createAnnouncement({ ...announcementForm })
       announcementsList.value.unshift(created)
+      toast.success(
+        localeStore.isRtl ? 'تم نشر التنبيه العاجل بنجاح.' : 'Announcement published successfully.',
+        localeStore.isRtl ? 'تم النشر' : 'Announcement Published'
+      )
     }
     isAnnouncementModalOpen.value = false
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
-      message: localeStore.isRtl ? 'تعذر حفظ الإعلان، يرجى المحاولة لاحقاً.' : 'Failed to save announcement.',
-      variant: 'danger',
-    })
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ الإعلان، يرجى المحاولة لاحقاً.' : 'Failed to save announcement.',
+      localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving'
+    )
   }
 }
 
@@ -729,6 +743,10 @@ const handleDeleteNews = async (id) => {
   if (confirmed) {
     await api.deleteNews(id)
     newsList.value = newsList.value.filter((n) => n.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف الخبر بنجاح.' : 'News article deleted.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 
@@ -744,6 +762,10 @@ const handleDeleteAnnouncement = async (id) => {
   if (confirmed) {
     await api.deleteAnnouncement(id)
     announcementsList.value = announcementsList.value.filter((a) => a.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف الإعلان بنجاح.' : 'Announcement deleted.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 

@@ -257,6 +257,7 @@ import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import { useDialog } from '../../composables/useDialog'
+import { useToast } from '../../composables/useToast'
 import {
   Plus,
   Search,
@@ -271,6 +272,7 @@ import {
 const { t } = useI18n()
 const localeStore = useLocaleStore()
 const dialog = useDialog()
+const toast = useToast()
 
 const eventsList = ref([])
 const isLoading = ref(true)
@@ -398,11 +400,10 @@ const openEditEventModal = (ev) => {
 
 const submitForm = async () => {
   if (!form.title_ar || !form.event_date || !form.venue_ar) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
-      message: localeStore.isRtl ? 'يرجى إدخال عنوان وتاريخ ومكان الفعالية للمتابعة.' : 'Please fill in the title, date, and venue.',
-      variant: 'warning',
-    })
+    toast.warning(
+      localeStore.isRtl ? 'يرجى إدخال عنوان وتاريخ ومكان الفعالية للمتابعة.' : 'Please fill in the title, date, and venue.',
+      localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields'
+    )
     return
   }
 
@@ -424,17 +425,24 @@ const submitForm = async () => {
           ...updated,
         }
       }
+      toast.success(
+        localeStore.isRtl ? 'تم تحديث بيانات الفعالية بنجاح.' : 'Event updated successfully.',
+        localeStore.isRtl ? 'تم التحديث' : 'Event Updated'
+      )
     } else {
       const created = await api.createEvent({ ...form })
       eventsList.value.unshift(created)
+      toast.success(
+        localeStore.isRtl ? 'تم جدولة ونشر الفعالية بنجاح.' : 'Event created and published successfully.',
+        localeStore.isRtl ? 'تم الحفظ' : 'Event Created'
+      )
     }
     isModalOpen.value = false
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
-      message: localeStore.isRtl ? 'تعذر حفظ الفعالية، يرجى المحاولة لاحقاً.' : 'Failed to save event.',
-      variant: 'danger',
-    })
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ الفعالية، يرجى المحاولة لاحقاً.' : 'Failed to save event.',
+      localeStore.isRtl ? 'خطأ في الحفظ' : 'Save Error'
+    )
   }
 }
 
@@ -450,6 +458,10 @@ const handleDeleteEvent = async (id) => {
   if (confirmed) {
     await api.deleteEvent(id)
     eventsList.value = eventsList.value.filter((e) => e.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف الفعالية بنجاح.' : 'Event deleted successfully.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 

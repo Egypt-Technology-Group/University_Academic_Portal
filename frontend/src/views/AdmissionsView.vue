@@ -453,10 +453,12 @@ import { api, getTranslated } from '../services/api'
 import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
 import Badge from '../components/ui/Badge.vue'
 import Button from '../components/ui/Button.vue'
+import { useToast } from '../composables/useToast'
 
 const { t } = useI18n()
 const route = useRoute()
 const localeStore = useLocaleStore()
+const toast = useToast()
 
 const currentStep = ref(1)
 const submitting = ref(false)
@@ -557,8 +559,16 @@ const handleNext = async () => {
       }
       const result = await api.submitApplication(payload)
       submittedApp.value = result
+      toast.success(
+        localeStore.isRtl ? `تم تقديم طلب الالتحاق بنجاح برقم قيد: ${result.application_number || ''}` : `Application submitted successfully. Ref: ${result.application_number || ''}`,
+        localeStore.isRtl ? 'تم التقديم بنجاح' : 'Application Submitted'
+      )
     } catch (e) {
       formError.value = e.message || 'Failed to submit application'
+      toast.error(
+        e.message || (localeStore.isRtl ? 'تعذر تقديم الطلب، يرجى مراجعة البيانات.' : 'Failed to submit application.'),
+        localeStore.isRtl ? 'خطأ في التقديم' : 'Submission Error'
+      )
     } finally {
       submitting.value = false
     }

@@ -472,6 +472,7 @@ import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import { useDialog } from '../../composables/useDialog'
+import { useToast } from '../../composables/useToast'
 import {
   Upload,
   Search,
@@ -481,12 +482,22 @@ import {
   RefreshCw,
   Edit3,
   Archive,
+  Eye,
+  CheckCircle,
+  Clock,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  FileText,
+  HelpCircle,
   X,
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
 const dialog = useDialog()
+const toast = useToast()
 
 const documentsList = ref([])
 const isLoading = ref(true)
@@ -650,11 +661,10 @@ const openEditDocModal = (doc) => {
 
 const submitForm = async () => {
   if (!form.title_ar || !form.title_en) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
-      message: localeStore.isRtl ? 'يرجى إدخال عنوان الوثيقة باللغتين العربية والإنجليزية.' : 'Please enter document title in both Arabic and English.',
-      variant: 'warning',
-    })
+    toast.warning(
+      localeStore.isRtl ? 'يرجى إدخال عنوان الوثيقة باللغتين العربية والإنجليزية.' : 'Please enter document title in both Arabic and English.',
+      localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields'
+    )
     return
   }
 
@@ -688,20 +698,27 @@ const submitForm = async () => {
       if (idx !== -1) {
         documentsList.value[idx] = { ...documentsList.value[idx], ...updated }
       }
+      toast.success(
+        localeStore.isRtl ? 'تم تحديث بيانات الوثيقة بنجاح.' : 'Document updated successfully.',
+        localeStore.isRtl ? 'تم التحديث' : 'Document Updated'
+      )
     } else {
       const created = await api.createDocument(formData, (percent) => {
         uploadProgress.value = percent
       })
       documentsList.value.unshift(created)
+      toast.success(
+        localeStore.isRtl ? 'تم رفع ونشر الوثيقة بنجاح.' : 'Document uploaded and published successfully.',
+        localeStore.isRtl ? 'تم الرفع' : 'Document Uploaded'
+      )
     }
     isModalOpen.value = false
     clearSelectedLocalFile()
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
-      message: localeStore.isRtl ? 'تعذر حفظ المستند أو رفعه، يرجى المحاولة لاحقاً.' : 'Failed to save document.',
-      variant: 'danger',
-    })
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ المستند أو رفعه، يرجى المحاولة لاحقاً.' : 'Failed to save document.',
+      localeStore.isRtl ? 'خطأ في الحفظ' : 'Save Error'
+    )
   } finally {
     isUploadingFile.value = false
     uploadProgress.value = 0
@@ -713,6 +730,10 @@ const handleToggleArchive = async (doc) => {
     const updated = await api.toggleArchiveDocument(doc.id)
     doc.is_archived = !doc.is_archived
     doc.status = doc.is_archived ? 'archived' : 'published'
+    toast.info(
+      doc.is_archived ? (localeStore.isRtl ? 'تمت أرشفة الوثيقة.' : 'Document archived.') : (localeStore.isRtl ? 'تمت استعادة نشر الوثيقة.' : 'Document unarchived.'),
+      localeStore.isRtl ? 'تحديث الحالة' : 'Status Updated'
+    )
   } catch (err) {
     console.error('Failed to toggle archive', err)
   }
@@ -721,11 +742,10 @@ const handleToggleArchive = async (doc) => {
 const handleDownload = async (doc) => {
   api.incrementDocumentDownload(doc.id)
   doc.download_count = (doc.download_count || 0) + 1
-  await dialog.alert({
-    title: localeStore.isRtl ? 'تحميل الوثيقة' : 'Download Document',
-    message: localeStore.isRtl ? `جاري تحميل ملف: ${getTranslated(doc.title, localeStore.locale)}` : `Downloading file: ${getTranslated(doc.title, localeStore.locale)}`,
-    variant: 'info',
-  })
+  toast.info(
+    localeStore.isRtl ? `جاري تحميل ملف: ${getTranslated(doc.title, localeStore.locale)}` : `Downloading file: ${getTranslated(doc.title, localeStore.locale)}`,
+    localeStore.isRtl ? 'تحميل الوثيقة' : 'Downloading'
+  )
 }
 
 const handleDeleteDoc = async (id) => {
@@ -740,6 +760,10 @@ const handleDeleteDoc = async (id) => {
   if (confirmed) {
     await api.deleteDocument(id)
     documentsList.value = documentsList.value.filter((d) => d.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف الوثيقة بنجاح.' : 'Document deleted.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 

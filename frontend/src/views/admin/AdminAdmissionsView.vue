@@ -788,6 +788,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../../stores/locale'
 import { useDialog } from '../../composables/useDialog'
+import { useToast } from '../../composables/useToast'
 import { api, getTranslated } from '../../services/api'
 import { formatStandardDate, formatStandardDateTime } from '../../utils/dateFormat'
 import Modal from '../../components/ui/Modal.vue'
@@ -814,6 +815,7 @@ const route = useRoute()
 const { t } = useI18n()
 const localeStore = useLocaleStore()
 const dialog = useDialog()
+const toast = useToast()
 
 const applications = ref([])
 const programOptions = ref([])
@@ -1030,15 +1032,18 @@ const saveDecision = async () => {
     }
 
     updateSuccessMessage.value = t('admin.admissions.decisionUpdatedSuccess')
+    toast.success(
+      t('admin.admissions.decisionUpdatedSuccess') || (localeStore.isRtl ? 'تم تحديث قرار القبول وحفظ التعديلات بنجاح.' : 'Application decision updated successfully.'),
+      localeStore.isRtl ? 'تم الحفظ' : 'Decision Saved'
+    )
     setTimeout(() => {
       updateSuccessMessage.value = ''
     }, 3000)
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'خطأ في حفظ القرار' : 'Decision Save Error',
-      message: err.message || (localeStore.isRtl ? 'فشل حفظ قرار القبول، يرجى المحاولة لاحقاً.' : 'Failed to update application decision.'),
-      variant: 'danger',
-    })
+    toast.error(
+      err.message || (localeStore.isRtl ? 'فشل حفظ قرار القبول، يرجى المحاولة لاحقاً.' : 'Failed to update application decision.'),
+      localeStore.isRtl ? 'خطأ في الحفظ' : 'Decision Save Error'
+    )
   } finally {
     isSaving.value = false
   }
@@ -1091,18 +1096,16 @@ const sendMissingDocsRequest = async () => {
       })
     }
 
-    await dialog.alert({
-      title: localeStore.isRtl ? 'تم الإرسال بنجاح' : 'Request Sent',
-      message: localeStore.isRtl ? 'تم إرسال إشعار طلب المستندات بنجاح للمتقدم عبر البريد والبوابة الإلكترونية.' : 'Missing documents notification sent successfully to applicant.',
-      variant: 'success',
-    })
+    toast.success(
+      localeStore.isRtl ? 'تم إرسال إشعار طلب المستندات بنجاح للمتقدم عبر البريد والبوابة الإلكترونية.' : 'Missing documents notification sent successfully to applicant.',
+      localeStore.isRtl ? 'تم الإرسال' : 'Request Sent'
+    )
     isMissingDocsModalOpen.value = false
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'خطأ في الإرسال' : 'Send Error',
-      message: err.message || (localeStore.isRtl ? 'فشل إرسال طلب استيفاء المستندات.' : 'Failed to send missing documents request.'),
-      variant: 'danger',
-    })
+    toast.error(
+      err.message || (localeStore.isRtl ? 'فشل إرسال طلب استيفاء المستندات.' : 'Failed to send missing documents request.'),
+      localeStore.isRtl ? 'خطأ في الإرسال' : 'Send Error'
+    )
   } finally {
     isSendingMissingRequest.value = false
   }

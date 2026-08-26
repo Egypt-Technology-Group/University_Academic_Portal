@@ -984,6 +984,7 @@ import EmptyState from '../../components/ui/EmptyState.vue'
 import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import HybridDocumentWorkflow from '../../components/ui/HybridDocumentWorkflow.vue'
 import { useDialog } from '../../composables/useDialog'
+import { useToast } from '../../composables/useToast'
 import {
   GraduationCap,
   FileText,
@@ -1003,6 +1004,7 @@ import {
 
 const localeStore = useLocaleStore()
 const dialog = useDialog()
+const toast = useToast()
 const activeTab = ref('requests')
 
 const statementWorkflowModel = reactive({
@@ -1242,16 +1244,26 @@ const openNewRequestModal = () => {
 
 const submitNewRequestForm = async () => {
   if (!newRequestForm.student_id_number || !newRequestForm.student_name) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
-      message: localeStore.isRtl ? 'يرجى ملء جميع الحقول الإلزامية للمتابعة.' : 'Please fill in all required fields.',
-      variant: 'warning',
-    })
+    toast.warning(
+      localeStore.isRtl ? 'يرجى ملء جميع الحقول الإلزامية للمتابعة.' : 'Please fill in all required fields.',
+      localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields'
+    )
     return
   }
-  const created = await api.submitStudentRequest({ ...newRequestForm })
-  requestsList.value.unshift(created)
-  isNewRequestModalOpen.value = false
+  try {
+    const created = await api.submitStudentRequest({ ...newRequestForm })
+    requestsList.value.unshift(created)
+    isNewRequestModalOpen.value = false
+    toast.success(
+      localeStore.isRtl ? 'تم تقديم الطلب الأكاديمي بنجاح.' : 'Student request submitted successfully.',
+      localeStore.isRtl ? 'تم التقديم' : 'Request Submitted'
+    )
+  } catch (e) {
+    toast.error(
+      localeStore.isRtl ? 'تعذر تقديم الطلب الطلابي.' : 'Failed to submit request.',
+      localeStore.isRtl ? 'خطأ' : 'Error'
+    )
+  }
 }
 
 const handleDeleteRequest = async (id) => {
@@ -1266,6 +1278,10 @@ const handleDeleteRequest = async (id) => {
   if (confirmed) {
     await api.deleteStudentRequest(id)
     requestsList.value = requestsList.value.filter((r) => r.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف الطلب الطلابي بنجاح.' : 'Student request deleted.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 
@@ -1345,17 +1361,24 @@ const submitExamForm = async () => {
           ...updated,
         }
       }
+      toast.success(
+        localeStore.isRtl ? 'تم تحديث جدول الامتحان بنجاح.' : 'Exam schedule entry updated successfully.',
+        localeStore.isRtl ? 'تم التحديث' : 'Exam Updated'
+      )
     } else {
       const created = await api.storeExamSchedule(payload)
       examSchedulesList.value.unshift(created)
+      toast.success(
+        localeStore.isRtl ? 'تمت إضافة موعد الامتحان بنجاح.' : 'Exam schedule entry created successfully.',
+        localeStore.isRtl ? 'تمت الإضافة' : 'Exam Added'
+      )
     }
     isExamModalOpen.value = false
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'خطأ في الحفظ' : 'Error Saving',
-      message: localeStore.isRtl ? 'تعذر حفظ جدول الامتحان، يرجى التحقق من البيانات والمحاولة مجدداً.' : 'Failed to save exam schedule.',
-      variant: 'danger',
-    })
+    toast.error(
+      localeStore.isRtl ? 'تعذر حفظ جدول الامتحان، يرجى التحقق من البيانات.' : 'Failed to save exam schedule.',
+      localeStore.isRtl ? 'خطأ في الحفظ' : 'Save Error'
+    )
   }
 }
 
@@ -1383,11 +1406,10 @@ const openEditCourseModal = (course) => {
 
 const submitCourseForm = async () => {
   if (!courseForm.code || !courseForm.name_ar) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields',
-      message: localeStore.isRtl ? 'يرجى إدخال كود واسم المقرر.' : 'Please enter course code and name.',
-      variant: 'warning',
-    })
+    toast.warning(
+      localeStore.isRtl ? 'يرجى إدخال كود واسم المقرر.' : 'Please enter course code and name.',
+      localeStore.isRtl ? 'حقول إلزامية' : 'Required Fields'
+    )
     return
   }
 
@@ -1402,6 +1424,10 @@ const submitCourseForm = async () => {
         level: courseForm.level
       }
     }
+    toast.success(
+      localeStore.isRtl ? 'تم تحديث بيانات المقرر بنجاح.' : 'Course updated successfully.',
+      localeStore.isRtl ? 'تم التحديث' : 'Course Updated'
+    )
   } else {
     studyPlansCourses.value.push({
       id: Date.now(),
@@ -1410,6 +1436,10 @@ const submitCourseForm = async () => {
       credits: courseForm.credits,
       level: courseForm.level
     })
+    toast.success(
+      localeStore.isRtl ? 'تمت إضافة المقرر إلى الخطة الدراسية.' : 'Course added to study plan.',
+      localeStore.isRtl ? 'تمت الإضافة' : 'Course Added'
+    )
   }
   isCourseModalOpen.value = false
 }
@@ -1425,6 +1455,10 @@ const handleDeleteCourse = async (id) => {
 
   if (confirmed) {
     studyPlansCourses.value = studyPlansCourses.value.filter((c) => c.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف المقرر من الخطة.' : 'Course removed from plan.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 
@@ -1440,6 +1474,10 @@ const handleDeleteExam = async (id) => {
   if (confirmed) {
     await api.deleteExamSchedule(id)
     examSchedulesList.value = examSchedulesList.value.filter((e) => e.id !== id)
+    toast.info(
+      localeStore.isRtl ? 'تم حذف موعد الامتحان.' : 'Exam schedule entry removed.',
+      localeStore.isRtl ? 'تم الحذف' : 'Deleted'
+    )
   }
 }
 
@@ -1461,17 +1499,15 @@ const submitStatementForm = async () => {
     const statement = await api.issueOfficialStatement(payload)
     sampleStatements.value.unshift(statement)
     isStatementModalOpen.value = false
-    await dialog.alert({
-      title: localeStore.isRtl ? 'تم الإصدار بنجاح' : 'Statement Issued',
-      message: localeStore.isRtl ? 'تم إصدار الوثيقة واعتمادها بنجاح برمز التحقق المشفر والختم الرقمي.' : 'Official Statement issued and digitally signed.',
-      variant: 'success',
-    })
+    toast.success(
+      localeStore.isRtl ? 'تم إصدار الوثيقة واعتمادها بنجاح برمز التحقق المشفر والختم الرقمي.' : 'Official Statement issued and digitally signed.',
+      localeStore.isRtl ? 'تم الإصدار' : 'Statement Issued'
+    )
   } catch (err) {
-    await dialog.alert({
-      title: localeStore.isRtl ? 'فشل الإصدار' : 'Issue Failed',
-      message: localeStore.isRtl ? 'تعذر إصدار الإفادة الرسمية، يرجى مراجعة البيانات والمحاولة مجدداً.' : 'Failed to issue official statement.',
-      variant: 'danger',
-    })
+    toast.error(
+      localeStore.isRtl ? 'تعذر إصدار الإفادة الرسمية، يرجى مراجعة البيانات.' : 'Failed to issue official statement.',
+      localeStore.isRtl ? 'فشل الإصدار' : 'Issue Failed'
+    )
   }
 }
 
