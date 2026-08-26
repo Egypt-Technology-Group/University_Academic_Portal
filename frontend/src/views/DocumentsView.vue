@@ -55,6 +55,12 @@
       <LoadingSpinner size="lg" :label="$t('common.loading')" />
     </div>
 
+    <ErrorState
+      v-else-if="error"
+      :message="error"
+      @retry="loadDocumentsData"
+    />
+
     <EmptyState
       v-else-if="filteredDocs.length === 0"
       :title="$t('documents.noDocs')"
@@ -119,22 +125,25 @@ import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
 import Badge from '../components/ui/Badge.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
+import ErrorState from '../components/ui/ErrorState.vue'
+import { useToast } from '../composables/useToast'
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
+const toast = useToast()
 
 const documents = ref([])
 const loading = ref(true)
+const error = ref('')
 const selectedCategory = ref('all')
 const searchQuery = ref('')
 
 const categories = computed(() => [
   { slug: 'all', label: t('documents.categoryAll') },
-  { slug: 'bylaws', label: t('documents.catBylaws') },
-  { slug: 'schedules', label: t('documents.catSchedules') },
-  { slug: 'forms', label: t('documents.catForms') },
-  { slug: 'guides', label: t('documents.catGuides') },
-  { slug: 'calendar', label: t('documents.catCalendar') },
+  { slug: 'bylaws', label: t('documents.categoryBylaws') },
+  { slug: 'regulations', label: t('documents.categoryRegulations') },
+  { slug: 'forms', label: t('documents.categoryForms') },
+  { slug: 'schedules', label: t('documents.categorySchedules') },
 ])
 
 const getCategoryLabel = (slug) => {
@@ -162,6 +171,11 @@ const downloadDocument = async (doc) => {
     await api.incrementDocumentDownload(doc.id)
     doc.download_count++
     
+    toast.info(
+      localeStore.isRtl ? `جاري تحميل ملف: ${getTranslated(doc.title, localeStore.locale)}` : `Downloading: ${getTranslated(doc.title, localeStore.locale)}`,
+      localeStore.isRtl ? 'تحميل الوثيقة' : 'Downloading'
+    )
+
     if (doc.file_path && (doc.file_path.startsWith('http') || doc.file_path.startsWith('/storage') || doc.file_path.startsWith('blob:'))) {
       const link = document.createElement('a')
       link.href = doc.file_path
@@ -182,17 +196,26 @@ const downloadDocument = async (doc) => {
     link.click()
     document.body.removeChild(link)
   } catch (e) {
-    console.error('Download error:', e)
+    toast.error(
+      localeStore.isRtl ? 'حدث خطأ أثناء محاولة تحميل الوثيقة.' : 'Failed to download document.',
+      localeStore.isRtl ? 'خطأ في التحميل' : 'Download Error'
+    )
   }
 }
 
-onMounted(async () => {
+const loadDocumentsData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     documents.value = await api.getDocuments()
   } catch (e) {
-    console.error('Failed to load documents:', e)
+    error.value = e.message || (localeStore.isRtl ? 'تعذر جلب الوثائق واللوائح من الخادم.' : 'Failed to load documents.')
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadDocumentsData()
 })
 </script>

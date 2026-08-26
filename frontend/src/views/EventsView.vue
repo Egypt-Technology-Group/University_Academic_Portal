@@ -37,6 +37,12 @@
       <LoadingSpinner size="lg" :label="$t('common.loading')" />
     </div>
 
+    <ErrorState
+      v-else-if="error"
+      :message="error"
+      @retry="loadEventsData"
+    />
+
     <EmptyState
       v-else-if="filteredEvents.length === 0"
       :title="$t('events.noEvents')"
@@ -164,12 +170,16 @@ import Card from '../components/ui/Card.vue'
 import Modal from '../components/ui/Modal.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
+import ErrorState from '../components/ui/ErrorState.vue'
+import { useToast } from '../composables/useToast'
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
+const toast = useToast()
 
 const events = ref([])
 const loading = ref(true)
+const error = ref('')
 const activeFilter = ref('upcoming')
 
 const showEventModal = ref(false)
@@ -212,13 +222,20 @@ const handleRegisterEvent = async () => {
       email: regEmail.value,
     })
     regSuccess.value = true
+    toast.success(
+      localeStore.isRtl ? 'تم تسجيل حضورك في الفعالية بنجاح.' : 'You have registered for the event successfully.',
+      localeStore.isRtl ? 'تم التسجيل' : 'Registered'
+    )
     setTimeout(() => {
       showEventModal.value = false
       regName.value = ''
       regEmail.value = ''
     }, 2500)
   } catch (e) {
-    console.error('Registration failed:', e)
+    toast.error(
+      e.message || (localeStore.isRtl ? 'تعذر إتمام التسجيل في الفعالية.' : 'Failed to register for event.'),
+      localeStore.isRtl ? 'خطأ في التسجيل' : 'Registration Failed'
+    )
   } finally {
     isSubmittingReg.value = false
   }
@@ -227,13 +244,19 @@ const handleRegisterEvent = async () => {
 const getMonth = (dateStr) => getLocalizedMonth(dateStr, localeStore.locale)
 const getDay = (dateStr) => getLocalizedDay(dateStr)
 
-onMounted(async () => {
+const loadEventsData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     events.value = await api.getEvents()
   } catch (e) {
-    console.error('Failed to load events:', e)
+    error.value = e.message || (localeStore.isRtl ? 'تعذر جلب الفعاليات من الخادم.' : 'Failed to load events.')
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadEventsData()
 })
 </script>

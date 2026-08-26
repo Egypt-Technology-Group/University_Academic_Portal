@@ -20,6 +20,12 @@
       <LoadingSpinner size="lg" :label="$t('common.loading')" />
     </div>
 
+    <ErrorState
+      v-else-if="error"
+      :message="error"
+      @retry="loadCollegesData"
+    />
+
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <Card
         v-for="college in colleges"
@@ -88,18 +94,26 @@ import Badge from '../components/ui/Badge.vue'
 import Button from '../components/ui/Button.vue'
 import Card from '../components/ui/Card.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
+import ErrorState from '../components/ui/ErrorState.vue'
 
 const localeStore = useLocaleStore()
 const colleges = ref([])
 const loading = ref(true)
+const error = ref('')
 
-onMounted(async () => {
+const loadCollegesData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     colleges.value = await api.getColleges()
   } catch (e) {
-    console.error('Failed to load colleges:', e)
+    error.value = e.message || (localeStore.isRtl ? 'تعذر جلب بيانات الكليات والمعاهد من الخادم.' : 'Failed to load colleges and institutes.')
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadCollegesData()
 })
 </script>

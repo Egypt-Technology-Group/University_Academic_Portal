@@ -65,6 +65,12 @@
       <LoadingSpinner size="lg" :label="$t('common.loading')" />
     </div>
 
+    <ErrorState
+      v-else-if="error"
+      :message="error"
+      @retry="loadProgramsData"
+    />
+
     <div v-else-if="filteredPrograms.length === 0" class="text-center py-16 bg-white rounded-2xl border border-slate-200 space-y-3">
       <svg class="w-12 h-12 text-slate-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -136,11 +142,13 @@ import Badge from '../components/ui/Badge.vue'
 import Button from '../components/ui/Button.vue'
 import Card from '../components/ui/Card.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
+import ErrorState from '../components/ui/ErrorState.vue'
 
 const localeStore = useLocaleStore()
 const programs = ref([])
 const colleges = ref([])
 const loading = ref(true)
+const error = ref('')
 
 const searchQuery = ref('')
 const selectedDegree = ref('')
@@ -174,18 +182,24 @@ const filteredPrograms = computed(() => {
   })
 })
 
-onMounted(async () => {
+const loadProgramsData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     const [pData, cData] = await Promise.all([
       api.getPrograms(),
       api.getColleges(),
     ])
-    programs.value = pData
-    colleges.value = cData
+    programs.value = pData || []
+    colleges.value = cData || []
   } catch (e) {
-    console.error('Failed to load programs:', e)
+    error.value = e.message || (localeStore.isRtl ? 'تعذر جلب البرامج الأكاديمية من الخادم.' : 'Failed to load degree programs.')
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadProgramsData()
 })
 </script>

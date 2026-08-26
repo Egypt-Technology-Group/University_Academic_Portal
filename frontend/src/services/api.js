@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { normalizeError, ApiError } from '../utils/errorHandler'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.api || 'http://127.0.0.1:8000/api/v1',
@@ -25,18 +26,21 @@ apiClient.interceptors.request.use((config) => {
   return Promise.reject(error)
 })
 
-// Response Interceptor for handling token expiration and 401 errors
+// Response Interceptor for handling token expiration and normalizing all API errors
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    const currentLocale = localStorage.getItem('egyitech_locale') || 'ar'
+    const normalized = normalizeError(error, currentLocale)
+
+    if (normalized.status === 401) {
       localStorage.removeItem('egyitech_auth_token')
       localStorage.removeItem('egyitech_auth_user')
       if (window.location.pathname.startsWith('/admin') && window.location.pathname !== '/admin/login') {
         window.location.href = '/admin/login'
       }
     }
-    return Promise.reject(error)
+    return Promise.reject(normalized)
   }
 )
 

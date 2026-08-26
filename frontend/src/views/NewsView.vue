@@ -55,6 +55,12 @@
       <LoadingSpinner size="lg" :label="$t('common.loading')" />
     </div>
 
+    <ErrorState
+      v-else-if="error"
+      :message="error"
+      @retry="loadNewsData"
+    />
+
     <EmptyState
       v-else-if="filteredNews.length === 0"
       :title="$t('news.noNewsFound')"
@@ -136,12 +142,14 @@ import Card from '../components/ui/Card.vue'
 import Pagination from '../components/ui/Pagination.vue'
 import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
 import EmptyState from '../components/ui/EmptyState.vue'
+import ErrorState from '../components/ui/ErrorState.vue'
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
 
 const news = ref([])
 const loading = ref(true)
+const error = ref('')
 const selectedCategory = ref('all')
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -184,13 +192,19 @@ const paginatedNews = computed(() => {
 
 const formatDate = (dateStr) => formatStandardDate(dateStr, localeStore.locale)
 
-onMounted(async () => {
+const loadNewsData = async () => {
+  loading.value = true
+  error.value = ''
   try {
     news.value = await api.getNews()
   } catch (e) {
-    console.error('Failed to load news:', e)
+    error.value = e.message || (localeStore.isRtl ? 'تعذر جلب الأخبار من الخادم.' : 'Failed to fetch news.')
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => {
+  loadNewsData()
 })
 </script>
