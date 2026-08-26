@@ -133,14 +133,15 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import { formatStandardDate } from '../utils/dateFormat'
-import { sanitizeHtml } from '../utils/sanitizeHtml'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import cmsApi from '../services/cmsApi'
+import { formatStandardDate } from '../../../utils/dateFormat'
+import { sanitizeHtml } from '../../../utils/sanitizeHtml'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner.vue'
 
 const route = useRoute()
 const localeStore = useLocaleStore()
@@ -154,7 +155,7 @@ const loadArticle = async () => {
   loading.value = true
   try {
     const slug = route.params.slug
-    const res = await api.getNewsArticle(slug)
+    const res = await cmsApi.getNewsArticle(slug)
     article.value = res.article
     relatedArticles.value = res.related || []
   } catch (e) {

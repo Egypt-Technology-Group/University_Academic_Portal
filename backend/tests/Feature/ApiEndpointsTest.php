@@ -3,11 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AcademicTerm;
-use App\Models\Announcement;
 use App\Models\DownloadDocument;
-use App\Models\Event;
-use App\Models\NewsArticle;
-use App\Models\NewsCategory;
 use App\Modules\AcademicServices\Models\StudentRecord;
 use App\Modules\AcademicStructure\Models\College;
 use App\Modules\AcademicStructure\Models\Department;
@@ -15,6 +11,10 @@ use App\Modules\AcademicStructure\Models\FacultyProfile;
 use App\Modules\AcademicStructure\Models\Program;
 use App\Modules\Admissions\Models\AdmissionCycle;
 use App\Modules\Admissions\Models\Application;
+use App\Modules\Cms\Models\Announcement;
+use App\Modules\Cms\Models\NewsArticle;
+use App\Modules\Cms\Models\NewsCategory;
+use App\Modules\Events\Models\Event;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

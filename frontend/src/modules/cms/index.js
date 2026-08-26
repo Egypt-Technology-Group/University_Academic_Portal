@@ -5,6 +5,8 @@
  */
 
 import { KNOWN_MODULE_IDS } from '../../core/modules/types.js'
+import cmsRoutes from './routes.js'
+import cmsApi from './services/cmsApi.js'
 
 export const CmsModule = {
   id: KNOWN_MODULE_IDS.CMS,
@@ -18,7 +20,9 @@ export const CmsModule = {
   },
   version: '1.0.0',
   dependencies: [],
-  ownedTables: ['news_articles', 'announcements'],
+  ownedTables: ['news_categories', 'news_articles', 'announcements'],
+  routes: cmsRoutes,
+  api: cmsApi,
   publicRoutes: [
     { path: '/news', name: 'news' },
     { path: '/news/:slug', name: 'news-detail' },
@@ -46,4 +50,5 @@ export const CmsModule = {
   },
 }
 
+export { cmsRoutes, cmsApi }
 export default CmsModule

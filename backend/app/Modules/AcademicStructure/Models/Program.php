@@ -2,7 +2,10 @@
 
 namespace App\Modules\AcademicStructure\Models;
 
-use App\Models\StudentRecord;
+use App\Modules\AcademicServices\Models\ExamSchedule;
+use App\Modules\AcademicServices\Models\OfficialStatement;
+use App\Modules\AcademicServices\Models\StudentRecord;
+use App\Modules\AcademicServices\Models\StudentServiceRequest;
 use App\Modules\Admissions\Models\Application;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -61,5 +64,20 @@ class Program extends Model
     public function studentRecords(): HasMany
     {
         return $this->hasMany(StudentRecord::class);
+    }
+
+    public function studentServiceRequests(): HasMany
+    {
+        return $this->hasMany(StudentServiceRequest::class);
+    }
+
+    public function examSchedules(): HasMany
+    {
+        return $this->hasMany(ExamSchedule::class);
+    }
+
+    public function officialStatements(): HasMany
+    {
+        return $this->hasMany(OfficialStatement::class);
     }
 }

@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Announcement;
 use App\Models\DownloadDocument;
-use App\Models\Event;
-use App\Models\NewsArticle;
-use App\Models\NewsCategory;
+use App\Modules\Cms\Models\Announcement;
+use App\Modules\Cms\Models\NewsArticle;
+use App\Modules\Cms\Models\NewsCategory;
+use App\Modules\Events\Models\Event;
 use App\Modules\AcademicServices\Models\ExamSchedule;
 use App\Modules\AcademicServices\Models\OfficialStatement;
 use App\Modules\AcademicServices\Models\StudentServiceRequest;

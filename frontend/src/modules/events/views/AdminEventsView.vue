@@ -83,7 +83,7 @@
               <td class="py-3.5 px-4">
                 <div class="flex items-center gap-3.5">
                   <img
-                    :src="ev.banner_image"
+                    :src="ev.cover_image || ev.banner_image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1200&q=80'"
                     :alt="getTranslated(ev.title, localeStore.locale)"
                     class="w-14 h-10 rounded-lg object-cover border border-slate-200 shrink-0"
                   />
@@ -100,41 +100,49 @@
 
               <!-- Venue -->
               <td class="py-3.5 px-4">
-                <div class="font-medium text-slate-800 flex items-center gap-1.5">
-                  <MapPin class="w-3.5 h-3.5 text-gold-600 shrink-0" />
-                  <span class="truncate max-w-[180px]">{{ getTranslated(ev.venue, localeStore.locale) }}</span>
-                </div>
+                <span class="text-slate-600 font-medium line-clamp-1">
+                  {{ getTranslated(ev.location || ev.venue, localeStore.locale) }}
+                </span>
               </td>
 
-              <!-- Date & Time -->
-              <td class="py-3.5 px-4 font-mono text-slate-600">
-                <div class="font-bold text-navy-950">{{ formatStandardDate(ev.event_date || ev.start_time, localeStore.locale) }}</div>
-                <div class="text-[10px] text-slate-500 font-semibold">{{ formatTimeRange(ev.start_time, ev.end_time, localeStore.locale) }}</div>
+              <!-- DateTime -->
+              <td class="py-3.5 px-4 text-slate-500 font-mono">
+                {{ ev.start_time ? ev.start_time.slice(0, 10) : ev.event_date }}
+                <span class="text-slate-400 text-[10px] block">
+                  {{ ev.start_time ? ev.start_time.slice(11, 16) : '' }}
+                </span>
               </td>
 
               <!-- Capacity -->
-              <td class="py-3.5 px-4 text-center font-mono">
-                <span class="inline-block font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                  {{ ev.registered_count || 0 }} / {{ ev.capacity }}
+              <td class="py-3.5 px-4 text-center">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700">
+                  {{ ev.capacity || 200 }}
                 </span>
               </td>
 
               <!-- Actions -->
-              <td class="py-3.5 px-4 text-end whitespace-nowrap">
-                <div class="flex items-center justify-end gap-2">
+              <td class="py-3.5 px-4 text-end">
+                <div class="inline-flex items-center gap-1.5">
+                  <a
+                    href="/events"
+                    target="_blank"
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-navy-950 hover:bg-slate-100 transition-colors"
+                    :title="$t('common.view')"
+                  >
+                    <ExternalLink class="w-4 h-4" />
+                  </a>
                   <button
                     type="button"
-                    class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100 transition-colors"
-                    title="Edit Event"
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-navy-950 hover:bg-slate-100 transition-colors cursor-pointer"
+                    :title="$t('common.edit')"
                     @click="openEditEventModal(ev)"
                   >
                     <Edit3 class="w-4 h-4" />
                   </button>
-
                   <button
                     type="button"
-                    class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                    title="Delete Event"
+                    class="p-1.5 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    :title="$t('common.delete')"
                     @click="handleDeleteEvent(ev.id)"
                   >
                     <Trash2 class="w-4 h-4" />
@@ -150,28 +158,55 @@
     <!-- MODAL: ADD / EDIT EVENT -->
     <Modal
       v-model="isModalOpen"
-      :title="isEditingEvent ? (localeStore.isRtl ? 'تعديل بيانات الفعالية والمؤتمر' : 'Edit Event / Conference') : $t('admin.events.modalTitle')"
+      :title="isEditingEvent ? $t('admin.events.editEventTitle') : $t('admin.events.addEventTitle')"
       max-width="2xl"
-      @close="isModalOpen = false"
     >
       <form @submit.prevent="submitForm" class="space-y-4 text-start">
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+        <div class="grid grid-cols-12 gap-3">
           <EnterpriseFormField
             v-model="form.title_ar"
-            type="text"
             :label="$t('admin.events.labelTitleAr')"
             required
             col-span="6"
-            placeholder="مثال: مؤتمر الروبوتات والذكاء الاصطناعي..."
+            placeholder="مثال: هاكاثون الابتكار والذكاء الاصطناعي 2025"
           />
           <EnterpriseFormField
             v-model="form.title_en"
-            type="text"
             :label="$t('admin.events.labelTitleEn')"
             required
             col-span="6"
-            placeholder="e.g. AI & Robotics Conference..."
+            placeholder="e.g. AI & Robotics Innovation Hackathon 2025"
           />
+
+          <!-- Device Image File Upload -->
+          <div class="col-span-12 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">
+              {{ $t('admin.events.labelCoverImage') }}
+            </label>
+            <div class="flex items-center gap-2">
+              <label class="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer text-xs text-slate-600 transition-colors">
+                <Upload class="w-4 h-4 text-slate-400" />
+                <span class="truncate max-w-[180px]">{{ eventSelectedFile ? eventSelectedFile.name : (localeStore.isRtl ? 'اختر صورة البانر من جهازك' : 'Choose banner image') }}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleEventImageSelect"
+                />
+              </label>
+              <div v-if="eventImagePreview" class="relative w-12 h-9 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                <img :src="eventImagePreview" class="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  class="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                  @click="eventImagePreview = ''; form.banner_image = ''; form.cover_image = ''; eventSelectedFile = null;"
+                >
+                  <X class="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
           <EnterpriseFormField
             v-model="form.event_date"
             type="date"
@@ -183,6 +218,7 @@
             v-model="form.start_time"
             type="time"
             :label="$t('admin.events.labelStartTime')"
+            required
             col-span="4"
           />
           <EnterpriseFormField
@@ -191,37 +227,38 @@
             :label="$t('admin.events.labelEndTime')"
             col-span="4"
           />
+
           <EnterpriseFormField
             v-model="form.venue_ar"
-            type="text"
-            :label="$t('admin.events.labelVenue')"
+            :label="$t('admin.events.labelVenueAr')"
             required
-            col-span="6"
-            placeholder="القاعة الكبرى - الحرم الجامعي"
+            col-span="8"
+            placeholder="مثال: المدرج المركزي - كلية الهندسة"
           />
           <EnterpriseFormField
             v-model="form.capacity"
             type="number"
             :label="$t('admin.events.labelCapacity')"
-            :min="1"
-            col-span="6"
-            placeholder="250"
+            col-span="4"
+            placeholder="200"
           />
-          <EnterpriseFormField
-            type="image"
-            :label="localeStore.isRtl ? 'صورة بوستر أو غلاف الفعالية' : 'Event Cover / Banner Photo'"
-            col-span="12"
-            :preview-url="eventImagePreview || form.banner_image || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=80'"
-            :button-text="localeStore.isRtl ? 'اختيار بوستر من جهازك' : 'Choose Poster Image from Device'"
-            @file-selected="handleEventImageSelect"
-          />
+
           <EnterpriseFormField
             v-model="form.description_ar"
-            type="richtext"
-            :label="$t('admin.events.labelDescriptionAr')"
-            min-height="160px"
+            type="textarea"
+            :label="$t('admin.events.labelDescAr')"
+            required
             col-span="12"
-            placeholder="وصف الفعالية وأهدافها والمحاور الرئيسية..."
+            :rows="3"
+            placeholder="وصف الفعالية، الأجندة، وشروط الحضور والمشاركة..."
+          />
+          <EnterpriseFormField
+            v-model="form.description_en"
+            type="textarea"
+            :label="$t('admin.events.labelDescEn')"
+            col-span="12"
+            :rows="3"
+            placeholder="Event description, agenda, speaker details, and requirements..."
           />
         </div>
       </form>
@@ -240,7 +277,7 @@
           class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md"
           @click="submitForm"
         >
-          {{ $t('admin.events.addEvent') }}
+          {{ isEditingEvent ? $t('common.saveChanges') : $t('admin.events.addEvent') }}
         </button>
       </template>
     </Modal>
@@ -250,21 +287,20 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../../stores/locale'
-import { api, getTranslated } from '../../services/api'
-import { formatStandardDate, formatTimeRange } from '../../utils/dateFormat'
-import Modal from '../../components/ui/Modal.vue'
-import EmptyState from '../../components/ui/EmptyState.vue'
-import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
-import { useDialog } from '../../composables/useDialog'
-import { useToast } from '../../composables/useToast'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import eventsApi from '../services/eventsApi'
+import Modal from '../../../components/ui/Modal.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
+import EnterpriseFormField from '../../../components/ui/EnterpriseFormField.vue'
+import { useDialog } from '../../../composables/useDialog'
+import { useToast } from '../../../composables/useToast'
 import {
   Plus,
   Search,
-  MapPin,
+  ExternalLink,
   Edit3,
   Trash2,
-  CalendarX,
   Upload,
   X,
 } from 'lucide-vue-next'
@@ -289,12 +325,14 @@ const form = reactive({
   title_ar: '',
   title_en: '',
   banner_image: '',
+  cover_image: '',
   event_date: '2025-10-20',
   start_time: '10:00',
   end_time: '14:00',
   venue_ar: 'المدرج المركزي - كلية الحاسبات',
   capacity: 200,
   description_ar: '',
+  description_en: '',
 })
 
 const compressImage = (file, maxWidth = 800, quality = 0.75) => {
@@ -329,6 +367,7 @@ const handleEventImageSelect = async (e) => {
   const compressed = await compressImage(file, 800, 0.7)
   eventImagePreview.value = compressed
   form.banner_image = compressed
+  form.cover_image = compressed
 }
 
 const filteredEvents = computed(() => {
@@ -343,7 +382,8 @@ const filteredEvents = computed(() => {
     list = list.filter((e) =>
       (e.title?.ar && e.title.ar.toLowerCase().includes(q)) ||
       (e.title?.en && e.title.en.toLowerCase().includes(q)) ||
-      (e.venue?.ar && e.venue.ar.toLowerCase().includes(q))
+      (e.venue?.ar && e.venue.ar.toLowerCase().includes(q)) ||
+      (e.location?.ar && e.location.ar.toLowerCase().includes(q))
     )
   }
 
@@ -353,7 +393,7 @@ const filteredEvents = computed(() => {
 const loadEvents = async () => {
   isLoading.value = true
   try {
-    const data = await api.getEvents()
+    const data = await eventsApi.getEvents()
     eventsList.value = data || []
   } catch (e) {
     console.error('Failed to load events', e)
@@ -370,6 +410,7 @@ const openNewEventModal = () => {
   form.title_ar = ''
   form.title_en = ''
   form.banner_image = ''
+  form.cover_image = ''
   form.description_ar = ''
   form.description_en = ''
   form.event_date = new Date().toISOString().slice(0, 10)
@@ -384,16 +425,17 @@ const openEditEventModal = (ev) => {
   isEditingEvent.value = true
   editingEventId.value = ev.id
   eventSelectedFile.value = null
-  eventImagePreview.value = ev.banner_image || ''
+  eventImagePreview.value = ev.cover_image || ev.banner_image || ''
   form.title_ar = ev.title?.ar || ev.title || ''
   form.title_en = ev.title?.en || ev.title || ''
-  form.banner_image = ev.banner_image || ''
+  form.banner_image = ev.cover_image || ev.banner_image || ''
+  form.cover_image = ev.cover_image || ev.banner_image || ''
   form.description_ar = ev.description?.ar || ev.description || ''
   form.description_en = ev.description?.en || ev.description || ''
   form.event_date = ev.event_date || ev.start_time?.slice(0, 10) || new Date().toISOString().slice(0, 10)
   form.start_time = ev.start_time ? ev.start_time.slice(11, 16) || '10:00' : '10:00'
   form.end_time = ev.end_time ? ev.end_time.slice(11, 16) || '14:00' : '14:00'
-  form.venue_ar = ev.venue?.ar || ev.location?.ar || ev.venue || 'المدرج المركزي - كلية الحاسبات'
+  form.venue_ar = ev.venue?.ar || ev.location?.ar || ev.venue || ev.location || 'المدرج المركزي - كلية الحاسبات'
   form.capacity = ev.capacity || 200
   isModalOpen.value = true
 }
@@ -409,7 +451,7 @@ const submitForm = async () => {
 
   try {
     if (isEditingEvent.value) {
-      const updated = await api.updateEvent(editingEventId.value, { ...form })
+      const updated = await eventsApi.updateEvent(editingEventId.value, { ...form })
       const idx = eventsList.value.findIndex((e) => e.id === editingEventId.value)
       if (idx !== -1) {
         eventsList.value[idx] = {
@@ -417,11 +459,13 @@ const submitForm = async () => {
           title: { ar: form.title_ar, en: form.title_en },
           description: { ar: form.description_ar, en: form.description_en },
           venue: { ar: form.venue_ar, en: form.venue_en || form.venue_ar },
+          location: { ar: form.venue_ar, en: form.venue_en || form.venue_ar },
           event_date: form.event_date,
           start_time: form.start_time,
           end_time: form.end_time,
           capacity: form.capacity,
           banner_image: form.banner_image || eventsList.value[idx].banner_image,
+          cover_image: form.cover_image || eventsList.value[idx].cover_image,
           ...updated,
         }
       }
@@ -430,7 +474,7 @@ const submitForm = async () => {
         localeStore.isRtl ? 'تم التحديث' : 'Event Updated'
       )
     } else {
-      const created = await api.createEvent({ ...form })
+      const created = await eventsApi.createEvent({ ...form })
       eventsList.value.unshift(created)
       toast.success(
         localeStore.isRtl ? 'تم جدولة ونشر الفعالية بنجاح.' : 'Event created and published successfully.',
@@ -456,7 +500,7 @@ const handleDeleteEvent = async (id) => {
   })
 
   if (confirmed) {
-    await api.deleteEvent(id)
+    await eventsApi.deleteEvent(id)
     eventsList.value = eventsList.value.filter((e) => e.id !== id)
     toast.info(
       localeStore.isRtl ? 'تم حذف الفعالية بنجاح.' : 'Event deleted successfully.',

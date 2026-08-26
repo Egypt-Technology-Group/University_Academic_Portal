@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DownloadDocument;
-use App\Models\Event;
-use App\Models\NewsArticle;
+use App\Modules\Cms\Models\NewsArticle;
+use App\Modules\Events\Models\Event;
 use App\Modules\AcademicServices\Models\StudentRecord;
 use App\Modules\AcademicStructure\Models\College;
 use App\Modules\AcademicStructure\Models\FacultyProfile;

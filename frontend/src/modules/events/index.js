@@ -5,6 +5,8 @@
  */
 
 import { KNOWN_MODULE_IDS } from '../../core/modules/types.js'
+import eventsRoutes from './routes.js'
+import eventsApi from './services/eventsApi.js'
 
 export const EventsModule = {
   id: KNOWN_MODULE_IDS.EVENTS,
@@ -18,7 +20,9 @@ export const EventsModule = {
   },
   version: '1.0.0',
   dependencies: [],
-  ownedTables: ['events', 'event_registrations'],
+  ownedTables: ['events', 'event_attendees'],
+  routes: eventsRoutes,
+  api: eventsApi,
   publicRoutes: [
     { path: '/events', name: 'events' },
   ],
@@ -45,4 +49,5 @@ export const EventsModule = {
   },
 }
 
+export { eventsRoutes, eventsApi }
 export default EventsModule

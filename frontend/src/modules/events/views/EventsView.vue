@@ -98,7 +98,7 @@
           <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
             <button
               type="button"
-              class="w-full py-2 text-xs font-bold bg-navy-900 hover:bg-navy-800 text-white rounded-xl transition-colors text-center"
+              class="w-full py-2 text-xs font-bold bg-navy-900 hover:bg-navy-800 text-white rounded-xl transition-colors text-center cursor-pointer"
               @click="openEventModal(event)"
             >
               {{ $t('events.registerEvent') }}
@@ -159,19 +159,20 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import { getLocalizedMonth, getLocalizedDay, formatStandardDate, formatStandardTime } from '../utils/dateFormat'
-import { sanitizeHtml } from '../utils/sanitizeHtml'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Button from '../components/ui/Button.vue'
-import Card from '../components/ui/Card.vue'
-import Modal from '../components/ui/Modal.vue'
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
-import EmptyState from '../components/ui/EmptyState.vue'
-import ErrorState from '../components/ui/ErrorState.vue'
-import { useToast } from '../composables/useToast'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import eventsApi from '../services/eventsApi'
+import { getLocalizedMonth, getLocalizedDay } from '../../../utils/dateFormat'
+import { sanitizeHtml } from '../../../utils/sanitizeHtml'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Button from '../../../components/ui/Button.vue'
+import Card from '../../../components/ui/Card.vue'
+import Modal from '../../../components/ui/Modal.vue'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
+import ErrorState from '../../../components/ui/ErrorState.vue'
+import { useToast } from '../../../composables/useToast'
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
@@ -217,7 +218,7 @@ const handleRegisterEvent = async () => {
   if (!selectedEvent.value || !regName.value || !regEmail.value) return
   isSubmittingReg.value = true
   try {
-    await api.registerEvent(selectedEvent.value.id, {
+    await eventsApi.registerEvent(selectedEvent.value.id, {
       name: regName.value,
       email: regEmail.value,
     })
@@ -248,7 +249,7 @@ const loadEventsData = async () => {
   loading.value = true
   error.value = ''
   try {
-    events.value = await api.getEvents()
+    events.value = await eventsApi.getEvents()
   } catch (e) {
     error.value = e.message || (localeStore.isRtl ? 'تعذر جلب الفعاليات من الخادم.' : 'Failed to load events.')
   } finally {

@@ -1,9 +1,11 @@
 <?php
+declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Modules\Events\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Translatable\HasTranslations;
 
 class Event extends Model
@@ -36,7 +38,7 @@ class Event extends Model
         ];
     }
 
-    public function attendees(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function attendees(): HasMany
     {
         return $this->hasMany(EventAttendee::class);
     }

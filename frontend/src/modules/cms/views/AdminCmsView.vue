@@ -98,17 +98,17 @@
       <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         <EmptyState
           v-if="filteredNews.length === 0"
-          :title="localeStore.isRtl ? 'لا توجد أخبار صحفية منشورة' : 'No news articles found'"
-          :description="localeStore.isRtl ? 'استخدم زر إضافة خبر جديد بالأعلى لنشر مقال إخباري جديد على البوابة.' : 'Use the action button above to publish your first news article.'"
+          :title="$t('admin.cms.noNewsFound')"
         />
+
         <div v-else class="overflow-x-auto">
           <table class="w-full text-start text-xs border-collapse">
             <thead>
               <tr class="border-b border-slate-200 bg-slate-50/70 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
                 <th class="py-3.5 px-4 text-start">{{ $t('admin.cms.colArticle') }}</th>
                 <th class="py-3.5 px-4 text-start">{{ $t('admin.cms.colCategory') }}</th>
-                <th class="py-3.5 px-4 text-center">{{ $t('admin.cms.colViews') }}</th>
                 <th class="py-3.5 px-4 text-start">{{ $t('admin.cms.colDate') }}</th>
+                <th class="py-3.5 px-4 text-center">{{ $t('admin.cms.colViews') }}</th>
                 <th class="py-3.5 px-4 text-end">{{ $t('admin.cms.colActions') }}</th>
               </tr>
             </thead>
@@ -118,13 +118,13 @@
                 :key="article.id"
                 class="hover:bg-slate-50/80 transition-colors"
               >
-                <!-- Article Title & Image -->
+                <!-- Thumbnail & Title -->
                 <td class="py-3.5 px-4">
-                  <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-3.5">
                     <img
                       :src="article.featured_image"
                       :alt="getTranslated(article.title, localeStore.locale)"
-                      class="w-12 h-12 rounded-xl object-cover ring-1 ring-slate-200 shrink-0"
+                      class="w-14 h-10 rounded-lg object-cover border border-slate-200 shrink-0"
                     />
                     <div class="max-w-md">
                       <div class="font-bold text-navy-950 text-sm line-clamp-1">
@@ -139,46 +139,44 @@
 
                 <!-- Category -->
                 <td class="py-3.5 px-4">
-                  <span class="inline-block text-[11px] font-bold text-navy-800 bg-navy-50 px-2 py-0.5 rounded border border-navy-100">
-                    {{ getTranslated(article.category?.name, localeStore.locale) || $t('admin.cms.catAcademic') }}
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-navy-50 text-navy-900 border border-navy-100">
+                    {{ getTranslated(article.category?.name, localeStore.locale) || article.category?.slug || article.category }}
                   </span>
                 </td>
 
-                <!-- Views Count -->
-                <td class="py-3.5 px-4 text-center font-mono text-slate-600">
-                  {{ Number(article.views_count || 0).toLocaleString() }}
+                <!-- Date -->
+                <td class="py-3.5 px-4 text-slate-500 font-medium">
+                  {{ formatDate(article.published_at || article.created_at) }}
                 </td>
 
-                <!-- Date -->
-                <td class="py-3.5 px-4 font-mono text-slate-500 whitespace-nowrap">
-                  {{ formatDate(article.published_at) }}
+                <!-- Views -->
+                <td class="py-3.5 px-4 text-center font-mono font-bold text-slate-600">
+                  {{ article.views_count ?? 0 }}
                 </td>
 
                 <!-- Actions -->
-                <td class="py-3.5 px-4 text-end whitespace-nowrap">
-                  <div class="flex items-center justify-end gap-1.5">
-                    <router-link
-                      :to="`/news/${article.slug}`"
+                <td class="py-3.5 px-4 text-end">
+                  <div class="inline-flex items-center gap-1.5">
+                    <a
+                      :href="`/news/${article.slug}`"
                       target="_blank"
-                      class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100"
-                      title="View Live"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-navy-950 hover:bg-slate-100 transition-colors"
+                      :title="$t('common.view')"
                     >
                       <ExternalLink class="w-4 h-4" />
-                    </router-link>
-
+                    </a>
                     <button
                       type="button"
-                      class="p-1.5 rounded-lg text-slate-400 hover:text-navy-900 hover:bg-slate-100 transition-colors"
-                      title="Edit Article"
+                      class="p-1.5 rounded-lg text-slate-400 hover:text-navy-950 hover:bg-slate-100 transition-colors cursor-pointer"
+                      :title="$t('common.edit')"
                       @click="openEditNewsModal(article)"
                     >
                       <Edit3 class="w-4 h-4" />
                     </button>
-
                     <button
                       type="button"
-                      class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      title="Delete Article"
+                      class="p-1.5 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                      :title="$t('common.delete')"
                       @click="handleDeleteNews(article.id)"
                     >
                       <Trash2 class="w-4 h-4" />
@@ -193,67 +191,61 @@
     </div>
 
     <!-- TAB 2: ANNOUNCEMENTS -->
-    <div v-else class="space-y-4">
-      <EmptyState
-        v-if="announcementsList.length === 0"
-        :title="localeStore.isRtl ? 'لا توجد تنويهات أو إعلانات إدارية' : 'No announcements posted'"
-        :description="localeStore.isRtl ? 'استخدم زر إصدار تعميم جديد لنشر تنبيه عاجل للطلاب وأعضاء هيئة التدريس.' : 'Post urgent alerts to students or faculty members.'"
-      />
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div
-          v-for="item in announcementsList"
-          :key="item.id"
-          class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between"
-        >
-          <div>
-            <div class="flex items-center justify-between gap-2 mb-3">
-              <span
-                :class="[
-                  'text-[10px] uppercase font-bold px-2.5 py-0.5 rounded-md flex items-center gap-1',
-                  item.is_urgent ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-slate-100 text-slate-700'
-                ]"
-              >
-                <span v-if="item.is_urgent" class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
-                {{ item.is_urgent ? $t('admin.cms.urgent') : $t('admin.cms.normal') }}
-              </span>
+    <div v-if="activeTab === 'announcements'" class="space-y-4">
+      <div class="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <EmptyState
+          v-if="announcementsList.length === 0"
+          :title="$t('admin.cms.noAnnouncementsFound')"
+        />
 
-              <span class="text-[11px] font-mono text-slate-400">
-                {{ formatDate(item.created_at) }}
-              </span>
+        <div v-else class="divide-y divide-slate-100">
+          <div
+            v-for="item in announcementsList"
+            :key="item.id"
+            class="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/80 transition-colors"
+          >
+            <div class="space-y-1.5 flex-1">
+              <div class="flex items-center gap-2">
+                <span
+                  v-if="item.is_urgent || item.priority === 'urgent'"
+                  class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700 uppercase"
+                >
+                  <AlertTriangle class="w-3 h-3" />
+                  {{ $t('admin.cms.urgent') }}
+                </span>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                  <Users class="w-3 h-3" />
+                  {{ getAudienceLabel(item.target_audience) }}
+                </span>
+                <span class="text-[11px] text-slate-400">
+                  {{ formatDate(item.created_at) }}
+                </span>
+              </div>
+
+              <h4 class="font-bold text-navy-950 text-sm">
+                {{ getTranslated(item.title, localeStore.locale) }}
+              </h4>
+              <p class="text-xs text-slate-500 leading-relaxed max-w-3xl">
+                {{ getTranslated(item.content, localeStore.locale) }}
+              </p>
             </div>
 
-            <h3 class="font-bold text-navy-950 text-base mb-1.5">
-              {{ getTranslated(item.title, localeStore.locale) }}
-            </h3>
-
-            <p class="text-xs text-slate-600 leading-relaxed line-clamp-3">
-              {{ getTranslated(item.content, localeStore.locale) }}
-            </p>
-          </div>
-
-          <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span class="text-slate-500 font-medium flex items-center gap-1">
-              <Users class="w-3.5 h-3.5 text-slate-400" />
-              <span>{{ getAudienceLabel(item.target_audience) }}</span>
-            </span>
-
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
               <button
                 type="button"
-                class="text-navy-950 hover:text-navy-700 font-bold flex items-center gap-1 p-1 hover:bg-slate-100 rounded"
+                class="p-2 rounded-xl text-slate-400 hover:text-navy-950 hover:bg-slate-100 transition-colors cursor-pointer"
+                :title="$t('common.edit')"
                 @click="openEditAnnouncementModal(item)"
               >
-                <Edit3 class="w-3.5 h-3.5" />
-                <span>{{ localeStore.isRtl ? 'تعديل' : 'Edit' }}</span>
+                <Edit3 class="w-4 h-4" />
               </button>
-
               <button
                 type="button"
-                class="text-red-500 hover:text-red-700 font-bold flex items-center gap-1 p-1 hover:bg-red-50 rounded"
+                class="p-2 rounded-xl text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                :title="$t('common.delete')"
                 @click="handleDeleteAnnouncement(item.id)"
               >
-                <Trash2 class="w-3.5 h-3.5" />
-                <span>{{ $t('common.delete') || 'حذف' }}</span>
+                <Trash2 class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -261,82 +253,113 @@
       </div>
     </div>
 
-    <!-- MODAL 1: PUBLISH / EDIT NEWS -->
+    <!-- MODAL: ADD / EDIT NEWS -->
     <Modal
       v-model="isNewsModalOpen"
-      :title="isEditingNews ? (localeStore.isRtl ? 'تعديل الخبر الصحفي' : 'Edit News Article') : $t('admin.cms.modalNewsTitle')"
+      :title="isEditingNews ? $t('admin.cms.editNewsTitle') : $t('admin.cms.publishNewsTitle')"
       max-width="2xl"
-      @close="isNewsModalOpen = false"
     >
       <form @submit.prevent="submitNewsForm" class="space-y-4 text-start">
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+        <div class="grid grid-cols-12 gap-3">
           <EnterpriseFormField
             v-model="newsForm.title_ar"
-            type="text"
             :label="$t('admin.cms.labelTitleAr')"
             required
             col-span="6"
-            placeholder="مثال: مؤتمر الذكاء الاصطناعي السنوي..."
+            placeholder="مثال: افتتاح المؤتمر التكنولوجي الدولي 2025"
           />
           <EnterpriseFormField
             v-model="newsForm.title_en"
-            type="text"
             :label="$t('admin.cms.labelTitleEn')"
             required
             col-span="6"
-            placeholder="e.g. Annual AI & Robotics Summit..."
+            placeholder="e.g. Inauguration of Tech Conference 2025"
           />
+
           <EnterpriseFormField
             v-model="newsForm.category"
             type="select"
             :label="$t('admin.cms.labelCategory')"
+            required
             col-span="6"
             :options="[
-              { label: 'الشؤون الأكاديمية (Academic)', value: 'academic' },
-              { label: 'البحث العلمي والابتكار (Research)', value: 'scientific' },
-              { label: 'الفعاليات والمؤتمرات (Events)', value: 'events' }
+              { label: $t('admin.cms.catAcademic'), value: 'academic-and-research' },
+              { label: $t('admin.cms.catScientific'), value: 'campus-life-activities' },
+              { label: $t('admin.cms.catEvents'), value: 'global-partnerships' },
+              { label: $t('news.categoryAll'), value: 'innovations-and-achievements' }
             ]"
           />
-          <EnterpriseFormField
-            type="image"
-            :label="$t('admin.cms.labelImage')"
-            col-span="6"
-            :preview-url="newsImagePreview || newsForm.featured_image || 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=400&q=80'"
-            :button-text="localeStore.isRtl ? 'اختيار صورة من جهازك' : 'Choose Image from Device'"
-            @file-selected="handleNewsImageSelect"
-          />
+
+          <!-- Device Image File Upload -->
+          <div class="col-span-6 space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">
+              {{ $t('admin.cms.labelFeaturedImage') }}
+            </label>
+            <div class="flex items-center gap-2">
+              <label class="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer text-xs text-slate-600 transition-colors">
+                <Upload class="w-4 h-4 text-slate-400" />
+                <span class="truncate max-w-[140px]">{{ newsSelectedFile ? newsSelectedFile.name : (localeStore.isRtl ? 'اختر صورة من جهازك' : 'Choose image file') }}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleNewsImageSelect"
+                />
+              </label>
+              <div v-if="newsImagePreview" class="relative w-9 h-9 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                <img :src="newsImagePreview" class="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  class="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                  @click="newsImagePreview = ''; newsForm.featured_image = ''; newsSelectedFile = null;"
+                >
+                  <X class="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
           <EnterpriseFormField
             v-model="newsForm.summary_ar"
             type="textarea"
             :label="$t('admin.cms.labelSummaryAr')"
-            :rows="2"
             col-span="6"
-            placeholder="ملخص موجز باللغة العربية..."
+            :rows="2"
+            placeholder="ملخص موجز للخبر يظهر في الصفحة الرئيسية..."
           />
           <EnterpriseFormField
             v-model="newsForm.summary_en"
             type="textarea"
             :label="$t('admin.cms.labelSummaryEn')"
-            :rows="2"
             col-span="6"
-            placeholder="Brief summary in English..."
+            :rows="2"
+            placeholder="Brief summary shown on homepage & feeds..."
           />
+
           <EnterpriseFormField
             v-model="newsForm.content_ar"
-            type="richtext"
-            :label="$t('admin.cms.labelBodyAr')"
+            type="textarea"
+            :label="$t('admin.cms.labelContentAr')"
             required
             col-span="12"
-            min-height="180px"
-            placeholder="التفاصيل الكاملة للخبر باللغة العربية مع إمكانية التنسيق، العناوين، والقوائم..."
+            :rows="4"
+            placeholder="النص الكامل للمقال والبيان الصحفي..."
           />
           <EnterpriseFormField
             v-model="newsForm.content_en"
-            type="richtext"
-            :label="localeStore.isRtl ? 'نص الخبر والتفاصيل (إنجليزي)' : 'Full Article Body (English)'"
+            type="textarea"
+            :label="$t('admin.cms.labelContentEn')"
+            required
             col-span="12"
-            min-height="180px"
-            placeholder="Full article content in English with rich text formatting, headings, and lists..."
+            :rows="4"
+            placeholder="Full body article text & press release details..."
+          />
+
+          <EnterpriseFormField
+            v-model="newsForm.is_featured"
+            type="checkbox"
+            :label="$t('admin.cms.labelIsFeatured')"
+            col-span="12"
           />
         </div>
       </form>
@@ -355,45 +378,53 @@
           class="px-5 py-2.5 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-xs shadow-md"
           @click="submitNewsForm"
         >
-          {{ $t('admin.cms.publishNews') }}
+          {{ isEditingNews ? $t('common.saveChanges') : $t('admin.cms.publishNews') }}
         </button>
       </template>
     </Modal>
 
-    <!-- MODAL 2: POST / EDIT ANNOUNCEMENT -->
+    <!-- MODAL: ADD / EDIT ANNOUNCEMENT -->
     <Modal
       v-model="isAnnouncementModalOpen"
-      :title="isEditingAnnouncement ? (localeStore.isRtl ? 'تعديل الإعلان الإداري' : 'Edit Announcement') : $t('admin.cms.modalAnnouncementTitle')"
+      :title="isEditingAnnouncement ? $t('admin.cms.editAnnouncementTitle') : $t('admin.cms.postAnnouncementTitle')"
       max-width="xl"
-      @close="isAnnouncementModalOpen = false"
     >
       <form @submit.prevent="submitAnnouncementForm" class="space-y-4 text-start">
-        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+        <div class="grid grid-cols-12 gap-3">
           <EnterpriseFormField
             v-model="announcementForm.title_ar"
-            type="text"
-            :label="$t('admin.cms.labelTitleAr')"
+            :label="$t('admin.cms.labelAnnTitleAr')"
             required
             col-span="6"
-            placeholder="مثال: بدء تسجيل المقررات..."
+            placeholder="مثال: تنبيه هام بشأن مواعيد تسجيل المقررات"
           />
           <EnterpriseFormField
             v-model="announcementForm.title_en"
-            type="text"
-            :label="$t('admin.cms.labelTitleEn')"
+            :label="$t('admin.cms.labelAnnTitleEn')"
             required
             col-span="6"
-            placeholder="e.g. Course Registration Open..."
+            placeholder="e.g. Important Notice on Course Registration"
           />
+
           <EnterpriseFormField
             v-model="announcementForm.content_ar"
             type="textarea"
-            :label="$t('admin.cms.labelBodyAr')"
+            :label="$t('admin.cms.labelAnnContentAr')"
             required
-            :rows="3"
             col-span="12"
-            placeholder="نص الإعلان الرسمي باللغة العربية..."
+            :rows="3"
+            placeholder="نص الإعلان والتعليمات الموجهة للمستفيدين..."
           />
+          <EnterpriseFormField
+            v-model="announcementForm.content_en"
+            type="textarea"
+            :label="$t('admin.cms.labelAnnContentEn')"
+            required
+            col-span="12"
+            :rows="3"
+            placeholder="Announcement text & guidelines for the target audience..."
+          />
+
           <EnterpriseFormField
             v-model="announcementForm.target_audience"
             type="select"
@@ -439,14 +470,15 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../../stores/locale'
-import { api, getTranslated } from '../../services/api'
-import { formatStandardDate } from '../../utils/dateFormat'
-import Modal from '../../components/ui/Modal.vue'
-import EmptyState from '../../components/ui/EmptyState.vue'
-import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
-import { useDialog } from '../../composables/useDialog'
-import { useToast } from '../../composables/useToast'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import cmsApi from '../services/cmsApi'
+import { formatStandardDate } from '../../../utils/dateFormat'
+import Modal from '../../../components/ui/Modal.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
+import EnterpriseFormField from '../../../components/ui/EnterpriseFormField.vue'
+import { useDialog } from '../../../composables/useDialog'
+import { useToast } from '../../../composables/useToast'
 import {
   Newspaper,
   Megaphone,
@@ -488,7 +520,7 @@ const newsImagePreview = ref('')
 const newsForm = reactive({
   title_ar: '',
   title_en: '',
-  category: 'academic',
+  category: 'academic-and-research',
   featured_image: '',
   summary_ar: '',
   summary_en: '',
@@ -571,8 +603,8 @@ const loadData = async () => {
   isLoading.value = true
   try {
     const [news, announces] = await Promise.all([
-      api.getNews(),
-      api.getAnnouncements(),
+      cmsApi.getNews(),
+      cmsApi.getAnnouncements(),
     ])
     newsList.value = news || []
     announcementsList.value = announces || []
@@ -595,7 +627,7 @@ const openNewNewsModal = () => {
   newsForm.content_ar = ''
   newsForm.content_en = ''
   newsForm.featured_image = ''
-  newsForm.category = 'academic'
+  newsForm.category = 'academic-and-research'
   newsForm.is_featured = false
   isNewsModalOpen.value = true
 }
@@ -612,7 +644,7 @@ const openEditNewsModal = (article) => {
   newsForm.content_ar = article.body?.ar || article.body || ''
   newsForm.content_en = article.body?.en || article.body || ''
   newsForm.featured_image = article.featured_image || ''
-  newsForm.category = article.category?.slug || article.category || 'academic'
+  newsForm.category = article.category?.slug || article.category || 'academic-and-research'
   newsForm.is_featured = Boolean(article.is_featured)
   isNewsModalOpen.value = true
 }
@@ -652,7 +684,7 @@ const submitNewsForm = async () => {
 
   try {
     if (isEditingNews.value) {
-      const updated = await api.updateNews(editingNewsId.value, { ...newsForm })
+      const updated = await cmsApi.updateNews(editingNewsId.value, { ...newsForm })
       const idx = newsList.value.findIndex((n) => n.id === editingNewsId.value)
       if (idx !== -1) {
         newsList.value[idx] = {
@@ -671,7 +703,7 @@ const submitNewsForm = async () => {
         localeStore.isRtl ? 'تم التحديث' : 'Article Updated'
       )
     } else {
-      const created = await api.createNews({ ...newsForm })
+      const created = await cmsApi.createNews({ ...newsForm })
       newsList.value.unshift(created)
       toast.success(
         localeStore.isRtl ? 'تم نشر المقال الخبري بنجاح.' : 'News article published successfully.',
@@ -698,7 +730,7 @@ const submitAnnouncementForm = async () => {
 
   try {
     if (isEditingAnnouncement.value) {
-      const updated = await api.updateAnnouncement(editingAnnouncementId.value, { ...announcementForm })
+      const updated = await cmsApi.updateAnnouncement(editingAnnouncementId.value, { ...announcementForm })
       const idx = announcementsList.value.findIndex((a) => a.id === editingAnnouncementId.value)
       if (idx !== -1) {
         announcementsList.value[idx] = {
@@ -715,7 +747,7 @@ const submitAnnouncementForm = async () => {
         localeStore.isRtl ? 'تم التعديل' : 'Announcement Updated'
       )
     } else {
-      const created = await api.createAnnouncement({ ...announcementForm })
+      const created = await cmsApi.createAnnouncement({ ...announcementForm })
       announcementsList.value.unshift(created)
       toast.success(
         localeStore.isRtl ? 'تم نشر التنبيه العاجل بنجاح.' : 'Announcement published successfully.',
@@ -741,7 +773,7 @@ const handleDeleteNews = async (id) => {
   })
 
   if (confirmed) {
-    await api.deleteNews(id)
+    await cmsApi.deleteNews(id)
     newsList.value = newsList.value.filter((n) => n.id !== id)
     toast.info(
       localeStore.isRtl ? 'تم حذف الخبر بنجاح.' : 'News article deleted.',
@@ -760,7 +792,7 @@ const handleDeleteAnnouncement = async (id) => {
   })
 
   if (confirmed) {
-    await api.deleteAnnouncement(id)
+    await cmsApi.deleteAnnouncement(id)
     announcementsList.value = announcementsList.value.filter((a) => a.id !== id)
     toast.info(
       localeStore.isRtl ? 'تم حذف الإعلان بنجاح.' : 'Announcement deleted.',

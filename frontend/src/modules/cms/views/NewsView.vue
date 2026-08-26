@@ -100,7 +100,7 @@
                   {{ getTranslated(article.title, localeStore.locale) }}
                 </router-link>
               </h3>
-              <p class="text-xs text-slate-600 line-clamp-2 mt-2 leading-relaxed">
+              <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed pt-1">
                 {{ getTranslated(article.excerpt, localeStore.locale) }}
               </p>
             </div>
@@ -133,16 +133,17 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useLocaleStore } from '../stores/locale'
-import { api, getTranslated } from '../services/api'
-import { formatStandardDate } from '../utils/dateFormat'
-import Breadcrumbs from '../components/ui/Breadcrumbs.vue'
-import Badge from '../components/ui/Badge.vue'
-import Card from '../components/ui/Card.vue'
-import Pagination from '../components/ui/Pagination.vue'
-import LoadingSpinner from '../components/ui/LoadingSpinner.vue'
-import EmptyState from '../components/ui/EmptyState.vue'
-import ErrorState from '../components/ui/ErrorState.vue'
+import { useLocaleStore } from '../../../stores/locale'
+import { getTranslated } from '../../../services/api'
+import cmsApi from '../services/cmsApi'
+import { formatStandardDate } from '../../../utils/dateFormat'
+import Breadcrumbs from '../../../components/ui/Breadcrumbs.vue'
+import Badge from '../../../components/ui/Badge.vue'
+import Card from '../../../components/ui/Card.vue'
+import Pagination from '../../../components/ui/Pagination.vue'
+import LoadingSpinner from '../../../components/ui/LoadingSpinner.vue'
+import EmptyState from '../../../components/ui/EmptyState.vue'
+import ErrorState from '../../../components/ui/ErrorState.vue'
 
 const { t } = useI18n()
 const localeStore = useLocaleStore()
@@ -196,7 +197,7 @@ const loadNewsData = async () => {
   loading.value = true
   error.value = ''
   try {
-    news.value = await api.getNews()
+    news.value = await cmsApi.getNews()
   } catch (e) {
     error.value = e.message || (localeStore.isRtl ? 'تعذر جلب الأخبار من الخادم.' : 'Failed to fetch news.')
   } finally {
