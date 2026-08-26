@@ -263,142 +263,95 @@
       size="xl"
       @close="isModalOpen = false"
     >
-      <form @submit.prevent="submitForm" class="space-y-4 text-start text-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.documents.labelTitleAr') }} *
-            </label>
-            <input
-              v-model="form.title_ar"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="مثال: اللائحة الداخلية المعتمدة لكلية الحاسبات والذكاء الاصطناعي..."
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.documents.labelTitleEn') }} *
-            </label>
-            <input
-              v-model="form.title_en"
-              type="text"
-              required
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="e.g. Approved Academic Bylaws for Faculty of CS & AI..."
-            />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.documents.labelCategory') }}
-            </label>
-            <select
-              v-model="form.category"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-            >
-              <option value="bylaws">{{ localeStore.isRtl ? 'لوائح وقرارات وزارية' : 'Bylaws & Ministerial Decrees' }}</option>
-              <option value="schedules">{{ $t('admin.documents.catSchedules') }}</option>
-              <option value="forms">{{ $t('admin.documents.catForms') }}</option>
-              <option value="guides">{{ $t('admin.documents.catGuides') }}</option>
-              <option value="regulations">{{ localeStore.isRtl ? 'سياسات عامة وتنظيمية' : 'Institutional Policies' }}</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ localeStore.isRtl ? 'رقم الإصدار' : 'Version Number' }}
-            </label>
-            <input
-              v-model="form.version"
-              type="text"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm font-mono focus:border-navy-900"
-              placeholder="1.0"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ localeStore.isRtl ? 'حالة الوثيقة' : 'Document Status' }}
-            </label>
-            <select
-              v-model="form.status"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-            >
-              <option value="published">{{ localeStore.isRtl ? 'منشور ومعتمد' : 'Published' }}</option>
-              <option value="draft">{{ localeStore.isRtl ? 'مسودة قيد المراجعة' : 'Draft' }}</option>
-              <option value="archived">{{ localeStore.isRtl ? 'مؤرشف' : 'Archived' }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ localeStore.isRtl ? 'الجمهور المستهدف' : 'Target Audience' }}
-            </label>
-            <select
-              v-model="form.target_audience"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-            >
-              <option value="all">{{ localeStore.isRtl ? 'كافة الطلاب والمجتمع' : 'Public (All)' }}</option>
-              <option value="students">{{ localeStore.isRtl ? 'الطلاب فقط' : 'Students Only' }}</option>
-              <option value="faculty">{{ localeStore.isRtl ? 'أعضاء هيئة التدريس والإداريين' : 'Faculty & Staff' }}</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.documents.labelSize') }}
-            </label>
-            <input
-              v-model="form.file_size"
-              type="text"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="2.4 MB"
-            />
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ localeStore.isRtl ? 'تاريخ السريان والاعتماد' : 'Effective Date' }}
-            </label>
-            <input
-              v-model="form.effective_date"
-              type="date"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-            />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              {{ $t('admin.documents.labelDescriptionAr') }}
-            </label>
-            <textarea
-              v-model="form.description_ar"
-              rows="2"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="نبذة عن اللائحة والقرارات المنظمة..."
-            ></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
-              Description (English)
-            </label>
-            <textarea
-              v-model="form.description_en"
-              rows="2"
-              class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm focus:border-navy-900"
-              placeholder="Summary of regulation rules and clauses..."
-            ></textarea>
-          </div>
+      <form @submit.prevent="submitForm" class="space-y-4 text-start">
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+          <EnterpriseFormField
+            v-model="form.title_ar"
+            type="text"
+            :label="$t('admin.documents.labelTitleAr')"
+            required
+            col-span="6"
+            placeholder="مثال: اللائحة الداخلية المعتمدة لكلية الحاسبات والذكاء الاصطناعي..."
+          />
+          <EnterpriseFormField
+            v-model="form.title_en"
+            type="text"
+            :label="$t('admin.documents.labelTitleEn')"
+            required
+            col-span="6"
+            placeholder="e.g. Approved Academic Bylaws for Faculty of CS & AI..."
+          />
+          <EnterpriseFormField
+            v-model="form.category"
+            type="select"
+            :label="$t('admin.documents.labelCategory')"
+            col-span="4"
+            :options="[
+              { label: localeStore.isRtl ? 'لوائح وقرارات وزارية' : 'Bylaws & Ministerial Decrees', value: 'bylaws' },
+              { label: $t('admin.documents.catSchedules'), value: 'schedules' },
+              { label: $t('admin.documents.catForms'), value: 'forms' },
+              { label: $t('admin.documents.catGuides'), value: 'guides' },
+              { label: localeStore.isRtl ? 'سياسات عامة وتنظيمية' : 'Institutional Policies', value: 'regulations' }
+            ]"
+          />
+          <EnterpriseFormField
+            v-model="form.version"
+            type="text"
+            :label="localeStore.isRtl ? 'رقم الإصدار' : 'Version Number'"
+            col-span="4"
+            placeholder="1.0"
+          />
+          <EnterpriseFormField
+            v-model="form.status"
+            type="select"
+            :label="localeStore.isRtl ? 'حالة الوثيقة' : 'Document Status'"
+            col-span="4"
+            :options="[
+              { label: localeStore.isRtl ? 'منشور ومعتمد' : 'Published', value: 'published' },
+              { label: localeStore.isRtl ? 'مسودة قيد المراجعة' : 'Draft', value: 'draft' },
+              { label: localeStore.isRtl ? 'مؤرشف' : 'Archived', value: 'archived' }
+            ]"
+          />
+          <EnterpriseFormField
+            v-model="form.target_audience"
+            type="select"
+            :label="localeStore.isRtl ? 'الجمهور المستهدف' : 'Target Audience'"
+            col-span="4"
+            :options="[
+              { label: localeStore.isRtl ? 'كافة الطلاب والمجتمع' : 'Public (All)', value: 'all' },
+              { label: localeStore.isRtl ? 'الطلاب فقط' : 'Students Only', value: 'students' },
+              { label: localeStore.isRtl ? 'أعضاء هيئة التدريس والإداريين' : 'Faculty & Staff', value: 'faculty' }
+            ]"
+          />
+          <EnterpriseFormField
+            v-model="form.file_size"
+            type="text"
+            :label="$t('admin.documents.labelSize')"
+            col-span="4"
+            placeholder="2.4 MB"
+          />
+          <EnterpriseFormField
+            v-model="form.effective_date"
+            type="date"
+            :label="localeStore.isRtl ? 'تاريخ السريان والاعتماد' : 'Effective Date'"
+            col-span="4"
+          />
+          <EnterpriseFormField
+            v-model="form.description_ar"
+            type="textarea"
+            :label="$t('admin.documents.labelDescriptionAr')"
+            :rows="2"
+            col-span="6"
+            placeholder="نبذة عن اللائحة والقرارات المنظمة..."
+          />
+          <EnterpriseFormField
+            v-model="form.description_en"
+            type="textarea"
+            label="Description (English)"
+            :rows="2"
+            col-span="6"
+            placeholder="Summary of regulation rules and clauses..."
+          />
         </div>
 
         <!-- Interactive Device File Picker Dropzone -->
@@ -517,6 +470,7 @@ import { useLocaleStore } from '../../stores/locale'
 import { api, getTranslated } from '../../services/api'
 import Modal from '../../components/ui/Modal.vue'
 import EmptyState from '../../components/ui/EmptyState.vue'
+import EnterpriseFormField from '../../components/ui/EnterpriseFormField.vue'
 import {
   Upload,
   Search,
