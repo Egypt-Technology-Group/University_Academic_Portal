@@ -75,6 +75,14 @@ class ModuleManager
     }
 
     /**
+     * Check if a module is currently enabled by ID.
+     */
+    public function isEnabled(string $id): bool
+    {
+        return in_array($id, $this->getEnabledIds(), true);
+    }
+
+    /**
      * Get all registered modules.
      *
      * @return array<string, ModuleInterface>

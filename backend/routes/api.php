@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Admin\AuditLogController;
 use App\Http\Controllers\Api\AdmissionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\ModuleManagementController;
 use App\Http\Controllers\Api\SiteSettingsController;
 use App\Http\Controllers\Api\StudentPortalController;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,11 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     // Public Dynamic Site Settings
     Route::get('/settings', [SiteSettingsController::class, 'getPublicSettings']);
+
+    // Module Lifecycle & Dependency Introspection Endpoints
+    Route::get('/modules', [ModuleManagementController::class, 'index']);
+    Route::get('/modules/{id}/dependencies', [ModuleManagementController::class, 'dependencies']);
+    Route::patch('/modules/{id}/toggle', [ModuleManagementController::class, 'toggle']);
 
     // Auth endpoints
     Route::post('/auth/login', [AuthController::class, 'login']);
