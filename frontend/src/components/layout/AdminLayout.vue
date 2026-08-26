@@ -75,7 +75,7 @@
         </div>
       </div>
 
-      <!-- Navigation Menu -->
+      <!-- Dynamic Navigation Menu -->
       <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto no-scrollbar">
         <template v-for="(group, gIdx) in navigationMenu" :key="gIdx">
           <div v-if="!isCollapsed && group.title" class="px-3 pt-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400/80">
@@ -104,7 +104,7 @@
             ></span>
 
             <component
-              :is="item.icon"
+              :is="resolveIconComponent(item.icon)"
               :class="[
                 'w-5 h-5 shrink-0 transition-colors',
                 isActiveRoute(item.path) ? 'text-gold-400' : 'text-slate-400 group-hover:text-slate-200'
@@ -112,7 +112,7 @@
             />
 
             <span v-show="!isCollapsed" class="truncate flex-1 text-start">
-              {{ item.label }}
+              {{ resolveItemLabel(item.label) }}
             </span>
 
             <!-- Optional Badge -->
@@ -279,6 +279,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '../../stores/auth'
 import { useLocaleStore } from '../../stores/locale'
+import { useModulesStore } from '../../stores/modules'
 import { formatStandardDate } from '../../utils/dateFormat'
 import {
   LayoutDashboard,
@@ -305,12 +306,48 @@ const router = useRouter()
 const { t, locale } = useI18n()
 const authStore = useAuthStore()
 const localeStore = useLocaleStore()
+const modulesStore = useModulesStore()
 const dialog = useDialog()
 
 const isCollapsed = ref(false)
 const isMobileMenuOpen = ref(false)
 
+// Icon Map for string names defined in module nav manifest
+const iconMap = {
+  LayoutDashboard,
+  UserCheck,
+  GraduationCap,
+  School,
+  Newspaper,
+  Calendar,
+  FolderArchive,
+  Palette,
+  ShieldCheck,
+}
+
+const resolveIconComponent = (icon) => {
+  if (!icon) return LayoutDashboard
+  if (typeof icon === 'string') {
+    return iconMap[icon] || LayoutDashboard
+  }
+  return icon
+}
+
+const resolveItemLabel = (label) => {
+  if (!label) return ''
+  if (typeof label === 'string') {
+    return label.startsWith('admin.') || label.startsWith('nav.') || label.includes('.')
+      ? t(label)
+      : label
+  }
+  if (typeof label === 'object') {
+    return label[localeStore.locale] || label.ar || label.en || ''
+  }
+  return String(label)
+}
+
 const isActiveRoute = (path) => {
+  if (!path) return false
   if (path === '/admin/dashboard') {
     return route.path === '/admin/dashboard' || route.path === '/admin'
   }
@@ -319,10 +356,13 @@ const isActiveRoute = (path) => {
 
 const currentRouteTitle = computed(() => {
   if (route.path.includes('/admin/admissions')) return t('admin.nav.admissions')
+  if (route.path.includes('/admin/academic-structure')) return localeStore.isRtl ? 'الهيكل الأكاديمي والكليات والبرامج' : 'Academic Colleges & Programs'
+  if (route.path.includes('/admin/academic-services')) return localeStore.isRtl ? 'الخدمات الأكاديمية والطلابية' : 'Academic & Student Services'
   if (route.path.includes('/admin/cms')) return t('admin.nav.cms')
   if (route.path.includes('/admin/events')) return t('admin.nav.events')
   if (route.path.includes('/admin/documents')) return t('admin.nav.documents')
   if (route.path.includes('/admin/settings')) return t('admin.nav.settings')
+  if (route.path.includes('/admin/audit-trail')) return localeStore.isRtl ? 'سجل التدقيق والأمان والرقابة' : 'Audit Trail & Compliance'
   return t('admin.nav.dashboard')
 })
 
@@ -341,60 +381,63 @@ const formattedCurrentDate = computed(() => {
   })
 })
 
-const navigationMenu = computed(() => [
-  {
-    title: t('admin.sidebar.groupOverview'),
-    items: [
-      {
-        path: '/admin/dashboard',
-        label: t('admin.nav.dashboard'),
-        icon: LayoutDashboard,
-      },
-    ],
-  },
-  {
-    title: t('admin.sidebar.groupAdmissions'),
-    items: [
-      {
-        path: '/admin/admissions',
-        label: t('admin.nav.admissions'),
-        icon: UserCheck,
-        badge: '14',
-        badgeVariant: 'warning',
-      },
-      {
-        path: '/admin/academic-structure',
-        label: localeStore.isRtl ? 'الهيكل الأكاديمي والكليات والبرامج' : 'Academic Colleges & Programs',
-        icon: School,
-      },
-      {
-        path: '/admin/academic-services',
-        label: localeStore.isRtl ? 'الخدمات الأكاديمية والطلابية' : 'Academic & Student Services',
-        icon: GraduationCap,
-      },
-    ],
-  },
-  {
-    title: t('admin.sidebar.groupContent'),
-    items: [
-      {
-        path: '/admin/cms',
-        label: t('admin.nav.cms'),
-        icon: Newspaper,
-      },
-      {
-        path: '/admin/events',
-        label: t('admin.nav.events'),
-        icon: Calendar,
-      },
-      {
-        path: '/admin/documents',
-        label: t('admin.nav.documents'),
-        icon: FolderArchive,
-      },
-    ],
-  },
-  {
+const navigationMenu = computed(() => {
+  // Query active admin navigation items from enabled modules
+  const dynamicAdminNav = modulesStore.getNavItems('admin')
+
+  // Group dynamic module items by group key
+  const admissionsItems = dynamicAdminNav.filter(
+    (item) => item.group === 'groupAdmissions' || (!item.group && item.moduleId === 'admissions')
+  )
+
+  const contentItems = dynamicAdminNav.filter(
+    (item) => item.group === 'groupContent' || (!item.group && ['cms', 'events', 'documents'].includes(item.moduleId))
+  )
+
+  const menu = [
+    // 1. Overview Group (Fixed core)
+    {
+      title: t('admin.sidebar.groupOverview'),
+      items: [
+        {
+          path: '/admin/dashboard',
+          label: t('admin.nav.dashboard'),
+          icon: LayoutDashboard,
+        },
+      ],
+    },
+  ]
+
+  // 2. Admissions & Students Group (Dynamic based on active modules)
+  if (admissionsItems.length > 0) {
+    menu.push({
+      title: t('admin.sidebar.groupAdmissions'),
+      items: admissionsItems.map((item) => ({
+        path: item.path || item.to,
+        label: item.label,
+        icon: item.icon,
+        badge: item.badge,
+        badgeVariant: item.badgeVariant,
+      })),
+    })
+  }
+
+  // 3. Content & Repository Group (Dynamic based on active modules)
+  if (contentItems.length > 0) {
+    menu.push({
+      title: t('admin.sidebar.groupContent'),
+      items: contentItems.map((item) => ({
+        path: item.path || item.to,
+        label: item.label,
+        icon: item.icon,
+        badge: item.badge,
+        badgeVariant: item.badgeVariant,
+      })),
+    })
+  }
+
+  // 4. Site Settings & Compliance Group (Fixed core system items)
+  menu.push({
     title: t('admin.sidebar.groupSettings'),
     items: [
       {
@@ -408,8 +451,10 @@ const navigationMenu = computed(() => [
         icon: ShieldCheck,
       },
     ],
-  },
-])
+  })
+
+  return menu
+})
 
 const handleLogout = async () => {
   const confirmed = await dialog.confirm({

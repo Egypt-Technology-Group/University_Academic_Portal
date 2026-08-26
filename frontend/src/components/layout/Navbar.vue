@@ -20,6 +20,7 @@
         <!-- Right Quick Links & Language Toggle -->
         <div class="flex items-center gap-2 sm:gap-4 ms-auto text-xs shrink-0">
           <router-link
+            v-if="modulesStore.isModuleEnabled('results')"
             to="/student-portal"
             class="hidden md:inline-flex items-center gap-1 text-slate-300 hover:text-white transition-colors"
           >
@@ -30,9 +31,10 @@
             {{ $t('nav.studentPortal') }}
           </router-link>
 
-          <span class="hidden md:inline text-navy-700">|</span>
+          <span v-if="modulesStore.isModuleEnabled('results')" class="hidden md:inline text-navy-700">|</span>
 
           <router-link
+            v-if="modulesStore.isModuleEnabled('admissions')"
             to="/admissions/track"
             class="hidden sm:inline-flex items-center gap-1 text-slate-300 hover:text-white transition-colors"
           >
@@ -42,7 +44,7 @@
             {{ $t('nav.trackApp') }}
           </router-link>
 
-          <span class="hidden sm:inline text-navy-700">|</span>
+          <span v-if="modulesStore.isModuleEnabled('admissions')" class="hidden sm:inline text-navy-700">|</span>
 
           <router-link
             to="/admin"
@@ -92,8 +94,9 @@
         </div>
       </router-link>
 
-      <!-- Desktop Mega-Menu Nav Links -->
+      <!-- Desktop Dynamic Mega-Menu Nav Links -->
       <nav class="hidden lg:flex items-center gap-1 xl:gap-2">
+        <!-- Always Present: Home Link -->
         <router-link
           to="/"
           class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
@@ -102,60 +105,15 @@
           {{ $t('nav.home') }}
         </router-link>
 
+        <!-- Dynamically Rendered Enabled Module Public Nav Links -->
         <router-link
-          to="/colleges"
+          v-for="item in publicNavItems"
+          :key="item.id || item.to"
+          :to="item.to || item.path"
           class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-          :class="$route.path.startsWith('/colleges') ? 'text-navy-950 bg-slate-100 font-bold' : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'"
+          :class="isPublicRouteActive(item.to || item.path) ? 'text-navy-950 bg-slate-100 font-bold' : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'"
         >
-          {{ $t('nav.colleges') }}
-        </router-link>
-
-        <router-link
-          to="/programs"
-          class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-          :class="$route.path.startsWith('/programs') ? 'text-navy-950 bg-slate-100 font-bold' : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'"
-        >
-          {{ $t('nav.programs') }}
-        </router-link>
-
-        <router-link
-          to="/admissions"
-          class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-          :class="$route.path === '/admissions' ? 'text-navy-950 bg-slate-100 font-bold' : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'"
-        >
-          {{ $t('nav.admissions') }}
-        </router-link>
-
-        <router-link
-          to="/faculty"
-          class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-          :class="$route.path.startsWith('/faculty') ? 'text-navy-950 bg-slate-100 font-bold' : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'"
-        >
-          {{ $t('nav.faculty') }}
-        </router-link>
-
-        <router-link
-          to="/news"
-          class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-          :class="$route.path.startsWith('/news') ? 'text-navy-950 bg-slate-100 font-bold' : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'"
-        >
-          {{ $t('nav.news') }}
-        </router-link>
-
-        <router-link
-          to="/events"
-          class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-          :class="$route.path.startsWith('/events') ? 'text-navy-950 bg-slate-100 font-bold' : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'"
-        >
-          {{ $t('nav.events') }}
-        </router-link>
-
-        <router-link
-          to="/documents"
-          class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-          :class="$route.path.startsWith('/documents') ? 'text-navy-950 bg-slate-100 font-bold' : 'text-slate-600 hover:text-navy-900 hover:bg-slate-50'"
-        >
-          {{ $t('nav.documents') }}
+          {{ resolveNavLabel(item.label) }}
         </router-link>
       </nav>
 
@@ -175,8 +133,9 @@
           <kbd class="hidden xl:inline text-[10px] bg-white text-slate-500 px-1.5 py-0.5 rounded border border-slate-300 font-mono">⌘K</kbd>
         </button>
 
-        <!-- Primary CTA: Apply Now -->
+        <!-- Primary CTA: Apply Now (if Admissions module is enabled) -->
         <router-link
+          v-if="modulesStore.isModuleEnabled('admissions')"
           to="/admissions"
           class="hidden sm:inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 rounded-xl shadow-sm hover:shadow-gold-glow transition-all duration-200"
         >
@@ -208,6 +167,7 @@
       v-if="mobileMenuOpen"
       class="lg:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2 max-h-[80vh] overflow-y-auto shadow-xl animate-fade-in"
     >
+      <!-- Always Present: Home Link -->
       <router-link
         to="/"
         class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-950"
@@ -216,78 +176,18 @@
         {{ $t('nav.home') }}
       </router-link>
 
+      <!-- Dynamically Rendered Enabled Module Public Nav Links -->
       <router-link
-        to="/colleges"
+        v-for="item in publicNavItems"
+        :key="item.id || item.to"
+        :to="item.to || item.path"
         class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-950"
         @click="mobileMenuOpen = false"
       >
-        {{ $t('nav.colleges') }}
+        {{ resolveNavLabel(item.label) }}
       </router-link>
 
-      <router-link
-        to="/programs"
-        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-950"
-        @click="mobileMenuOpen = false"
-      >
-        {{ $t('nav.programs') }}
-      </router-link>
-
-      <router-link
-        to="/admissions"
-        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-950"
-        @click="mobileMenuOpen = false"
-      >
-        {{ $t('nav.admissions') }}
-      </router-link>
-
-      <router-link
-        to="/admissions/track"
-        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-950"
-        @click="mobileMenuOpen = false"
-      >
-        {{ $t('nav.trackApp') }}
-      </router-link>
-
-      <router-link
-        to="/faculty"
-        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-950"
-        @click="mobileMenuOpen = false"
-      >
-        {{ $t('nav.faculty') }}
-      </router-link>
-
-      <router-link
-        to="/news"
-        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-950"
-        @click="mobileMenuOpen = false"
-      >
-        {{ $t('nav.news') }}
-      </router-link>
-
-      <router-link
-        to="/events"
-        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-950"
-        @click="mobileMenuOpen = false"
-      >
-        {{ $t('nav.events') }}
-      </router-link>
-
-      <router-link
-        to="/documents"
-        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-navy-950"
-        @click="mobileMenuOpen = false"
-      >
-        {{ $t('nav.documents') }}
-      </router-link>
-
-      <router-link
-        to="/student-portal"
-        class="block px-4 py-2.5 rounded-xl text-base font-semibold text-navy-900 bg-navy-50 hover:bg-navy-100"
-        @click="mobileMenuOpen = false"
-      >
-        🎓 {{ $t('nav.studentPortal') }}
-      </router-link>
-
+      <!-- Admin Portal Quick Link -->
       <router-link
         to="/admin"
         class="block px-4 py-2.5 rounded-xl text-base font-semibold text-gold-700 bg-gold-50 hover:bg-gold-100"
@@ -296,7 +196,8 @@
         ⚙️ {{ $t('admin.sidebar.brandSubtitle') }}
       </router-link>
 
-      <div class="pt-3 border-t border-slate-100 flex flex-col gap-2">
+      <!-- Apply Now CTA (if Admissions module is enabled) -->
+      <div v-if="modulesStore.isModuleEnabled('admissions')" class="pt-3 border-t border-slate-100 flex flex-col gap-2">
         <router-link
           to="/admissions"
           class="w-full text-center py-3 font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 rounded-xl shadow-sm"
@@ -314,14 +215,43 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useLocaleStore } from '../../stores/locale'
 import { useSettingsStore } from '../../stores/settings'
+import { useModulesStore } from '../../stores/modules'
 import SearchModal from '../ui/SearchModal.vue'
 
+const route = useRoute()
+const { t } = useI18n()
 const localeStore = useLocaleStore()
 const settingsStore = useSettingsStore()
+const modulesStore = useModulesStore()
 const mobileMenuOpen = ref(false)
 const showSearchModal = ref(false)
+
+const publicNavItems = computed(() => {
+  return modulesStore.getNavItems('public')
+})
+
+const resolveNavLabel = (label) => {
+  if (!label) return ''
+  if (typeof label === 'string') {
+    return label.startsWith('nav.') || label.startsWith('admin.') || label.includes('.')
+      ? t(label)
+      : label
+  }
+  if (typeof label === 'object') {
+    return label[localeStore.locale] || label.ar || label.en || ''
+  }
+  return String(label)
+}
+
+const isPublicRouteActive = (path) => {
+  if (!path) return false
+  if (path === '/') return route.path === '/'
+  return route.path.startsWith(path)
+}
 
 const handleKeyboardShortcut = (e) => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
