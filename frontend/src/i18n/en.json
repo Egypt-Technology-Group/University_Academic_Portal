@@ -1,4 +1,18 @@
 {
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "viewDetails": "View Details",
+    "search": "Search",
+    "filter": "Filter",
+    "all": "All",
+    "loading": "Loading...",
+    "success": "Success",
+    "error": "Error occurred"
+  },
   "app": {
     "name": "EgyiTech University of Technology & Applied Sciences",
     "shortName": "EgyiTech",

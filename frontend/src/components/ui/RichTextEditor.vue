@@ -224,11 +224,9 @@ import { ref, computed, onBeforeUnmount, watch } from 'vue'
 import { useLocaleStore } from '../../stores/locale'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import { Underline as UnderlineExtension } from '@tiptap/extension-underline'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { Color } from '@tiptap/extension-color'
 import { TextAlign } from '@tiptap/extension-text-align'
-import { Link as LinkExtension } from '@tiptap/extension-link'
 import {
   Bold,
   Italic,
@@ -325,20 +323,20 @@ const editor = useEditor({
         HTMLAttributes: {
           class: 'tiptap-ol'
         }
-      }
+      },
+      link: {
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-sky-600 underline font-medium'
+        }
+      },
+      underline: {}
     }),
-    UnderlineExtension,
     TextStyle,
     Color,
     TextAlign.configure({
       types: ['heading', 'paragraph']
     }),
-    LinkExtension.configure({
-      openOnClick: false,
-      HTMLAttributes: {
-        class: 'text-sky-600 underline font-medium'
-      }
-    })
   ],
   onUpdate: ({ editor }) => {
     const html = editor.getHTML()
