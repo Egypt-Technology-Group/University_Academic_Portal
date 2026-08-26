@@ -1,0 +1,270 @@
+name: Deploy University Backend to GoogieHost
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend_deploy.yml'
+
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Build & Deploy Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      # ============================================
+      # 1. Checkout repository
+      # ============================================
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ============================================
+      # 2. Setup PHP
+      # ============================================
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, xml, ctype, fileinfo, pdo, pdo_sqlite, pdo_mysql, bcmath, intl
+          tools: composer
+          coverage: none
+
+      # ============================================
+      # 3. Install production dependencies
+      # ============================================
+      - name: Install Composer dependencies
+        working-directory: ./backend
+        run: |
+          composer install \
+            --no-dev \
+            --optimize-autoloader \
+            --no-interaction \
+            --prefer-dist
+
+      # ============================================
+      # 4. Prepare Laravel writable directories
+      # ============================================
+      - name: Prepare Laravel directories
+        working-directory: ./backend
+        run: |
+          mkdir -p database
+          mkdir -p storage/app/public
+          mkdir -p storage/framework/cache
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/testing
+          mkdir -p storage/framework/views
+          mkdir -p storage/logs
+          mkdir -p bootstrap/cache
+
+      # ============================================
+      # 5. Create fresh SQLite demo database
+      # ============================================
+      - name: Create SQLite database
+        working-directory: ./backend
+        run: |
+          rm -f database/database.sqlite
+          touch database/database.sqlite
+
+      # ============================================
+      # 6. Configure the demo environment
+      # ============================================
+      - name: Configure Laravel environment
+        working-directory: ./backend
+        run: |
+          cp .env.example .env
+
+          sed -i 's|^APP_ENV=.*|APP_ENV=production|' .env
+          sed -i 's|^APP_DEBUG=.*|APP_DEBUG=false|' .env
+          sed -i 's|^APP_URL=.*|APP_URL=https://university-backend.demo.egyitech.com|' .env
+          sed -i 's|^APP_URL=.*|FRONTEND_URL=https://university.demo.egyitech.com|' .env
+          sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=sqlite|' .env
+          sed -i 's|^DB_DATABASE=.*|DB_DATABASE=database/database.sqlite|' .env
+
+          php artisan key:generate --force
+
+      # ============================================
+      # 7. Fresh migrate + seed
+      # ============================================
+      - name: Migrate and seed demo database
+        working-directory: ./backend
+        run: |
+          php artisan migrate:fresh --seed --force
+
+      # ============================================
+      # 8. Create temporary server deployment helper
+      # ============================================
+      - name: Create deploy.php
+        working-directory: ./backend
+        run: |
+          cat > public/deploy.php <<'PHP'
+          <?php
+
+          error_reporting(E_ALL);
+          ini_set('display_errors', '1');
+          ini_set('display_startup_errors', '1');
+
+          header('Content-Type: text/plain');
+
+          $public = __DIR__;
+          $root = dirname(__DIR__);
+
+          echo "====================================\n";
+          echo "University Backend Deployment Helper\n";
+          echo "====================================\n\n";
+
+          echo "PHP Version: " . PHP_VERSION . "\n";
+          echo "Laravel Root: {$root}\n\n";
+
+          function prepareDirectory(string $directory): void
+          {
+              if (!is_dir($directory)) {
+                  if (!mkdir($directory, 0775, true)) {
+                      echo "ERROR: Could not create {$directory}\n";
+                      return;
+                  }
+              }
+
+              @chmod($directory, 0775);
+
+              echo basename($directory) . ": "
+                  . (is_writable($directory) ? "writable" : "NOT writable")
+                  . "\n";
+          }
+
+          echo "Preparing Laravel directories...\n";
+
+          $directories = [
+              $root . '/storage',
+              $root . '/storage/app',
+              $root . '/storage/app/public',
+              $root . '/storage/framework',
+              $root . '/storage/framework/cache',
+              $root . '/storage/framework/sessions',
+              $root . '/storage/framework/testing',
+              $root . '/storage/framework/views',
+              $root . '/storage/logs',
+              $root . '/bootstrap/cache',
+          ];
+
+          foreach ($directories as $directory) {
+              prepareDirectory($directory);
+          }
+
+          echo "\nStorage link...\n";
+
+          $storageLink = $public . '/storage';
+
+          if (is_link($storageLink)) {
+              echo "Storage symlink already exists.\n";
+          } elseif (!file_exists($storageLink)) {
+              if (@symlink('../storage/app/public', $storageLink)) {
+                  echo "Storage symlink created.\n";
+              } else {
+                  echo "WARNING: Could not create storage symlink.\n";
+              }
+          } else {
+              echo "WARNING: public/storage exists but is not a symlink.\n";
+          }
+
+          echo "\nClearing Laravel caches...\n";
+
+          $artisan = $root . '/artisan';
+
+          if (function_exists('exec') && file_exists($artisan)) {
+              $output = [];
+              $exitCode = 0;
+
+              exec(
+                  'cd ' . escapeshellarg($root) .
+                  ' && ' .
+                  escapeshellarg(PHP_BINARY) .
+                  ' artisan optimize:clear 2>&1',
+                  $output,
+                  $exitCode
+              );
+
+              echo implode("\n", $output) . "\n";
+              echo "Exit code: {$exitCode}\n";
+          } else {
+              echo "Could not execute Artisan on server. Continuing.\n";
+          }
+
+          echo "\n====================================\n";
+          echo "DEPLOYMENT COMPLETE\n";
+          echo "====================================\n";
+
+          // Remove this temporary helper after it has run.
+          register_shutdown_function(function () {
+              @unlink(__FILE__);
+          });
+          PHP
+
+      # ============================================
+      # 9. Deploy ONLY backend to GoogieHost
+      # ============================================
+      - name: Deploy backend via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER_GOOGIEHOST }}
+          username: ${{ secrets.FTP_USERNAME_GOOGIEHOST }}
+          password: ${{ secrets.FTP_PASSWORD_GOOGIEHOST }}
+
+          protocol: ftp
+          port: 21
+
+          local-dir: ./backend/
+          server-dir: /domains/university-backend.demo.egyitech.com/
+
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.env
+            **/.env.*
+            **/tests/**
+            **/.github/**
+            **/.agents/**
+
+            **/storage/logs/**
+            **/storage/framework/cache/**
+            **/storage/framework/sessions/**
+            **/storage/framework/views/**
+
+            public/storage
+            public/storage/**
+
+      # ============================================
+      # 10. Allow FTP changes to settle
+      # ============================================
+      - name: Wait before server preparation
+        run: |
+          echo "Backend uploaded successfully."
+          sleep 180
+
+      # ============================================
+      # 11. Run server-side deployment preparation
+      # ============================================
+      - name: Run deployment helper
+        run: |
+          curl \
+            --insecure \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --max-time 120 \
+            https://university-backend.demo.egyitech.com/deploy.php
+
+      # ============================================
+      # 12. Done
+      # ============================================
+      - name: Deployment complete
+        run: |
+          echo "=========================================="
+          echo "UNIVERSITY BACKEND DEPLOYMENT COMPLETE"
+          echo "=========================================="
+          echo "Backend: https://university-backend.demo.egyitech.com"
+          echo "API:     https://university-backend.demo.egyitech.com/api/v1"
