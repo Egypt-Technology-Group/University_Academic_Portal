@@ -195,12 +195,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import Modal from './Modal.vue'
 import { useLocaleStore } from '../../stores/locale'
+import { useModulesStore } from '../../stores/modules'
 import { api, getTranslated } from '../../services/api'
+import { apiCache } from '../../services/apiCache'
 
-defineProps({
+const props = defineProps({
   modelValue: {
     type: Boolean,
     default: false,
@@ -209,6 +211,7 @@ defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 const localeStore = useLocaleStore()
+const modulesStore = useModulesStore()
 const searchQuery = ref('')
 const searchInput = ref(null)
 
@@ -217,25 +220,64 @@ const programsList = ref([])
 const facultyList = ref([])
 const newsList = ref([])
 const docsList = ref([])
+const isLoaded = ref(false)
 
-onMounted(async () => {
-  try {
-    const [c, p, f, n, d] = await Promise.all([
-      api.getColleges(),
-      api.getPrograms(),
-      api.getFaculty(),
-      api.getNews(),
-      api.getDocuments(),
-    ])
-    collegesList.value = c || []
-    programsList.value = p || []
-    facultyList.value = f || []
-    newsList.value = n || []
-    docsList.value = d || []
-  } catch (err) {
-    console.error('SearchModal data load error:', err)
+const loadSearchData = async () => {
+  if (isLoaded.value) return
+
+  const tasks = []
+
+  if (modulesStore.isModuleEnabled('academic-structure')) {
+    tasks.push(
+      apiCache.getOrFetch('colleges_all', () => api.getColleges(), 60000).then((res) => {
+        collegesList.value = res || []
+      }).catch(() => {})
+    )
+    tasks.push(
+      apiCache.getOrFetch('programs_all', () => api.getPrograms(), 60000).then((res) => {
+        programsList.value = res || []
+      }).catch(() => {})
+    )
+    tasks.push(
+      apiCache.getOrFetch('faculty_all', () => api.getFaculty(), 60000).then((res) => {
+        facultyList.value = res || []
+      }).catch(() => {})
+    )
   }
-})
+
+  if (modulesStore.isModuleEnabled('cms')) {
+    tasks.push(
+      apiCache.getOrFetch('news_search', () => api.getNews({ per_page: 20 }), 60000).then((res) => {
+        newsList.value = res || []
+      }).catch(() => {})
+    )
+  }
+
+  if (modulesStore.isModuleEnabled('documents')) {
+    tasks.push(
+      apiCache.getOrFetch('documents_search', () => api.getDocuments(), 60000).then((res) => {
+        docsList.value = res || []
+      }).catch(() => {})
+    )
+  }
+
+  await Promise.allSettled(tasks)
+  isLoaded.value = true
+}
+
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val) {
+      loadSearchData()
+      nextTick(() => {
+        if (searchInput.value) {
+          searchInput.value.focus()
+        }
+      })
+    }
+  }
+)
 
 const close = () => {
   emit('update:modelValue', false)

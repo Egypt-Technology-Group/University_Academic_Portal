@@ -1,20 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useModulesStore } from '../stores/modules'
 
-// Public Views
+// Core Static Public Views
 import HomeView from '../views/HomeView.vue'
-import CollegesView from '../modules/academic-structure/views/CollegesView.vue'
-import CollegeDetailView from '../modules/academic-structure/views/CollegeDetailView.vue'
-import ProgramsView from '../modules/academic-structure/views/ProgramsView.vue'
-import ProgramDetailView from '../modules/academic-structure/views/ProgramDetailView.vue'
-import AdmissionsView from '../modules/admissions/views/AdmissionsView.vue'
-import ApplicationTrackView from '../modules/admissions/views/ApplicationTrackView.vue'
-import FacultyDirectoryView from '../modules/academic-structure/views/FacultyDirectoryView.vue'
-import NewsView from '../modules/cms/views/NewsView.vue'
-import NewsDetailView from '../modules/cms/views/NewsDetailView.vue'
-import EventsView from '../modules/events/views/EventsView.vue'
-import DocumentsView from '../modules/documents/views/DocumentsView.vue'
-import StudentResultsView from '../modules/results/views/StudentResultsView.vue'
 import ModuleDisabledView from '../views/ModuleDisabledView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 
@@ -22,11 +10,6 @@ import NotFoundView from '../views/NotFoundView.vue'
 import AdminLayout from '../components/layout/AdminLayout.vue'
 import AdminLoginView from '../views/admin/AdminLoginView.vue'
 import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
-import AdminAdmissionsView from '../modules/admissions/views/AdminAdmissionsView.vue'
-import AdminCmsView from '../modules/cms/views/AdminCmsView.vue'
-import AdminEventsView from '../modules/events/views/AdminEventsView.vue'
-import AdminDocumentsView from '../modules/documents/views/AdminDocumentsView.vue'
-import AdminSettingsView from '../views/admin/AdminSettingsView.vue'
 
 const routes = [
   // Public Routes
@@ -39,73 +22,73 @@ const routes = [
   {
     path: '/colleges',
     name: 'colleges',
-    component: CollegesView,
+    component: () => import('../modules/academic-structure/views/CollegesView.vue'),
     meta: { title: 'Colleges', module: 'academic-structure' },
   },
   {
     path: '/colleges/:slug',
     name: 'college-detail',
-    component: CollegeDetailView,
+    component: () => import('../modules/academic-structure/views/CollegeDetailView.vue'),
     meta: { title: 'College Details', module: 'academic-structure' },
   },
   {
     path: '/programs',
     name: 'programs',
-    component: ProgramsView,
+    component: () => import('../modules/academic-structure/views/ProgramsView.vue'),
     meta: { title: 'Programs', module: 'academic-structure' },
   },
   {
     path: '/programs/:slug',
     name: 'program-detail',
-    component: ProgramDetailView,
+    component: () => import('../modules/academic-structure/views/ProgramDetailView.vue'),
     meta: { title: 'Program Details', module: 'academic-structure' },
   },
   {
     path: '/admissions',
     name: 'admissions',
-    component: AdmissionsView,
+    component: () => import('../modules/admissions/views/AdmissionsView.vue'),
     meta: { title: 'Admissions', module: 'admissions' },
   },
   {
     path: '/admissions/track',
     name: 'admissions-track',
-    component: ApplicationTrackView,
+    component: () => import('../modules/admissions/views/ApplicationTrackView.vue'),
     meta: { title: 'Track Application', module: 'admissions' },
   },
   {
     path: '/faculty',
     name: 'faculty',
-    component: FacultyDirectoryView,
+    component: () => import('../modules/academic-structure/views/FacultyDirectoryView.vue'),
     meta: { title: 'Faculty Directory', module: 'academic-structure' },
   },
   {
     path: '/news',
     name: 'news',
-    component: NewsView,
+    component: () => import('../modules/cms/views/NewsView.vue'),
     meta: { title: 'News', module: 'cms' },
   },
   {
     path: '/news/:slug',
     name: 'news-detail',
-    component: NewsDetailView,
+    component: () => import('../modules/cms/views/NewsDetailView.vue'),
     meta: { title: 'News Details', module: 'cms' },
   },
   {
     path: '/events',
     name: 'events',
-    component: EventsView,
+    component: () => import('../modules/events/views/EventsView.vue'),
     meta: { title: 'Events', module: 'events' },
   },
   {
     path: '/documents',
     name: 'documents',
-    component: DocumentsView,
+    component: () => import('../modules/documents/views/DocumentsView.vue'),
     meta: { title: 'Documents', module: 'documents' },
   },
   {
     path: '/student-portal',
     name: 'student-portal',
-    component: StudentResultsView,
+    component: () => import('../modules/results/views/StudentResultsView.vue'),
     meta: { title: 'Student Results Portal', module: 'results' },
   },
 
@@ -144,7 +127,7 @@ const routes = [
       {
         path: 'admissions',
         name: 'admin-admissions',
-        component: AdminAdmissionsView,
+        component: () => import('../modules/admissions/views/AdminAdmissionsView.vue'),
         meta: { title: 'Admissions Management Queue', requiresAuth: true, module: 'admissions' },
       },
       {
@@ -162,25 +145,25 @@ const routes = [
       {
         path: 'cms',
         name: 'admin-cms',
-        component: AdminCmsView,
+        component: () => import('../modules/cms/views/AdminCmsView.vue'),
         meta: { title: 'News & Announcements CMS', requiresAuth: true, module: 'cms' },
       },
       {
         path: 'events',
         name: 'admin-events',
-        component: AdminEventsView,
+        component: () => import('../modules/events/views/AdminEventsView.vue'),
         meta: { title: 'Events & Calendar Manager', requiresAuth: true, module: 'events' },
       },
       {
         path: 'documents',
         name: 'admin-documents',
-        component: AdminDocumentsView,
+        component: () => import('../modules/documents/views/AdminDocumentsView.vue'),
         meta: { title: 'Documents Repository Manager', requiresAuth: true, module: 'documents' },
       },
       {
         path: 'settings',
         name: 'admin-settings',
-        component: AdminSettingsView,
+        component: () => import('../views/admin/AdminSettingsView.vue'),
         meta: { title: 'Site Customization & Settings', requiresAuth: true },
       },
       {

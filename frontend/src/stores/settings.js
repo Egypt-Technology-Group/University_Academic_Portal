@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { api, getTranslated } from '../services/api'
 import { defaultSettings } from '../services/defaultSettings'
 
+let publicSettingsInFlightPromise = null
+
 export const useSettingsStore = defineStore('settings', {
   state: () => {
     let cached = null
@@ -101,28 +103,43 @@ export const useSettingsStore = defineStore('settings', {
 
   actions: {
     /**
-     * Fetch public settings from backend API.
+     * Fetch public settings from backend API with in-flight deduplication.
      */
-    async fetchPublicSettings() {
+    async fetchPublicSettings(force = false) {
+      if (!force && this.lastUpdated && Date.now() - this.lastUpdated < 60000) {
+        return this.settings
+      }
+
+      if (publicSettingsInFlightPromise && !force) {
+        return publicSettingsInFlightPromise
+      }
+
       this.isLoading = true
       this.error = null
-      try {
-        const fetched = await api.getPublicSettings()
-        if (fetched && Object.keys(fetched).length > 0) {
-          this.settings = {
-            ...this.settings,
-            ...fetched,
+
+      publicSettingsInFlightPromise = (async () => {
+        try {
+          const fetched = await api.getPublicSettings()
+          if (fetched && Object.keys(fetched).length > 0) {
+            this.settings = {
+              ...this.settings,
+              ...fetched,
+            }
+            this.lastUpdated = Date.now()
+            localStorage.setItem('egyitech_site_settings', JSON.stringify(this.settings))
+            this.applyThemeToCssVariables()
           }
-          localStorage.setItem('egyitech_site_settings', JSON.stringify(this.settings))
-          this.applyThemeToCssVariables()
+          return this.settings
+        } catch (err) {
+          console.warn('Could not fetch remote site settings:', err.message)
+          return this.settings
+        } finally {
+          this.isLoading = false
+          publicSettingsInFlightPromise = null
         }
-        return this.settings
-      } catch (err) {
-        console.warn('Could not fetch remote site settings:', err.message)
-        return this.settings
-      } finally {
-        this.isLoading = false
-      }
+      })()
+
+      return publicSettingsInFlightPromise
     },
 
     /**
