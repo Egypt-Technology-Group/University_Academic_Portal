@@ -5,8 +5,8 @@
       <!-- Background Decorative Grid & Gradients -->
       <div class="absolute inset-0 bg-hero-gradient opacity-90"></div>
       <div class="absolute inset-0 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:24px_24px] opacity-10"></div>
-      <div class="absolute -top-40 -right-40 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-navy-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -top-40 -right-40 w-96 h-96 bg-gold-500/15 rounded-full blur-3xl pointer-events-none animate-pulse-slow"></div>
+      <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-navy-500/30 rounded-full blur-3xl pointer-events-none animate-float-slow"></div>
 
       <!-- Slide Content -->
       <div class="relative max-w-7xl mx-auto px-4 sm:px-8 py-16 w-full z-10">
@@ -18,15 +18,15 @@
               {{ activeSlide.badge }}
             </div>
 
-            <h1 v-reveal.fade-up.delay-100 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight">
+            <h1 v-reveal.fade-up.delay-150 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight">
               {{ activeSlide.title }}
             </h1>
 
-            <p v-reveal.fade-up.delay-200 class="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed font-normal">
+            <p v-reveal.fade-up.delay-300 class="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed font-normal">
               {{ activeSlide.subtitle }}
             </p>
 
-            <div v-reveal.fade-up.delay-300 class="flex flex-wrap items-center gap-4 pt-2">
+            <div v-reveal.fade-up.delay-400 class="flex flex-wrap items-center gap-4 pt-2">
               <Button
                 :to="activeSlide.ctaLink"
                 variant="gold"
@@ -55,7 +55,7 @@
           </div>
 
           <!-- Hero Visual / Floating Stats Card -->
-          <div v-reveal.zoom-in.delay-200 class="lg:col-span-5 hidden lg:block">
+          <div v-reveal.zoom-in.delay-300 class="lg:col-span-5 hidden lg:block">
             <div class="relative">
               <div class="rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 relative group">
                 <img
@@ -68,7 +68,7 @@
 
               <!-- Floating Fast Facts Badge -->
               <div class="absolute -bottom-6 -start-6 bg-white text-navy-950 p-4 sm:p-5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-float hover-lift">
-                <div class="w-12 h-12 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center font-black text-xl">
+                <div class="w-12 h-12 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center font-black text-xl animate-pulse-subtle">
                   ★
                 </div>
                 <div class="text-start">
@@ -90,7 +90,7 @@
             type="button"
             :class="[
               'h-2.5 rounded-full transition-all duration-300',
-              currentSlideIndex === index ? 'w-8 bg-gold-400' : 'w-2.5 bg-white/30 hover:bg-white/50'
+              currentSlideIndex === index ? 'w-8 bg-gold-400 shadow-md shadow-gold-400/40' : 'w-2.5 bg-white/30 hover:bg-white/50'
             ]"
             @click="currentSlideIndex = index"
           ></button>
@@ -100,8 +100,8 @@
 
     <!-- KEY METRICS & STATISTICS COUNTER -->
     <section v-if="settingsStore.activeStatisticsItems && settingsStore.activeStatisticsItems.length > 0" class="max-w-7xl mx-auto px-4 sm:px-8">
-      <div class="bg-gradient-to-br from-navy-900 to-navy-950 text-white rounded-3xl p-8 sm:p-12 shadow-xl border border-navy-800">
-        <div v-reveal.fade-up class="text-center max-w-2xl mx-auto mb-10 space-y-2">
+      <div v-reveal.fade-up class="bg-gradient-to-br from-navy-900 to-navy-950 text-white rounded-3xl p-8 sm:p-12 shadow-xl border border-navy-800">
+        <div class="text-center max-w-2xl mx-auto mb-10 space-y-2">
           <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
             {{ settingsStore.statisticsTitle(localeStore.locale) || $t('stats.title') }}
           </h2>
@@ -122,16 +122,16 @@
             v-for="(item, index) in settingsStore.activeStatisticsItems"
             :key="item.id || item.order || index"
             v-reveal.fade-up
-            class="pt-4 md:pt-0 space-y-1"
+            class="pt-4 md:pt-0 space-y-1 group hover-lift cursor-default"
             :class="'delay-' + Math.min((index + 1) * 100, 600)"
           >
             <div
-              class="text-3xl sm:text-4xl font-black tracking-tight"
+              class="text-3xl sm:text-4xl font-black tracking-tight transition-transform duration-300 group-hover:scale-110"
               :class="item.color === 'emerald' ? 'text-emerald-400' : item.color === 'sky' ? 'text-sky-400' : item.color === 'white' ? 'text-white' : 'text-gold-400'"
             >
               <AnimatedCounter
                 :value="`${item.prefix || ''}${item.value}${item.suffix && !item.value.includes(item.suffix) ? item.suffix : ''}`"
-                :delay="index * 100"
+                :delay="index * 120"
               />
             </div>
             <div class="text-xs sm:text-sm font-medium text-slate-300">

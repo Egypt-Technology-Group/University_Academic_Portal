@@ -1,24 +1,13 @@
 /**
  * v-reveal Scroll Reveal Vue 3 Directive
  *
- * Provides performant viewport-entry reveal animations utilizing IntersectionObserver
- * and accessible prefers-reduced-motion fallback.
- *
- * Supported Animations:
- * - v-reveal (defaults to fade-up)
- * - v-reveal.fade-in / v-reveal="'fade-in'"
- * - v-reveal.slide-start / v-reveal="'slide-start'"
- * - v-reveal.slide-end / v-reveal="'slide-end'"
- * - v-reveal.zoom-in / v-reveal="'zoom-in'"
- * - v-reveal.scale-up / v-reveal="'scale-up'"
- *
- * Supported Delay Modifiers:
- * - v-reveal.delay-100, v-reveal.delay-200, v-reveal.delay-300,
- *   v-reveal.delay-400, v-reveal.delay-500, v-reveal.delay-600
+ * Provides performant, reliable viewport-entry animations utilizing IntersectionObserver.
+ * Ensures animations ONLY trigger when elements genuinely enter the user's viewport on scroll.
  */
 
 const ANIMATION_TYPES = [
   'fade-up',
+  'fade-down',
   'fade-in',
   'slide-start',
   'slide-end',
@@ -27,22 +16,32 @@ const ANIMATION_TYPES = [
 ]
 
 const DELAYS = [
+  'delay-75',
   'delay-100',
+  'delay-150',
   'delay-200',
+  'delay-250',
   'delay-300',
+  'delay-350',
   'delay-400',
   'delay-500',
-  'delay-600'
+  'delay-600',
+  'delay-700',
+  'delay-800'
 ]
+
+function isReducedMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+}
 
 export const vReveal = {
   mounted(el, binding) {
-    // 1. Accessibility Check: prefers-reduced-motion
-    const prefersReducedMotion = typeof window !== 'undefined' &&
-      window.matchMedia &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    if (prefersReducedMotion) {
+    // 1. Respect accessibility: prefers-reduced-motion
+    if (isReducedMotion()) {
       el.classList.add('reveal-active')
       return
     }
@@ -51,7 +50,12 @@ export const vReveal = {
     let animation = 'fade-up'
     if (typeof binding.value === 'string' && ANIMATION_TYPES.includes(binding.value)) {
       animation = binding.value
-    } else if (binding.value && typeof binding.value === 'object' && binding.value.animation && ANIMATION_TYPES.includes(binding.value.animation)) {
+    } else if (
+      binding.value &&
+      typeof binding.value === 'object' &&
+      binding.value.animation &&
+      ANIMATION_TYPES.includes(binding.value.animation)
+    ) {
       animation = binding.value.animation
     } else if (binding.modifiers) {
       const foundInModifiers = ANIMATION_TYPES.find(type => binding.modifiers[type])
@@ -63,7 +67,7 @@ export const vReveal = {
     // 3. Add base reveal classes
     el.classList.add('reveal-init', `reveal-${animation}`)
 
-    // 4. Resolve delay modifiers & attributes
+    // 4. Resolve delay modifiers, classes, and inline styles
     if (binding.modifiers) {
       Object.keys(binding.modifiers).forEach(mod => {
         if (DELAYS.includes(mod) || mod.startsWith('delay-')) {
@@ -74,11 +78,12 @@ export const vReveal = {
 
     if (typeof binding.value === 'string' && binding.value.startsWith('delay-')) {
       el.classList.add(binding.value)
-    } else if (binding.value && typeof binding.value === 'object' && binding.value.delay) {
-      const delayClass = typeof binding.value.delay === 'number'
-        ? `delay-${binding.value.delay}`
-        : binding.value.delay
-      el.classList.add(delayClass)
+    } else if (binding.value && typeof binding.value === 'object' && binding.value.delay !== undefined) {
+      if (typeof binding.value.delay === 'number') {
+        el.style.transitionDelay = `${binding.value.delay}ms`
+      } else {
+        el.classList.add(binding.value.delay)
+      }
     }
 
     // 5. Fallback for environments lacking IntersectionObserver
@@ -88,20 +93,32 @@ export const vReveal = {
     }
 
     // 6. Observe element entry into viewport
-    const observer = new IntersectionObserver((entries, obs) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('reveal-active')
-          obs.unobserve(entry.target)
-        }
-      })
-    }, {
-      rootMargin: '0px 0px -40px 0px',
-      threshold: 0.1
-    })
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            // Element entered viewport: activate transition and unobserve
+            entry.target.classList.add('reveal-active')
+            obs.unobserve(entry.target)
+          }
+        })
+      },
+      {
+        root: null,
+        // Bottom margin ensures elements don't trigger until scrolled well into view
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.12
+      }
+    )
 
-    observer.observe(el)
     el._revealObserver = observer
+
+    // Use requestAnimationFrame so layout calculations settle after dynamic data loads
+    requestAnimationFrame(() => {
+      if (el._revealObserver) {
+        el._revealObserver.observe(el)
+      }
+    })
   },
 
   unmounted(el) {
