@@ -1,10 +1,10 @@
 <template>
   <footer class="bg-navy-950 text-slate-300 border-t border-navy-900 mt-auto">
     <!-- Accreditation & Institutional Badges Bar -->
-    <div class="bg-navy-900/60 border-b border-navy-800/80 py-6 px-4 sm:px-8">
+    <div v-reveal.fade-in class="bg-navy-900/60 border-b border-navy-800/80 py-6 px-4 sm:px-8">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-6">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400">
+        <div class="flex items-center gap-3 hover-lift">
+          <div class="w-10 h-10 rounded-lg bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 shrink-0">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
             </svg>
@@ -15,8 +15,8 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+        <div class="flex items-center gap-3 hover-lift">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
@@ -33,9 +33,9 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-8 py-12 lg:py-16">
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10">
         <!-- University Brand & Overview -->
-        <div class="lg:col-span-4 space-y-4">
+        <div v-reveal.fade-up class="lg:col-span-4 space-y-4">
           <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-navy-900 to-navy-800 flex items-center justify-center text-gold-400 shadow-md border border-gold-500/30">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-navy-900 to-navy-800 flex items-center justify-center text-gold-400 shadow-md border border-gold-500/30 hover-lift">
               <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v7m-3-4l3-3 3 3" />
@@ -62,7 +62,7 @@
               :href="settingsStore.socialLinks.facebook"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-9 h-9 rounded-lg bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-slate-300 flex items-center justify-center transition-colors border border-navy-800"
+              class="w-9 h-9 rounded-lg bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-slate-300 flex items-center justify-center transition-all duration-200 border border-navy-800 hover-lift btn-press"
               title="Facebook"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
@@ -72,7 +72,7 @@
               :href="settingsStore.socialLinks.twitter"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-9 h-9 rounded-lg bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-slate-300 flex items-center justify-center transition-colors border border-navy-800"
+              class="w-9 h-9 rounded-lg bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-slate-300 flex items-center justify-center transition-all duration-200 border border-navy-800 hover-lift btn-press"
               title="X (Twitter)"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -82,7 +82,7 @@
               :href="settingsStore.socialLinks.linkedin"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-9 h-9 rounded-lg bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-slate-300 flex items-center justify-center transition-colors border border-navy-800"
+              class="w-9 h-9 rounded-lg bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-slate-300 flex items-center justify-center transition-all duration-200 border border-navy-800 hover-lift btn-press"
               title="LinkedIn"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
@@ -92,7 +92,7 @@
               :href="settingsStore.socialLinks.youtube"
               target="_blank"
               rel="noopener noreferrer"
-              class="w-9 h-9 rounded-lg bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-slate-300 flex items-center justify-center transition-colors border border-navy-800"
+              class="w-9 h-9 rounded-lg bg-navy-900 hover:bg-gold-500 hover:text-navy-950 text-slate-300 flex items-center justify-center transition-all duration-200 border border-navy-800 hover-lift btn-press"
               title="YouTube"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
@@ -101,28 +101,28 @@
         </div>
 
         <!-- Quick Academic Links Col 1 -->
-        <div class="lg:col-span-2 space-y-3">
+        <div v-reveal.fade-up.delay-100 class="lg:col-span-2 space-y-3">
           <h4 class="text-xs font-bold uppercase tracking-wider text-gold-400">
             {{ $t('footer.academicCol') }}
           </h4>
           <ul class="space-y-2 text-xs">
             <li>
-              <router-link to="/colleges" class="hover:text-gold-400 transition-colors">
+              <router-link to="/colleges" class="hover:text-gold-400 transition-colors inline-block hover:translate-x-1 rtl:hover:-translate-x-1 duration-150">
                 {{ $t('nav.colleges') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/programs" class="hover:text-gold-400 transition-colors">
+              <router-link to="/programs" class="hover:text-gold-400 transition-colors inline-block hover:translate-x-1 rtl:hover:-translate-x-1 duration-150">
                 {{ $t('nav.programs') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/faculty" class="hover:text-gold-400 transition-colors">
+              <router-link to="/faculty" class="hover:text-gold-400 transition-colors inline-block hover:translate-x-1 rtl:hover:-translate-x-1 duration-150">
                 {{ $t('nav.faculty') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/documents" class="hover:text-gold-400 transition-colors">
+              <router-link to="/documents" class="hover:text-gold-400 transition-colors inline-block hover:translate-x-1 rtl:hover:-translate-x-1 duration-150">
                 {{ $t('nav.documents') }}
               </router-link>
             </li>
@@ -130,28 +130,28 @@
         </div>
 
         <!-- Quick Links Col 2 -->
-        <div class="lg:col-span-2 space-y-3">
+        <div v-reveal.fade-up.delay-200 class="lg:col-span-2 space-y-3">
           <h4 class="text-xs font-bold uppercase tracking-wider text-gold-400">
             {{ $t('footer.servicesCol') }}
           </h4>
           <ul class="space-y-2 text-xs">
             <li>
-              <router-link to="/admissions" class="hover:text-gold-400 transition-colors">
+              <router-link to="/admissions" class="hover:text-gold-400 transition-colors inline-block hover:translate-x-1 rtl:hover:-translate-x-1 duration-150">
                 {{ $t('nav.admissions') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/admissions/track" class="hover:text-gold-400 transition-colors">
+              <router-link to="/admissions/track" class="hover:text-gold-400 transition-colors inline-block hover:translate-x-1 rtl:hover:-translate-x-1 duration-150">
                 {{ $t('nav.trackApp') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/student-portal" class="hover:text-gold-400 transition-colors">
+              <router-link to="/student-portal" class="hover:text-gold-400 transition-colors inline-block hover:translate-x-1 rtl:hover:-translate-x-1 duration-150">
                 {{ $t('nav.studentPortal') }}
               </router-link>
             </li>
             <li>
-              <router-link to="/news" class="hover:text-gold-400 transition-colors">
+              <router-link to="/news" class="hover:text-gold-400 transition-colors inline-block hover:translate-x-1 rtl:hover:-translate-x-1 duration-150">
                 {{ $t('nav.news') }}
               </router-link>
             </li>
@@ -159,7 +159,7 @@
         </div>
 
         <!-- Newsletter & Contact -->
-        <div class="lg:col-span-4 space-y-4">
+        <div v-reveal.fade-up.delay-300 class="lg:col-span-4 space-y-4">
           <h4 class="text-xs font-bold uppercase tracking-wider text-gold-400">
             {{ $t('footer.newsletterTitle') }}
           </h4>
@@ -174,16 +174,16 @@
                 type="email"
                 required
                 :placeholder="$t('footer.newsletterPlaceholder')"
-                class="flex-1 px-3.5 py-2 text-xs bg-navy-900 border border-navy-800 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-gold-500"
+                class="flex-1 px-3.5 py-2 text-xs bg-navy-900 border border-navy-800 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-gold-500 transition-colors"
               />
               <button
                 type="submit"
-                class="px-4 py-2 text-xs font-bold bg-gold-500 text-navy-950 rounded-xl hover:bg-gold-400 transition-colors shrink-0 shadow-sm"
+                class="px-4 py-2 text-xs font-bold bg-gold-500 text-navy-950 rounded-xl hover:bg-gold-400 transition-all shrink-0 shadow-sm hover-lift btn-press"
               >
                 {{ $t('footer.subscribe') }}
               </button>
             </div>
-            <p v-if="subscribed" class="text-xs text-emerald-400 font-medium">
+            <p v-if="subscribed" class="text-xs text-emerald-400 font-medium animate-fade-in">
               ✓ {{ $t('footer.subscribed') }}
             </p>
           </form>
@@ -208,7 +208,7 @@
     </div>
 
     <!-- Bottom Copyright & Legal Sub-footer -->
-    <div class="border-t border-navy-900 bg-navy-950 py-4 px-4 sm:px-8 text-xs text-slate-500">
+    <div v-reveal.fade-in class="border-t border-navy-900 bg-navy-950 py-4 px-4 sm:px-8 text-xs text-slate-500">
       <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-start">
         <p>{{ settingsStore.footerCopyright(localeStore.locale) || $t('footer.copyright') }}</p>
         <div class="flex items-center gap-4">

@@ -13,25 +13,26 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <!-- Slide Text & CTAs -->
           <div class="lg:col-span-7 space-y-6 text-start">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold-500/15 border border-gold-500/30 text-gold-300 text-xs sm:text-sm font-semibold tracking-wide backdrop-blur-sm">
+            <div v-reveal.fade-up class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gold-500/15 border border-gold-500/30 text-gold-300 text-xs sm:text-sm font-semibold tracking-wide backdrop-blur-sm">
               <span class="w-2 h-2 rounded-full bg-gold-400 animate-ping"></span>
               {{ activeSlide.badge }}
             </div>
 
-            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight">
+            <h1 v-reveal.fade-up.delay-100 class="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight">
               {{ activeSlide.title }}
             </h1>
 
-            <p class="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed font-normal">
+            <p v-reveal.fade-up.delay-200 class="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed font-normal">
               {{ activeSlide.subtitle }}
             </p>
 
-            <div class="flex flex-wrap items-center gap-4 pt-2">
+            <div v-reveal.fade-up.delay-300 class="flex flex-wrap items-center gap-4 pt-2">
               <Button
                 :to="activeSlide.ctaLink"
                 variant="gold"
                 size="lg"
                 rounded="xl"
+                class="hover-lift btn-press"
               >
                 {{ activeSlide.ctaText }}
                 <template #trailingIcon>
@@ -46,6 +47,7 @@
                 variant="white"
                 size="lg"
                 rounded="xl"
+                class="hover-lift btn-press"
               >
                 {{ activeSlide.secondaryText }}
               </Button>
@@ -53,7 +55,7 @@
           </div>
 
           <!-- Hero Visual / Floating Stats Card -->
-          <div class="lg:col-span-5 hidden lg:block">
+          <div v-reveal.zoom-in.delay-200 class="lg:col-span-5 hidden lg:block">
             <div class="relative">
               <div class="rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10 relative group">
                 <img
@@ -65,13 +67,15 @@
               </div>
 
               <!-- Floating Fast Facts Badge -->
-              <div class="absolute -bottom-6 -start-6 bg-white text-navy-950 p-4 sm:p-5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4">
+              <div class="absolute -bottom-6 -start-6 bg-white text-navy-950 p-4 sm:p-5 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-float hover-lift">
                 <div class="w-12 h-12 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center font-black text-xl">
                   ★
                 </div>
                 <div class="text-start">
                   <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">{{ $t('stats.employment') }}</div>
-                  <div class="text-2xl font-black text-navy-950">96.8%</div>
+                  <div class="text-2xl font-black text-navy-950">
+                    <AnimatedCounter value="96.8%" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -97,7 +101,7 @@
     <!-- KEY METRICS & STATISTICS COUNTER -->
     <section v-if="settingsStore.activeStatisticsItems && settingsStore.activeStatisticsItems.length > 0" class="max-w-7xl mx-auto px-4 sm:px-8">
       <div class="bg-gradient-to-br from-navy-900 to-navy-950 text-white rounded-3xl p-8 sm:p-12 shadow-xl border border-navy-800">
-        <div class="text-center max-w-2xl mx-auto mb-10 space-y-2">
+        <div v-reveal.fade-up class="text-center max-w-2xl mx-auto mb-10 space-y-2">
           <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
             {{ settingsStore.statisticsTitle(localeStore.locale) || $t('stats.title') }}
           </h2>
@@ -115,15 +119,20 @@
           ]"
         >
           <div
-            v-for="item in settingsStore.activeStatisticsItems"
-            :key="item.id || item.order"
+            v-for="(item, index) in settingsStore.activeStatisticsItems"
+            :key="item.id || item.order || index"
+            v-reveal.fade-up
             class="pt-4 md:pt-0 space-y-1"
+            :class="'delay-' + Math.min((index + 1) * 100, 600)"
           >
             <div
               class="text-3xl sm:text-4xl font-black tracking-tight"
               :class="item.color === 'emerald' ? 'text-emerald-400' : item.color === 'sky' ? 'text-sky-400' : item.color === 'white' ? 'text-white' : 'text-gold-400'"
             >
-              {{ item.prefix || '' }}{{ item.value }}{{ item.suffix && !item.value.includes(item.suffix) ? item.suffix : '' }}
+              <AnimatedCounter
+                :value="`${item.prefix || ''}${item.value}${item.suffix && !item.value.includes(item.suffix) ? item.suffix : ''}`"
+                :delay="index * 100"
+              />
             </div>
             <div class="text-xs sm:text-sm font-medium text-slate-300">
               {{ getTranslated(item.label, localeStore.locale) }}
@@ -135,7 +144,7 @@
 
     <!-- FEATURED COLLEGES SECTION -->
     <section v-if="modulesStore.isModuleEnabled('academic-structure') && colleges.length > 0" class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div v-reveal.fade-up class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div class="text-xs font-bold uppercase tracking-wider text-gold-600 mb-1">
             {{ $t('colleges.title') }}
@@ -149,10 +158,10 @@
         </div>
         <router-link
           to="/colleges"
-          class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors shrink-0"
+          class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors shrink-0 group"
         >
-          {{ $t('home.viewAllColleges') }}
-          <svg class="w-4 h-4 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span>{{ $t('home.viewAllColleges') }}</span>
+          <svg class="w-4 h-4 rtl-flip transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </router-link>
@@ -160,10 +169,11 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <Card
-          v-for="college in colleges.slice(0, 3)"
+          v-for="(college, index) in colleges.slice(0, 3)"
           :key="college.id"
+          v-reveal.fade-up
+          :class="['group card-interactive', 'delay-' + Math.min((index + 1) * 100, 600)]"
           padding="none"
-          class="group"
         >
           <!-- College Cover Image -->
           <div class="relative h-48 overflow-hidden bg-navy-950">
@@ -198,10 +208,10 @@
               </div>
               <router-link
                 :to="`/colleges/${college.slug}`"
-                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1"
+                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1 group/btn"
               >
-                {{ $t('common.viewDetails') }}
-                <svg class="w-3.5 h-3.5 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span>{{ $t('common.viewDetails') }}</span>
+                <svg class="w-3.5 h-3.5 rtl-flip transform group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </router-link>
@@ -214,7 +224,7 @@
     <!-- FEATURED DEGREE PROGRAMS -->
     <section v-if="modulesStore.isModuleEnabled('academic-structure') && programs.length > 0" class="bg-slate-100/70 py-16 border-y border-slate-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div v-reveal.fade-up class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <div class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">
               {{ $t('programs.title') }}
@@ -228,10 +238,10 @@
           </div>
           <router-link
             to="/programs"
-            class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-emerald-600 transition-colors shrink-0"
+            class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-emerald-600 transition-colors shrink-0 group"
           >
-            {{ $t('home.viewAllPrograms') }}
-            <svg class="w-4 h-4 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span>{{ $t('home.viewAllPrograms') }}</span>
+            <svg class="w-4 h-4 rtl-flip transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </router-link>
@@ -239,10 +249,11 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card
-            v-for="program in programs.slice(0, 3)"
+            v-for="(program, index) in programs.slice(0, 3)"
             :key="program.id"
+            v-reveal.fade-up
+            :class="['card-interactive hover:border-gold-300', 'delay-' + Math.min((index + 1) * 100, 600)]"
             padding="lg"
-            class="hover:border-gold-300"
           >
             <div class="flex items-center justify-between gap-2 mb-3">
               <Badge variant="subtle" size="sm">
@@ -266,10 +277,10 @@
             <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
               <router-link
                 :to="`/programs/${program.slug}`"
-                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1"
+                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1 group/btn"
               >
-                {{ $t('programs.curriculum') }}
-                <svg class="w-3 h-3 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span>{{ $t('programs.curriculum') }}</span>
+                <svg class="w-3 h-3 rtl-flip transform group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </router-link>
@@ -277,7 +288,7 @@
               <router-link
                 v-if="modulesStore.isModuleEnabled('admissions')"
                 :to="`/admissions?program_id=${program.id}`"
-                class="px-3 py-1.5 text-xs font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 rounded-lg transition-colors"
+                class="px-3 py-1.5 text-xs font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 rounded-lg transition-colors hover-lift btn-press"
               >
                 {{ $t('programs.applyForProgram') }}
               </router-link>
@@ -291,12 +302,12 @@
     <section class="max-w-7xl mx-auto px-4 sm:px-8">
       <div class="bg-white rounded-3xl p-8 sm:p-12 shadow-academic border border-slate-200/80">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div class="lg:col-span-4 text-center">
-            <div class="relative inline-block">
+          <div v-reveal.zoom-in class="lg:col-span-4 text-center">
+            <div class="relative inline-block group">
               <img
                 :src="settingsStore.presidentAvatar"
                 alt="President"
-                class="w-48 h-48 sm:w-56 sm:h-56 rounded-3xl object-cover shadow-lg border-4 border-gold-400/50 mx-auto"
+                class="w-48 h-48 sm:w-56 sm:h-56 rounded-3xl object-cover shadow-lg border-4 border-gold-400/50 mx-auto transition-transform duration-500 group-hover:scale-105"
               />
               <div class="absolute -bottom-3 inset-x-0 mx-auto w-fit bg-navy-900 text-gold-400 text-xs font-bold px-3 py-1 rounded-full shadow">
                 {{ settingsStore.presidentTitle(localeStore.locale) || $t('home.presidentTitle') }}
@@ -308,7 +319,7 @@
             <p class="text-xs text-slate-500">Ph.D., Senior Member IEEE</p>
           </div>
 
-          <div class="lg:col-span-8 space-y-4 text-start">
+          <div v-reveal.fade-up.delay-200 class="lg:col-span-8 space-y-4 text-start">
             <div class="inline-flex items-center gap-2 text-gold-600 text-xs font-bold uppercase tracking-wider">
               <span>❝</span> {{ $t('home.presidentMessage') }}
             </div>
@@ -322,9 +333,10 @@
               <router-link
                 v-if="modulesStore.isModuleEnabled('academic-structure')"
                 to="/colleges"
-                class="text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1.5"
+                class="text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1.5 group"
               >
-                {{ $t('hero.slide3_cta') }} →
+                <span>{{ $t('hero.slide3_cta') }}</span>
+                <span class="transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">→</span>
               </router-link>
             </div>
           </div>
@@ -334,7 +346,7 @@
 
     <!-- LATEST NEWS & EVENTS SECTION (TABS / GRID) -->
     <section v-if="modulesStore.isModuleEnabled('cms') && news.length > 0" class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div v-reveal.fade-up class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div class="text-xs font-bold uppercase tracking-wider text-navy-600 mb-1">
             {{ $t('nav.news') }}
@@ -348,10 +360,10 @@
         </div>
         <router-link
           to="/news"
-          class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors shrink-0"
+          class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors shrink-0 group"
         >
-          {{ $t('home.viewAllNews') }}
-          <svg class="w-4 h-4 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span>{{ $t('home.viewAllNews') }}</span>
+          <svg class="w-4 h-4 rtl-flip transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </router-link>
@@ -359,10 +371,11 @@
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <Card
-          v-for="article in news.slice(0, 3)"
+          v-for="(article, index) in news.slice(0, 3)"
           :key="article.id"
+          v-reveal.fade-up
+          :class="['group card-interactive', 'delay-' + Math.min((index + 1) * 100, 600)]"
           padding="none"
-          class="group"
         >
           <div class="relative h-48 overflow-hidden bg-slate-100">
             <img
@@ -395,10 +408,10 @@
             <div class="pt-4 border-t border-slate-100">
               <router-link
                 :to="`/news/${article.slug}`"
-                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1"
+                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1 group/btn"
               >
-                {{ $t('home.readMore') }}
-                <svg class="w-3 h-3 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span>{{ $t('home.readMore') }}</span>
+                <svg class="w-3 h-3 rtl-flip transform group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </router-link>
@@ -410,7 +423,7 @@
 
     <!-- UPCOMING EVENTS CARDS -->
     <section v-if="modulesStore.isModuleEnabled('events') && events.length > 0" class="max-w-7xl mx-auto px-4 sm:px-8 space-y-8">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div v-reveal.fade-up class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div class="text-xs font-bold uppercase tracking-wider text-gold-600 mb-1">
             {{ $t('nav.events') }}
@@ -424,10 +437,10 @@
         </div>
         <router-link
           to="/events"
-          class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors shrink-0"
+          class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors shrink-0 group"
         >
-          {{ $t('home.viewAllEvents') }}
-          <svg class="w-4 h-4 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <span>{{ $t('home.viewAllEvents') }}</span>
+          <svg class="w-4 h-4 rtl-flip transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </router-link>
@@ -435,9 +448,10 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div
-          v-for="event in events.slice(0, 2)"
+          v-for="(event, index) in events.slice(0, 2)"
           :key="event.id"
-          class="bg-white rounded-2xl p-6 shadow-academic border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-6 hover:shadow-academic-lg transition-all duration-300"
+          v-reveal.fade-up
+          :class="['bg-white rounded-2xl p-6 shadow-academic border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-6 hover:shadow-academic-lg hover-lift transition-all duration-300', 'delay-' + Math.min((index + 1) * 100, 600)]"
         >
           <!-- Date Badge -->
           <div class="w-20 h-20 rounded-2xl bg-navy-900 text-white flex flex-col items-center justify-center shrink-0 border border-navy-800">
@@ -461,7 +475,7 @@
           <!-- Action -->
           <router-link
             to="/events"
-            class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-navy-900 hover:text-white text-navy-950 rounded-xl transition-colors shrink-0"
+            class="px-4 py-2 text-xs font-bold bg-slate-100 hover:bg-navy-900 hover:text-white text-navy-950 rounded-xl transition-colors shrink-0 hover-lift btn-press"
           >
             {{ $t('events.registerEvent') }}
           </router-link>
@@ -471,9 +485,9 @@
 
     <!-- CALL TO ACTION BANNER -->
     <section class="max-w-7xl mx-auto px-4 sm:px-8">
-      <div class="bg-gradient-to-r from-navy-950 via-navy-900 to-navy-800 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden text-center shadow-xl border border-navy-800">
+      <div v-reveal.zoom-in class="bg-gradient-to-r from-navy-950 via-navy-900 to-navy-800 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden text-center shadow-xl border border-navy-800">
         <div class="relative z-10 max-w-2xl mx-auto space-y-6">
-          <Badge variant="gold" size="md" rounded="full">
+          <Badge variant="gold" size="md" rounded="full" class="animate-pulse-subtle">
             {{ $t('admissions.cycle') }}
           </Badge>
           <h2 class="text-2xl sm:text-4xl font-black tracking-tight">
@@ -488,6 +502,7 @@
               variant="gold"
               size="lg"
               rounded="xl"
+              class="hover-lift btn-press"
             >
               {{ $t('nav.applyNow') }}
             </Button>
@@ -496,6 +511,7 @@
               variant="white"
               size="lg"
               rounded="xl"
+              class="hover-lift btn-press"
             >
               {{ $t('hero.slide1_cta') }}
             </Button>
@@ -517,6 +533,7 @@ import { formatStandardDate, getLocalizedMonth, getLocalizedDay } from '../utils
 import Button from '../components/ui/Button.vue'
 import Badge from '../components/ui/Badge.vue'
 import Card from '../components/ui/Card.vue'
+import AnimatedCounter from '../components/ui/AnimatedCounter.vue'
 
 const localeStore = useLocaleStore()
 const settingsStore = useSettingsStore()
