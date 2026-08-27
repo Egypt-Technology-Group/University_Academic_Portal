@@ -250,13 +250,11 @@ jobs:
       # ============================================
       - name: Run deployment helper
         run: |
-          curl \
-            --insecure \
-            --fail-with-body \
-            --silent \
-            --show-error \
-            --max-time 120 \
-            https://university-backend.demo.egyitech.com/deploy.php
+          DEPLOY_HELPER_ARGS="--insecure --fail-with-body --silent --show-error --max-time 120"
+          curl $DEPLOY_HELPER_ARGS \
+            https://university-backend.demo.egyitech.com/deploy.php \
+            || curl $DEPLOY_HELPER_ARGS \
+            https://university-backend.demo.egyitech.com/public/deploy.php
 
       # ============================================
       # 12. Done
