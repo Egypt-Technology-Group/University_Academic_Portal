@@ -28,12 +28,15 @@ moduleRegistry.registerAll([
   ResultsModule,
 ])
 
+import { vReveal } from './directives/vReveal'
+
 const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
 app.use(router)
 app.use(i18n)
+app.directive('reveal', vReveal)
 
 // Apply cached theme colors & hydrate module manifest before DOM mount
 const settingsStore = useSettingsStore(pinia)
