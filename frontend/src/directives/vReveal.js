@@ -1,7 +1,7 @@
 /**
  * v-reveal Scroll Reveal Vue 3 Directive
  *
- * Provides performant, reliable viewport-entry animations utilizing IntersectionObserver.
+ * Provides smooth, reliable viewport-entry animations utilizing IntersectionObserver.
  * Ensures animations ONLY trigger when elements genuinely enter the user's viewport on scroll.
  */
 
@@ -30,23 +30,40 @@ const DELAYS = [
   'delay-800'
 ]
 
-function isReducedMotion() {
-  return (
-    typeof window !== 'undefined' &&
-    window.matchMedia &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  )
+let sharedObserver = null
+
+function getSharedObserver() {
+  if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+    return null
+  }
+
+  if (!sharedObserver) {
+    sharedObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const rect = entry.target.getBoundingClientRect()
+            if (rect.top <= window.innerHeight - 30 && rect.bottom >= 0) {
+              entry.target.classList.add('reveal-active')
+              sharedObserver.unobserve(entry.target)
+            }
+          }
+        })
+      },
+      {
+        root: null,
+        rootMargin: '0px 0px -40px 0px',
+        threshold: [0, 0.1]
+      }
+    )
+  }
+
+  return sharedObserver
 }
 
 export const vReveal = {
   mounted(el, binding) {
-    // 1. Respect accessibility: prefers-reduced-motion
-    if (isReducedMotion()) {
-      el.classList.add('reveal-active')
-      return
-    }
-
-    // 2. Resolve animation variant (default: 'fade-up')
+    // 1. Resolve animation variant (default: 'fade-up')
     let animation = 'fade-up'
     if (typeof binding.value === 'string' && ANIMATION_TYPES.includes(binding.value)) {
       animation = binding.value
@@ -64,12 +81,12 @@ export const vReveal = {
       }
     }
 
-    // 3. Add base reveal classes
+    // 2. Add base reveal classes
     el.classList.add('reveal-init', `reveal-${animation}`)
 
-    // 4. Resolve delay modifiers, classes, and inline styles
+    // 3. Resolve delay modifiers, classes, and inline styles
     if (binding.modifiers) {
-      Object.keys(binding.modifiers).forEach(mod => {
+      Object.keys(binding.modifiers).forEach((mod) => {
         if (DELAYS.includes(mod) || mod.startsWith('delay-')) {
           el.classList.add(mod)
         }
@@ -86,46 +103,29 @@ export const vReveal = {
       }
     }
 
-    // 5. Fallback for environments lacking IntersectionObserver
-    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+    // 4. Fallback for environments lacking IntersectionObserver
+    const observer = getSharedObserver()
+    if (!observer) {
       el.classList.add('reveal-active')
       return
     }
 
-    // 6. Observe element entry into viewport
-    const observer = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            // Element entered viewport: activate transition and unobserve
-            entry.target.classList.add('reveal-active')
-            obs.unobserve(entry.target)
-          }
-        })
-      },
-      {
-        root: null,
-        // Bottom margin ensures elements don't trigger until scrolled well into view
-        rootMargin: '0px 0px -50px 0px',
-        threshold: 0.12
-      }
-    )
-
-    el._revealObserver = observer
-
-    // Use requestAnimationFrame so layout calculations settle after dynamic data loads
+    // 5. Initial viewport check with double rAF for smooth entrance on load
     requestAnimationFrame(() => {
-      if (el._revealObserver) {
-        el._revealObserver.observe(el)
-      }
+      requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect()
+        if (rect.top <= window.innerHeight - 30 && rect.bottom >= 0) {
+          el.classList.add('reveal-active')
+        } else {
+          observer.observe(el)
+        }
+      })
     })
   },
 
   unmounted(el) {
-    if (el._revealObserver) {
-      el._revealObserver.unobserve(el)
-      el._revealObserver.disconnect()
-      delete el._revealObserver
+    if (sharedObserver) {
+      sharedObserver.unobserve(el)
     }
   }
 }

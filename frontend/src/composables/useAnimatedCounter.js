@@ -1,16 +1,6 @@
 import { ref, watch, onMounted, onUnmounted, unref } from 'vue'
 
 /**
- * Checks if prefers-reduced-motion is requested by the user.
- */
-function isReducedMotion() {
-  if (typeof window === 'undefined' || !window.matchMedia) {
-    return false
-  }
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-}
-
-/**
  * Parses a string or number into prefix, numeric value, suffix, decimal precision, and comma formatting.
  * Examples:
  *   "96.8%"      => { prefix: "", targetNum: 96.8, suffix: "%", decimals: 1, hasCommas: false }
@@ -115,7 +105,7 @@ export function useAnimatedCounter(targetValue, optionsOrDuration = {}) {
     startValue = 0,
     immediate = false,
     threshold = 0.15,
-    rootMargin = '0px 0px -50px 0px'
+    rootMargin = '0px 0px -40px 0px'
   } = options
 
   const elementRef = ref(null)
@@ -138,12 +128,7 @@ export function useAnimatedCounter(targetValue, optionsOrDuration = {}) {
   const initialRaw = getRawValue()
   const initialMeta = parseCounterValue(initialRaw)
   if (initialMeta) {
-    if (isReducedMotion()) {
-      displayValue.value = formatCounterNumber(initialMeta.targetNum, initialMeta)
-      currentNumericValue = initialMeta.targetNum
-    } else {
-      displayValue.value = formatCounterNumber(startValue, initialMeta)
-    }
+    displayValue.value = formatCounterNumber(startValue, initialMeta)
   } else {
     displayValue.value = initialRaw !== null && initialRaw !== undefined ? String(initialRaw) : ''
   }
@@ -168,7 +153,7 @@ export function useAnimatedCounter(targetValue, optionsOrDuration = {}) {
 
     const targetNum = customTo !== null ? customTo : meta.targetNum
 
-    if (isReducedMotion() || duration <= 0) {
+    if (duration <= 0) {
       currentNumericValue = targetNum
       displayValue.value = formatCounterNumber(targetNum, meta)
       isAnimating.value = false
@@ -206,13 +191,6 @@ export function useAnimatedCounter(targetValue, optionsOrDuration = {}) {
    * Set up IntersectionObserver when mounted.
    */
   onMounted(() => {
-    if (isReducedMotion()) {
-      const raw = getRawValue()
-      const meta = parseCounterValue(raw)
-      displayValue.value = meta ? formatCounterNumber(meta.targetNum, meta) : (raw ?? '')
-      return
-    }
-
     if (immediate || typeof window === 'undefined' || !window.IntersectionObserver) {
       hasTriggered = true
       startAnimation(startValue)
@@ -223,17 +201,20 @@ export function useAnimatedCounter(targetValue, optionsOrDuration = {}) {
       observer = new IntersectionObserver((entries) => {
         const entry = entries[0]
         if (entry && entry.isIntersecting && !hasTriggered) {
-          hasTriggered = true
-          if (delay > 0) {
-            setTimeout(() => startAnimation(currentNumericValue), delay)
-          } else {
-            startAnimation(currentNumericValue)
-          }
+          const rect = entry.target.getBoundingClientRect()
+          if (rect.top <= window.innerHeight - 30 && rect.bottom >= 0) {
+            hasTriggered = true
+            if (delay > 0) {
+              setTimeout(() => startAnimation(currentNumericValue), delay)
+            } else {
+              startAnimation(currentNumericValue)
+            }
 
-          if (observer && elementRef.value) {
-            observer.unobserve(elementRef.value)
-            observer.disconnect()
-            observer = null
+            if (observer && elementRef.value) {
+              observer.unobserve(elementRef.value)
+              observer.disconnect()
+              observer = null
+            }
           }
         }
       }, {
@@ -241,9 +222,20 @@ export function useAnimatedCounter(targetValue, optionsOrDuration = {}) {
         rootMargin
       })
 
-      observer.observe(elementRef.value)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (elementRef.value && observer) {
+            const rect = elementRef.value.getBoundingClientRect()
+            if (rect.top <= window.innerHeight - 30 && rect.bottom >= 0 && !hasTriggered) {
+              hasTriggered = true
+              startAnimation(currentNumericValue)
+            } else {
+              observer.observe(elementRef.value)
+            }
+          }
+        })
+      })
     } else {
-      // If ref is not bound, fallback to immediate start
       hasTriggered = true
       startAnimation(startValue)
     }
@@ -260,12 +252,6 @@ export function useAnimatedCounter(targetValue, optionsOrDuration = {}) {
       const meta = parseCounterValue(newVal)
       if (!meta) {
         displayValue.value = newVal !== null && newVal !== undefined ? String(newVal) : ''
-        return
-      }
-
-      if (isReducedMotion()) {
-        displayValue.value = formatCounterNumber(meta.targetNum, meta)
-        currentNumericValue = meta.targetNum
         return
       }
 
