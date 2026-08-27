@@ -6,11 +6,12 @@
     :type="!to && !href ? type : undefined"
     :disabled="disabled || loading"
     :class="[
-      'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 select-none active:scale-[0.98]',
+      'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 select-none active:scale-[0.97] hover-lift btn-press',
       sizeClasses[size] || sizeClasses.md,
       variantClasses[variant] || variantClasses.primary,
       roundedClasses[rounded] || roundedClasses.md,
-      (disabled || loading) ? 'opacity-60 cursor-not-allowed pointer-events-none active:scale-100' : '',
+      shimmer ? 'btn-shimmer' : '',
+      (disabled || loading) ? 'opacity-60 cursor-not-allowed pointer-events-none active:scale-100 hover:transform-none' : '',
       block ? 'w-full' : '',
     ]"
     @click="$emit('click', $event)"
@@ -66,6 +67,10 @@ defineProps({
     type: String,
     default: 'md',
     validator: (r) => ['none', 'sm', 'md', 'lg', 'xl', '2xl', 'full'].includes(r),
+  },
+  shimmer: {
+    type: Boolean,
+    default: false,
   },
   type: {
     type: String,

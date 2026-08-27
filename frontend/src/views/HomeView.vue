@@ -158,10 +158,10 @@
         </div>
         <router-link
           to="/colleges"
-          class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors shrink-0 group"
+          class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-gold-600 transition-colors shrink-0 action-link"
         >
           <span>{{ $t('home.viewAllColleges') }}</span>
-          <svg class="w-4 h-4 rtl-flip transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 rtl-flip action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
           </svg>
         </router-link>
@@ -184,7 +184,7 @@
             />
             <div class="absolute inset-0 bg-gradient-to-t from-navy-950/90 via-navy-950/40 to-transparent"></div>
             <div class="absolute top-4 start-4">
-              <Badge variant="gold" size="sm" rounded="full">
+              <Badge variant="gold" size="sm" rounded="full" class="badge-pulse-glow">
                 {{ college.programs_count }} {{ $t('colleges.programsCount') }}
               </Badge>
             </div>
@@ -208,10 +208,10 @@
               </div>
               <router-link
                 :to="`/colleges/${college.slug}`"
-                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1 group/btn"
+                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1 action-link"
               >
                 <span>{{ $t('common.viewDetails') }}</span>
-                <svg class="w-3.5 h-3.5 rtl-flip transform group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 rtl-flip action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </router-link>
@@ -238,10 +238,10 @@
           </div>
           <router-link
             to="/programs"
-            class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-emerald-600 transition-colors shrink-0 group"
+            class="inline-flex items-center gap-1.5 text-sm font-bold text-navy-900 hover:text-emerald-600 transition-colors shrink-0 action-link"
           >
             <span>{{ $t('home.viewAllPrograms') }}</span>
-            <svg class="w-4 h-4 rtl-flip transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 rtl-flip action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </router-link>
@@ -277,10 +277,10 @@
             <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
               <router-link
                 :to="`/programs/${program.slug}`"
-                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1 group/btn"
+                class="text-xs font-bold text-navy-900 hover:text-gold-600 transition-colors inline-flex items-center gap-1 action-link"
               >
                 <span>{{ $t('programs.curriculum') }}</span>
-                <svg class="w-3 h-3 rtl-flip transform group-hover/btn:translate-x-1 rtl:group-hover/btn:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3 h-3 rtl-flip action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </router-link>
@@ -288,7 +288,7 @@
               <router-link
                 v-if="modulesStore.isModuleEnabled('admissions')"
                 :to="`/admissions?program_id=${program.id}`"
-                class="px-3 py-1.5 text-xs font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 rounded-lg transition-colors hover-lift btn-press"
+                class="px-3.5 py-1.5 text-xs font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 rounded-lg transition-colors hover-lift btn-press btn-shimmer"
               >
                 {{ $t('programs.applyForProgram') }}
               </router-link>
