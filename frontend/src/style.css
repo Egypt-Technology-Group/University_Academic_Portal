@@ -63,6 +63,90 @@
   .bg-gold-gradient {
     background: linear-gradient(135deg, #D4AF37 0%, #C59B27 100%);
   }
+
+  /* Reveal Animations & Transitions */
+  .reveal-init {
+    opacity: 0;
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+
+  .reveal-fade-up {
+    transform: translateY(24px);
+  }
+
+  .reveal-fade-in {
+    transform: translateY(0);
+  }
+
+  .reveal-slide-start {
+    transform: translateX(-30px);
+  }
+  [dir="rtl"] .reveal-slide-start {
+    transform: translateX(30px);
+  }
+
+  .reveal-slide-end {
+    transform: translateX(30px);
+  }
+  [dir="rtl"] .reveal-slide-end {
+    transform: translateX(-30px);
+  }
+
+  .reveal-zoom-in {
+    transform: scale(0.92);
+  }
+
+  .reveal-scale-up {
+    transform: scale(0.95) translateY(16px);
+  }
+
+  .reveal-active {
+    opacity: 1 !important;
+    transform: translateY(0) translateX(0) scale(1) !important;
+  }
+
+  /* Stagger Delays */
+  .delay-100 { transition-delay: 100ms; }
+  .delay-200 { transition-delay: 200ms; }
+  .delay-300 { transition-delay: 300ms; }
+  .delay-400 { transition-delay: 400ms; }
+  .delay-500 { transition-delay: 500ms; }
+  .delay-600 { transition-delay: 600ms; }
+
+  /* Micro-interactions & Hover Effects */
+  .hover-lift {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px -4px rgba(10, 37, 64, 0.15);
+  }
+
+  .card-interactive {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease;
+  }
+  .card-interactive:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px -4px rgba(10, 37, 64, 0.12), 0 4px 12px -2px rgba(10, 37, 64, 0.06);
+    border-color: rgba(212, 175, 55, 0.4);
+  }
+
+  .btn-press {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-press:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-init {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
 
 /* Print Styles for Transcripts and Application Receipts */
