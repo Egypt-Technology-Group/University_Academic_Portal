@@ -1,5 +1,8 @@
 <template>
-  <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-shadow relative overflow-hidden group flex flex-col justify-between">
+  <div
+    ref="elementRef"
+    class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md hover-lift transition-all duration-300 relative overflow-hidden group flex flex-col justify-between"
+  >
     <div class="flex items-center justify-between">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
         {{ label }}
@@ -16,7 +19,7 @@
 
     <div class="mt-4 flex items-baseline justify-between gap-2">
       <span class="text-3xl font-black text-navy-950 font-mono">
-        {{ value }}
+        {{ displayValue }}
       </span>
       <span
         v-if="badge"
@@ -35,7 +38,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, toRef } from 'vue'
+import { useAnimatedCounter } from '../../composables/useAnimatedCounter'
 
 const props = defineProps({
   label: {
@@ -67,6 +71,8 @@ const props = defineProps({
     default: ''
   }
 })
+
+const { displayValue, elementRef } = useAnimatedCounter(toRef(props, 'value'))
 
 const iconContainerClass = computed(() => {
   switch (props.variant) {

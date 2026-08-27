@@ -1,5 +1,8 @@
 <template>
-  <div class="bg-white rounded-xl p-4 border border-slate-200/80 flex items-center gap-3.5 shadow-2xs hover:border-slate-300 transition-colors">
+  <div
+    ref="elementRef"
+    class="bg-white rounded-xl p-4 border border-slate-200/80 flex items-center gap-3.5 shadow-2xs hover:border-slate-300 hover-lift transition-all duration-300"
+  >
     <div
       class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
       :class="iconBgClass"
@@ -10,13 +13,14 @@
     </div>
     <div class="min-w-0 flex-1">
       <div class="text-xs text-slate-500 font-medium truncate">{{ label }}</div>
-      <div class="text-lg font-black text-navy-950 font-mono leading-tight mt-0.5">{{ value }}</div>
+      <div class="text-lg font-black text-navy-950 font-mono leading-tight mt-0.5">{{ displayValue }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, toRef } from 'vue'
+import { useAnimatedCounter } from '../../composables/useAnimatedCounter'
 
 const props = defineProps({
   label: {
@@ -36,6 +40,8 @@ const props = defineProps({
     default: 'slate' // slate, navy, gold, emerald, blue, amber
   }
 })
+
+const { displayValue, elementRef } = useAnimatedCounter(toRef(props, 'value'))
 
 const iconBgClass = computed(() => {
   switch (props.color) {
