@@ -10,7 +10,7 @@
       >
         <!-- Backdrop -->
         <div
-          class="fixed inset-0 bg-navy-950/70 backdrop-blur-sm transition-opacity"
+          class="modal-backdrop fixed inset-0 bg-navy-950/70 backdrop-blur-sm"
           @click="closeOnBackdrop && close()"
         ></div>
 
@@ -20,7 +20,7 @@
             ref="modalContainer"
             tabindex="-1"
             :class="[
-              'relative transform overflow-hidden rounded-2xl sm:rounded-3xl bg-white text-start shadow-2xl transition-all w-full my-2 sm:my-8 border border-slate-100 flex flex-col focus:outline-none',
+              'modal-panel relative transform overflow-hidden rounded-2xl sm:rounded-3xl bg-white text-start shadow-2xl w-full my-2 sm:my-8 border border-slate-100 flex flex-col focus:outline-none',
               maxWidthClasses[size || maxWidth] || maxWidthClasses.lg,
             ]"
             @click.stop
@@ -180,11 +180,45 @@ onUnmounted(() => {
 <style scoped>
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-active .modal-backdrop,
+.modal-leave-active .modal-backdrop {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-active .modal-panel,
+.modal-leave-active .modal-panel {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+}
+
+.modal-enter-from .modal-backdrop,
+.modal-leave-to .modal-backdrop {
+  opacity: 0;
+}
+
+.modal-enter-from .modal-panel,
+.modal-leave-to .modal-panel {
+  opacity: 0;
+  transform: translateY(1rem) scale(0.95);
+}
+
+@media (min-width: 640px) {
+  .modal-enter-from .modal-panel,
+  .modal-leave-to .modal-panel {
+    transform: translateY(0) scale(0.95);
+  }
+}
+
+.modal-enter-to .modal-panel,
+.modal-leave-from .modal-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 </style>

@@ -10,7 +10,7 @@
       sizeClasses[size] || sizeClasses.md,
       variantClasses[variant] || variantClasses.primary,
       roundedClasses[rounded] || roundedClasses.md,
-      (disabled || loading) ? 'opacity-60 cursor-not-allowed pointer-events-none' : '',
+      (disabled || loading) ? 'opacity-60 cursor-not-allowed pointer-events-none active:scale-100' : '',
       block ? 'w-full' : '',
     ]"
     @click="$emit('click', $event)"
@@ -113,13 +113,13 @@ const roundedClasses = {
 }
 
 const variantClasses = {
-  primary: 'bg-navy-900 text-white hover:bg-navy-800 focus:ring-navy-800 shadow-sm border border-navy-900',
+  primary: 'bg-navy-900 text-white hover:bg-navy-800 focus:ring-navy-800 shadow-sm border border-navy-900 hover:shadow-md hover:shadow-navy-900/20',
   secondary: 'bg-navy-50 text-navy-900 hover:bg-navy-100 focus:ring-navy-400 border border-navy-200',
-  gold: 'bg-gold-500 text-navy-950 hover:bg-gold-400 focus:ring-gold-400 font-semibold shadow-gold-glow border border-gold-400',
-  emerald: 'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500 shadow-sm border border-emerald-600',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm',
+  gold: 'bg-gold-500 text-navy-950 hover:bg-gold-400 focus:ring-gold-400 font-semibold shadow-gold-glow border border-gold-400 hover:shadow-md hover:shadow-gold-500/25',
+  emerald: 'bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500 shadow-sm border border-emerald-600 hover:shadow-md hover:shadow-emerald-600/20',
+  danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm hover:shadow-md hover:shadow-red-600/20',
   outline: 'bg-transparent text-navy-900 border-2 border-navy-900 hover:bg-navy-900 hover:text-white focus:ring-navy-900',
   ghost: 'bg-transparent text-slate-700 hover:bg-slate-100 hover:text-navy-900 focus:ring-slate-300',
-  white: 'bg-white text-navy-950 hover:bg-slate-100 focus:ring-white shadow-md border border-slate-100',
+  white: 'bg-white text-navy-950 hover:bg-slate-100 focus:ring-white shadow-md border border-slate-100 hover:shadow-lg',
 }
 </script>

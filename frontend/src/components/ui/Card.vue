@@ -1,8 +1,8 @@
 <template>
   <div
     :class="[
-      'bg-white rounded-2xl border border-slate-200/80 transition-all duration-300 overflow-hidden flex flex-col',
-      hover ? 'hover:shadow-academic-lg hover:-translate-y-1 hover:border-slate-300' : 'shadow-academic',
+      'bg-white rounded-2xl border border-slate-200/80 transition-all duration-300 ease-out overflow-hidden flex flex-col',
+      hover ? 'hover:shadow-academic-lg hover:-translate-y-1 hover:border-slate-300/80' : 'shadow-academic',
       paddingClasses[padding] || paddingClasses.md,
       customClass,
     ]"
