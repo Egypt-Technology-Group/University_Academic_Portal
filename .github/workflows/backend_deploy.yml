@@ -256,7 +256,7 @@ jobs:
             --silent \
             --show-error \
             --max-time 120 \
-            https://university-backend.demo.egyitech.com/deploy.php
+            https://university-backend.demo.egyitech.com/public/deploy.php
 
       # ============================================
       # 12. Done
