@@ -246,9 +246,9 @@ jobs:
           sleep 180
 
       # ============================================
-      # 11. Run server-side deployment preparation
+      # 11. Verify Laravel's registered health route
       # ============================================
-      - name: Run deployment helper
+      - name: Verify backend health
         run: |
           curl \
             --insecure \
@@ -256,7 +256,7 @@ jobs:
             --silent \
             --show-error \
             --max-time 120 \
-            https://university-backend.demo.egyitech.com/public/deploy.php
+            https://university-backend.demo.egyitech.com/up
 
       # ============================================
       # 12. Done
