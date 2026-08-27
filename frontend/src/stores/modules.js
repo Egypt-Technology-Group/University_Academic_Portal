@@ -8,14 +8,17 @@
 import { defineStore } from 'pinia'
 import { modulesApi } from '../services/modulesApi'
 import { moduleRegistry } from '../core/modules/moduleRegistry'
+import { apiCache } from '../services/apiCache'
 
 const MANIFEST_CACHE_KEY = 'egyitech_modules_manifest_v1'
 
 let manifestInFlightPromise = null
+let adminModulesInFlightPromise = null
 
 export const useModulesStore = defineStore('modules', {
   state: () => {
     let cachedEnabled = null
+    let cachedTimestamp = null
     let hasValidCache = false
 
     try {
@@ -24,6 +27,7 @@ export const useModulesStore = defineStore('modules', {
         const parsed = JSON.parse(raw)
         if (Array.isArray(parsed?.enabledIds)) {
           cachedEnabled = parsed.enabledIds
+          cachedTimestamp = Number(parsed.timestamp) || null
           hasValidCache = true
         }
       }
@@ -40,7 +44,7 @@ export const useModulesStore = defineStore('modules', {
       error: null,
       conflictError: null,
       initialized: hasValidCache,
-      lastFetched: null,
+      lastFetched: cachedTimestamp,
     }
   },
 
@@ -130,6 +134,7 @@ export const useModulesStore = defineStore('modules', {
           if (Array.isArray(cached?.enabledIds)) {
             this.enabledIds = cached.enabledIds
             this.initialized = true
+            this.lastFetched = Number(cached.timestamp) || null
           }
         }
       } catch (err) {
@@ -149,7 +154,7 @@ export const useModulesStore = defineStore('modules', {
         return this.enabledIds
       }
 
-      if (manifestInFlightPromise && !force) {
+      if (manifestInFlightPromise) {
         return manifestInFlightPromise
       }
 
@@ -198,7 +203,7 @@ export const useModulesStore = defineStore('modules', {
      * Ensure module state is ready before route execution without duplicate blocking calls.
      */
     async ensureLoaded() {
-      if (this.initialized) {
+      if (this.initialized && this.lastFetched) {
         // Run background non-blocking manifest freshness sync if cache is stale
         if (Date.now() - (this.lastFetched || 0) >= 60000) {
           this.fetchManifest()
@@ -210,6 +215,32 @@ export const useModulesStore = defineStore('modules', {
       if (!this.initialized) {
         await this.fetchManifest()
       }
+    },
+
+    async fetchModules(force = false) {
+      if (adminModulesInFlightPromise && !force) {
+        return adminModulesInFlightPromise
+      }
+
+      adminModulesInFlightPromise = (async () => {
+        try {
+          const response = await modulesApi.getModules()
+          this.modules = Array.isArray(response?.data) ? response.data : []
+          const enabled = this.modules.filter((module) => module.is_enabled).map((module) => module.id)
+          this.enabledIds = enabled
+          this.initialized = true
+          this.lastFetched = Date.now()
+          localStorage.setItem(
+            MANIFEST_CACHE_KEY,
+            JSON.stringify({ enabledIds: enabled, timestamp: this.lastFetched })
+          )
+          return this.modules
+        } finally {
+          adminModulesInFlightPromise = null
+        }
+      })()
+
+      return adminModulesInFlightPromise
     },
 
     /**
@@ -249,6 +280,9 @@ export const useModulesStore = defineStore('modules', {
           )
         } catch (e) {
         }
+
+        this.lastFetched = Date.now()
+        apiCache.invalidate('public:')
 
         return response
       } catch (err) {

@@ -34,7 +34,7 @@ class ApiCache {
       this._cache.delete(key)
     }
 
-    if (!force && this._inFlight.has(key)) {
+    if (this._inFlight.has(key)) {
       return this._inFlight.get(key)
     }
 

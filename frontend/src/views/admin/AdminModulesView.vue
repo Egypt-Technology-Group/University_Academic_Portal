@@ -1022,8 +1022,6 @@ const handleToggleClick = async (mod) => {
     const successMsg = res?.message || t('admin.modules.toggleSuccess', { id: mod.id })
     toast.success(successMsg)
 
-    // Re-sync with backend
-    await modulesStore.fetchModules(true)
   } catch (err) {
     console.error(`[AdminModulesView] Error toggling module ${mod.id}:`, err)
     
@@ -1043,8 +1041,6 @@ const handleToggleClick = async (mod) => {
       toast.error(conflictMsg)
     }
 
-    // Refresh state to ensure UI matches reality
-    await modulesStore.fetchModules(true)
   } finally {
     togglingId.value = null
   }

@@ -17,6 +17,8 @@ class EntitlementManager
 
     protected VendorKeyProvider $keyProvider;
     protected ?array $cachedVerification = null;
+    /** @var array<string, bool>|null */
+    protected ?array $cachedLicensedModuleIds = null;
 
     public function __construct(?VendorKeyProvider $keyProvider = null)
     {
@@ -107,6 +109,7 @@ class EntitlementManager
         } catch (\Throwable $e) {
         }
 
+        $this->cachedLicensedModuleIds = null;
         $this->cachedVerification = $verification['data'];
 
         return true;
@@ -124,23 +127,50 @@ class EntitlementManager
      */
     public function isModuleEntitled(string $moduleKey): bool
     {
+        $normalizedKey = $this->normalizeModuleKey($moduleKey);
+        return isset($this->getLicensedModuleIds()[$normalizedKey]);
+    }
+
+    /**
+     * Return the verified license's normalized module lookup once per request.
+     *
+     * @return array<string, bool>
+     */
+    public function getLicensedModuleIds(): array
+    {
+        if ($this->cachedLicensedModuleIds !== null) {
+            return $this->cachedLicensedModuleIds;
+        }
+
         $active = $this->getActiveEntitlement();
-        if (!$active) {
-            return false;
-        }
-
         $licensed = $active['licensed_modules'] ?? [];
-        if (!is_array($licensed) || empty($licensed)) {
-            return false;
+        if (!is_array($licensed)) {
+            return $this->cachedLicensedModuleIds = [];
         }
 
-        $normalizedKey = str_replace('_', '-', strtolower(trim($moduleKey)));
-        $normalizedLicensed = array_map(
-            fn(string $m) => str_replace('_', '-', strtolower(trim($m))),
-            $licensed
-        );
+        $this->cachedLicensedModuleIds = [];
+        foreach ($licensed as $moduleKey) {
+            if (is_string($moduleKey) && trim($moduleKey) !== '') {
+                $this->cachedLicensedModuleIds[$this->normalizeModuleKey($moduleKey)] = true;
+            }
+        }
 
-        return in_array($normalizedKey, $normalizedLicensed, true);
+        return $this->cachedLicensedModuleIds;
+    }
+
+    /**
+     * Return the normalized licensed module IDs as a list.
+     *
+     * @return string[]
+     */
+    public function getLicensedModuleIdList(): array
+    {
+        return array_keys($this->getLicensedModuleIds());
+    }
+
+    protected function normalizeModuleKey(string $moduleKey): string
+    {
+        return str_replace('_', '-', strtolower(trim($moduleKey)));
     }
 
     /**
@@ -204,6 +234,7 @@ class EntitlementManager
     public function resetCache(): void
     {
         $this->cachedVerification = null;
+        $this->cachedLicensedModuleIds = null;
         try {
             Cache::forget(self::CACHE_KEY);
             Cache::forget('app_modules_public_manifest_ar');

@@ -84,7 +84,7 @@ class ModuleManager
      */
     public function isEnabled(string $id): bool
     {
-        return in_array($id, $this->getEnabledIds(), true) && $this->entitlementManager->isModuleEntitled($id);
+        return in_array($id, $this->getEnabledIds(), true);
     }
 
     /**
@@ -108,7 +108,7 @@ class ModuleManager
         $enabledModules = [];
 
         foreach ($enabledIds as $id) {
-            if (isset($this->modules[$id]) && $this->entitlementManager->isModuleEntitled($id)) {
+            if (isset($this->modules[$id])) {
                 $enabledModules[$id] = $this->modules[$id];
             }
         }
@@ -135,19 +135,32 @@ class ModuleManager
     public function getEnabledIds(): array
     {
         if ($this->enabledModuleIds !== null) {
-            return array_values(array_filter(
-                $this->enabledModuleIds,
-                fn(string $id) => $this->entitlementManager->isModuleEntitled($id)
-            ));
+            return $this->enabledModuleIds;
         }
 
         $rawIds = $this->loadEnabledState();
+        $entitled = array_fill_keys($this->getEntitledModuleIds(), true);
         $this->enabledModuleIds = array_values(array_filter(
-            $rawIds,
-            fn(string $id) => $this->entitlementManager->isModuleEntitled($id)
+            array_values(array_unique($rawIds)),
+            fn(string $id) => isset($entitled[$this->normalizeModuleKey($id)])
         ));
 
         return $this->enabledModuleIds;
+    }
+
+    /**
+     * Return the active license's normalized module IDs.
+     *
+     * @return string[]
+     */
+    public function getEntitledModuleIds(): array
+    {
+        return $this->entitlementManager->getLicensedModuleIdList();
+    }
+
+    protected function normalizeModuleKey(string $id): string
+    {
+        return str_replace('_', '-', strtolower(trim($id)));
     }
 
     /**

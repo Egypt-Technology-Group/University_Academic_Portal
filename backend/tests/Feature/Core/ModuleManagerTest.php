@@ -372,4 +372,24 @@ class ModuleManagerTest extends TestCase
         $this->assertFalse($freshAdmissions->isEnabled());
         $this->assertEquals(['academic-structure'], $freshManager->getEnabledIds());
     }
+
+    public function test_repeated_enabled_checks_reuse_the_verified_entitlement_snapshot(): void
+    {
+        $academic = new TestAcademicModule();
+        $admissions = new TestAdmissionsModule();
+
+        $this->manager->register($academic);
+        $this->manager->register($admissions);
+        $this->manager->enable('academic-structure');
+
+        $first = $this->manager->getEnabledIds();
+        $second = $this->manager->getEnabledIds();
+
+        $this->assertSame(['academic-structure'], $first);
+        $this->assertSame($first, $second);
+        $this->assertContains('academic-structure', $this->manager->getEntitledModuleIds());
+        $this->assertContains('admissions', $this->manager->getEntitledModuleIds());
+        $this->assertTrue($this->manager->isEnabled('academic-structure'));
+        $this->assertFalse($this->manager->isEnabled('admissions'));
+    }
 }

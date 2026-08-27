@@ -25,6 +25,7 @@ class ModuleManagementController extends Controller
     {
         $locale = $request->header('X-App-Locale', $request->get('locale', app()->getLocale() ?: 'ar'));
         $modules = $this->moduleManager->all();
+        $entitledIds = array_fill_keys($this->moduleManager->getEntitledModuleIds(), true);
 
         $data = [];
         foreach ($modules as $id => $module) {
@@ -47,7 +48,7 @@ class ModuleManagementController extends Controller
                 'version' => $module->getVersion(),
                 'dependencies' => $module->getDependencies(),
                 'owned_tables' => $module->getOwnedTables(),
-                'is_entitled' => $this->moduleManager->getEntitlementManager()->isModuleEntitled($id),
+                'is_entitled' => isset($entitledIds[str_replace('_', '-', strtolower(trim($id)))]),
                 'is_enabled' => $isEnabled,
                 'can_enable' => $canEnable['can_enable'],
                 'can_disable' => $canDisable['can_disable'],
@@ -76,6 +77,7 @@ class ModuleManagementController extends Controller
 
         $payload = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($locale) {
             $enabledIds = $this->moduleManager->getEnabledIds();
+            $entitledIds = array_fill_keys($this->moduleManager->getEntitledModuleIds(), true);
             $modules = [];
             foreach ($this->moduleManager->all() as $id => $module) {
                 $isEnabled = in_array($id, $enabledIds, true);
@@ -87,7 +89,7 @@ class ModuleManagementController extends Controller
                     ],
                     'display_name' => $module->getName($locale),
                     'is_enabled' => $isEnabled,
-                    'is_entitled' => $this->moduleManager->getEntitlementManager()->isModuleEntitled($id),
+                    'is_entitled' => isset($entitledIds[str_replace('_', '-', strtolower(trim($id)))]),
                 ];
             }
 

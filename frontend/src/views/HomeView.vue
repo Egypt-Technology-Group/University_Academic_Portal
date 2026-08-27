@@ -512,6 +512,7 @@ import { useLocaleStore } from '../stores/locale'
 import { useSettingsStore } from '../stores/settings'
 import { useModulesStore } from '../stores/modules'
 import { api, getTranslated } from '../services/api'
+import { apiCache } from '../services/apiCache'
 import { formatStandardDate, getLocalizedMonth, getLocalizedDay } from '../utils/dateFormat'
 import Button from '../components/ui/Button.vue'
 import Badge from '../components/ui/Badge.vue'
@@ -569,23 +570,29 @@ const getEventMonth = (dateStr) => getLocalizedMonth(dateStr, localeStore.locale
 const getEventDay = (dateStr) => getLocalizedDay(dateStr)
 
 onMounted(async () => {
-  // Non-blocking parallel data fetching strictly for enabled modules
+  // Module state is the only prerequisite. Once resolved, all public datasets
+  // start together and share their browser cache with other consumers.
+  await modulesStore.ensureLoaded()
   const tasks = []
 
   if (modulesStore.isModuleEnabled('academic-structure')) {
-    tasks.push(api.getColleges().then((res) => { colleges.value = res || [] }).catch(() => {}))
-    tasks.push(api.getPrograms().then((res) => { programs.value = res || [] }).catch(() => {}))
+    tasks.push(apiCache.getOrFetch('public:colleges', () => api.getColleges(), 60000)
+      .then((res) => { colleges.value = res || [] }).catch(() => {}))
+    tasks.push(apiCache.getOrFetch('public:programs', () => api.getPrograms(), 60000)
+      .then((res) => { programs.value = res || [] }).catch(() => {}))
   }
 
   if (modulesStore.isModuleEnabled('cms')) {
-    tasks.push(api.getNews({ per_page: 3 }).then((res) => { news.value = res || [] }).catch(() => {}))
+    tasks.push(apiCache.getOrFetch('public:news:home', () => api.getNews({ per_page: 3 }), 60000)
+      .then((res) => { news.value = res || [] }).catch(() => {}))
   }
 
   if (modulesStore.isModuleEnabled('events')) {
-    tasks.push(api.getEvents().then((res) => { events.value = res || [] }).catch(() => {}))
+    tasks.push(apiCache.getOrFetch('public:events:home', () => api.getEvents(), 60000)
+      .then((res) => { events.value = res || [] }).catch(() => {}))
   }
 
-  Promise.allSettled(tasks)
+  await Promise.allSettled(tasks)
 
   // Auto rotate slides every 6s
   sliderTimer = setInterval(() => {
