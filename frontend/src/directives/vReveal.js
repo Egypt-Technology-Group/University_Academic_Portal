@@ -1,8 +1,8 @@
 /**
  * v-reveal Scroll Reveal Vue 3 Directive
  *
- * Provides smooth, reliable viewport-entry animations utilizing IntersectionObserver.
- * Ensures animations ONLY trigger when elements genuinely enter the user's viewport on scroll.
+ * Provides bidirectional viewport scroll animations (animate in when entering viewport,
+ * animate out when exiting viewport on scroll up/down).
  */
 
 const ANIMATION_TYPES = [
@@ -41,19 +41,23 @@ function getSharedObserver() {
     sharedObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const rect = entry.target.getBoundingClientRect()
-            if (rect.top <= window.innerHeight - 30 && rect.bottom >= 0) {
-              entry.target.classList.add('reveal-active')
-              sharedObserver.unobserve(entry.target)
-            }
+          const rect = entry.target.getBoundingClientRect()
+          const isVisibleInView =
+            entry.isIntersecting &&
+            rect.top <= window.innerHeight - 20 &&
+            rect.bottom >= 20
+
+          if (isVisibleInView) {
+            entry.target.classList.add('reveal-active')
+          } else {
+            entry.target.classList.remove('reveal-active')
           }
         })
       },
       {
         root: null,
         rootMargin: '0px 0px -40px 0px',
-        threshold: [0, 0.1]
+        threshold: [0, 0.1, 0.2]
       }
     )
   }
@@ -75,7 +79,7 @@ export const vReveal = {
     ) {
       animation = binding.value.animation
     } else if (binding.modifiers) {
-      const foundInModifiers = ANIMATION_TYPES.find(type => binding.modifiers[type])
+      const foundInModifiers = ANIMATION_TYPES.find((type) => binding.modifiers[type])
       if (foundInModifiers) {
         animation = foundInModifiers
       }
@@ -110,15 +114,14 @@ export const vReveal = {
       return
     }
 
-    // 5. Initial viewport check with double rAF for smooth entrance on load
+    // 5. Initial paint and observation
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const rect = el.getBoundingClientRect()
-        if (rect.top <= window.innerHeight - 30 && rect.bottom >= 0) {
+        if (rect.top <= window.innerHeight - 20 && rect.bottom >= 20) {
           el.classList.add('reveal-active')
-        } else {
-          observer.observe(el)
         }
+        observer.observe(el)
       })
     })
   },

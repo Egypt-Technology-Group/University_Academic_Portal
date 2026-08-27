@@ -3,8 +3,8 @@
     <Breadcrumbs :items="[{ label: $t('programs.title') }]" />
 
     <!-- Header Banner -->
-    <div class="text-center max-w-3xl mx-auto space-y-3">
-      <Badge variant="emerald" size="md" rounded="full">
+    <div v-reveal.fade-up class="text-center max-w-3xl mx-auto space-y-3">
+      <Badge variant="emerald" size="md" rounded="full" class="animate-pulse-subtle">
         {{ $t('programs.allDegrees') }}
       </Badge>
       <h1 class="text-3xl sm:text-4xl font-black text-navy-950">
@@ -16,7 +16,7 @@
     </div>
 
     <!-- Filter & Search Bar -->
-    <div class="bg-white p-6 rounded-2xl shadow-academic border border-slate-200/80 space-y-4">
+    <div v-reveal.fade-up.delay-100 class="bg-white p-6 rounded-2xl shadow-academic border border-slate-200/80 space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
         <!-- Search Input -->
         <div class="md:col-span-6 relative">
@@ -71,22 +71,29 @@
       @retry="loadProgramsData"
     />
 
-    <div v-else-if="filteredPrograms.length === 0" class="text-center py-16 bg-white rounded-2xl border border-slate-200 space-y-3">
-      <svg class="w-12 h-12 text-slate-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <p class="text-slate-600 font-semibold">{{ $t('programs.noProgramsFound') }}</p>
-      <Button variant="ghost" size="sm" @click="resetFilters">
+    <div v-else-if="filteredPrograms.length === 0" class="text-center py-16 bg-white rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+      <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto text-slate-400">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l9-5-9-5-9 5 9 5z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-navy-950">{{ $t('programs.noProgramsFound') }}</h3>
+        <p class="text-xs text-slate-500 mt-1">{{ $t('programs.noProgramsFoundSub') }}</p>
+      </div>
+      <Button variant="outline" size="sm" @click="resetFilters">
         {{ $t('common.all') }}
       </Button>
     </div>
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <Card
-        v-for="program in filteredPrograms"
+        v-for="(program, index) in filteredPrograms"
         :key="program.id"
+        v-reveal.fade-up
+        :class="['flex flex-col justify-between card-interactive hover:border-gold-300', 'delay-' + Math.min((index % 6 + 1) * 100, 600)]"
         padding="lg"
-        class="flex flex-col justify-between hover:border-gold-300"
       >
         <div class="space-y-3">
           <div class="flex items-center justify-between gap-2">

@@ -200,22 +200,25 @@ export function useAnimatedCounter(targetValue, optionsOrDuration = {}) {
     if (elementRef.value) {
       observer = new IntersectionObserver((entries) => {
         const entry = entries[0]
-        if (entry && entry.isIntersecting && !hasTriggered) {
-          const rect = entry.target.getBoundingClientRect()
-          if (rect.top <= window.innerHeight - 30 && rect.bottom >= 0) {
-            hasTriggered = true
-            if (delay > 0) {
-              setTimeout(() => startAnimation(currentNumericValue), delay)
-            } else {
-              startAnimation(currentNumericValue)
-            }
+        const rect = entry ? entry.target.getBoundingClientRect() : null
+        const inView = entry && entry.isIntersecting && rect && rect.top <= window.innerHeight - 20 && rect.bottom >= 20
 
-            if (observer && elementRef.value) {
-              observer.unobserve(elementRef.value)
-              observer.disconnect()
-              observer = null
+        if (inView) {
+          if (!hasTriggered) {
+            hasTriggered = true
+            const initialRaw = getRawValue()
+            const initialMeta = parseCounterValue(initialRaw)
+            if (initialMeta) {
+              displayValue.value = formatCounterNumber(startValue, initialMeta)
+            }
+            if (delay > 0) {
+              setTimeout(() => startAnimation(startValue), delay)
+            } else {
+              startAnimation(startValue)
             }
           }
+        } else {
+          hasTriggered = false
         }
       }, {
         threshold,
@@ -226,12 +229,11 @@ export function useAnimatedCounter(targetValue, optionsOrDuration = {}) {
         requestAnimationFrame(() => {
           if (elementRef.value && observer) {
             const rect = elementRef.value.getBoundingClientRect()
-            if (rect.top <= window.innerHeight - 30 && rect.bottom >= 0 && !hasTriggered) {
+            if (rect.top <= window.innerHeight - 20 && rect.bottom >= 20 && !hasTriggered) {
               hasTriggered = true
-              startAnimation(currentNumericValue)
-            } else {
-              observer.observe(elementRef.value)
+              startAnimation(startValue)
             }
+            observer.observe(elementRef.value)
           }
         })
       })

@@ -3,8 +3,8 @@
     <Breadcrumbs :items="[{ label: $t('colleges.title') }]" />
 
     <!-- Header Banner -->
-    <div class="text-center max-w-3xl mx-auto space-y-3">
-      <Badge variant="gold" size="md" rounded="full">
+    <div v-reveal.fade-up class="text-center max-w-3xl mx-auto space-y-3">
+      <Badge variant="gold" size="md" rounded="full" class="animate-pulse-subtle">
         {{ $t('app.shortName') }}
       </Badge>
       <h1 class="text-3xl sm:text-4xl font-black text-navy-950">
@@ -28,10 +28,11 @@
 
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       <Card
-        v-for="college in colleges"
+        v-for="(college, index) in colleges"
         :key="college.id"
+        v-reveal.fade-up
+        :class="['group flex flex-col justify-between card-interactive', 'delay-' + Math.min((index % 6 + 1) * 100, 600)]"
         padding="none"
-        class="group flex flex-col justify-between"
       >
         <!-- College Image -->
         <div class="relative h-52 overflow-hidden bg-navy-950">
