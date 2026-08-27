@@ -302,7 +302,7 @@
     <section class="max-w-7xl mx-auto px-4 sm:px-8">
       <div class="bg-white rounded-3xl p-8 sm:p-12 shadow-academic border border-slate-200/80">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div v-reveal.slide-start class="lg:col-span-4 text-center">
+          <div v-reveal.zoom-in class="lg:col-span-4 text-center">
             <div class="relative inline-block group">
               <img
                 :src="settingsStore.presidentAvatar"
@@ -319,7 +319,7 @@
             <p class="text-xs text-slate-500">Ph.D., Senior Member IEEE</p>
           </div>
 
-          <div v-reveal.slide-end.delay-200 class="lg:col-span-8 space-y-4 text-start">
+          <div v-reveal.fade-up.delay-200 class="lg:col-span-8 space-y-4 text-start">
             <div class="inline-flex items-center gap-2 text-gold-600 text-xs font-bold uppercase tracking-wider">
               <span>❝</span> {{ $t('home.presidentMessage') }}
             </div>
@@ -450,8 +450,8 @@
         <div
           v-for="(event, index) in events.slice(0, 2)"
           :key="event.id"
-          v-reveal="index === 0 ? 'slide-start' : 'slide-end'"
-          :class="['bg-white rounded-2xl p-6 shadow-academic border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-6 hover:shadow-academic-lg hover-lift transition-all duration-300', index === 1 ? 'delay-150' : '']"
+          v-reveal.fade-up
+          :class="['bg-white rounded-2xl p-6 shadow-academic border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-6 hover:shadow-academic-lg hover-lift transition-all duration-300', 'delay-' + Math.min((index + 1) * 100, 600)]"
         >
           <!-- Date Badge -->
           <div class="w-20 h-20 rounded-2xl bg-navy-900 text-white flex flex-col items-center justify-center shrink-0 border border-navy-800">
