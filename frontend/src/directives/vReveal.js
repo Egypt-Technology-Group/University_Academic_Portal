@@ -1,8 +1,9 @@
 /**
  * v-reveal Scroll Reveal Vue 3 Directive
  *
- * Provides bidirectional viewport scroll animations (animate in when entering viewport,
- * animate out when exiting viewport on scroll up/down).
+ * Standard, modern scroll-reveal animation system.
+ * Elements reveal smoothly when entering the viewport from any scroll direction,
+ * and re-arm when exiting to replay naturally on subsequent scrolls.
  */
 
 const ANIMATION_TYPES = [
@@ -42,21 +43,20 @@ function getSharedObserver() {
       (entries) => {
         entries.forEach((entry) => {
           const rect = entry.target.getBoundingClientRect()
-          const isVisibleInView =
-            entry.isIntersecting &&
-            rect.top <= window.innerHeight - 20 &&
-            rect.bottom >= 20
+          const winHeight = window.innerHeight
 
-          if (isVisibleInView) {
+          // In viewport threshold: element is visible on screen
+          if (entry.isIntersecting && rect.top <= winHeight - 30 && rect.bottom >= 10) {
             entry.target.classList.add('reveal-active')
-          } else {
+          } else if (rect.top > winHeight + 20 || rect.bottom < -40) {
+            // Out of viewport: silently reset so animation replays upon re-entering
             entry.target.classList.remove('reveal-active')
           }
         })
       },
       {
         root: null,
-        rootMargin: '0px 0px -40px 0px',
+        rootMargin: '40px 0px 40px 0px',
         threshold: [0, 0.1, 0.2]
       }
     )
@@ -114,11 +114,11 @@ export const vReveal = {
       return
     }
 
-    // 5. Initial paint and observation
+    // 5. Initial viewport check and continuous observation
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         const rect = el.getBoundingClientRect()
-        if (rect.top <= window.innerHeight - 20 && rect.bottom >= 20) {
+        if (rect.top <= window.innerHeight - 30 && rect.bottom >= 10) {
           el.classList.add('reveal-active')
         }
         observer.observe(el)
